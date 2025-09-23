@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ジャンプゲーム — 完全版（主人公画像版）</title>
+<title>ジャンプゲーム — 完全版（主人公画像版・着地修正）</title>
 <style>
   body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f8f8; display:flex; flex-direction:column; align-items:center; }
   h2 { margin:12px 0; }
@@ -17,7 +17,7 @@
 </style>
 </head>
 <body>
-<h2>ジャンプゲーム 🎈（主人公画像版）</h2>
+<h2>ジャンプゲーム 🎈（主人公画像版・着地修正）</h2>
 <div id="canvasWrap"><canvas id="game" width="400" height="300"></canvas></div>
 
 <div id="buttonArea">
@@ -67,18 +67,25 @@ class BGMPlayer {
 }
 
 /* =========================
-   ゲーム本体
+   グローバル設定（地面座標など）
    ========================= */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = canvas.width;
+
+// 地面の Y 座標を定数にする（ここを変えれば全て連動）
+const GROUND_Y = 270;
+// 障害物が地面付近（穴に落ちる直前）か判定するしきい値（以前の230相当）
+const OB_FALL_THRESHOLD = GROUND_Y - 40;
 
 const worldSpeedDefault = 2;
 let worldSpeed = worldSpeedDefault;
 const goalDistance = 1200;
 const goalScore = 30;
 
-// ゲーム状態（宣言）
+/* =========================
+   ゲーム本体 変数宣言
+   ========================= */
 let player, jumpStage, maxJumpStage, obstacles, explosions, holes;
 let fireworks; // 花火パーティクル
 let score, gameOver, spawnTimer, holeTimer, gameTime, hp, invincible, flash;
@@ -87,15 +94,15 @@ let goalLine = null;
 let gameClear = false;
 let loopStarted = false;
 
-// プレイヤー画像（同じサイズ：20）
+/* プレイヤー画像（同じサイズ：player.size で描画） */
 const playerImage = new Image();
-playerImage.src = "characters/hero.png"; // ←ここに画像を置いてください（相対パス）
+playerImage.src = "characters/hero.png"; // ここに画像を置いてください（相対パス）
 
-// BGM / SE パス（必要なファイルを配置）
+/* BGM / SE パス（必要なファイルを配置） */
 const bgmPlayer = new BGMPlayer("sounds/BGM/a.mp3", {volume:0.05, loop:true});
 const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
 
-// メッセージ表示
+/* メッセージ表示ユーティリティ */
 const msgBox = document.getElementById('msg');
 function showMsg(text, ms=1800){
   msgBox.textContent = text;
@@ -106,8 +113,9 @@ function showMsg(text, ms=1800){
 
 /* ---------- 初期化 ---------- */
 function resetGameState(){
-  // player.size を 20 にして、画像表示時も同じサイズになるようにする
-  player = { x:50, y:250, vy:0, size:20, falling:false };
+  // player.size を変えても、y は地面と一致するように GROUND_Y - size を使う
+  const initialSize = 30; // ここを変更すればキャラの描画サイズを変えられます
+  player = { x:50, y: GROUND_Y - initialSize, vy:0, size: initialSize, falling:false };
   jumpStage = 0; maxJumpStage = 2;
   obstacles = []; explosions = []; holes = [];
   fireworks = [];
@@ -117,13 +125,13 @@ function resetGameState(){
   distance = 0; goalLine = null; gameClear = false; gameOver = false;
   worldSpeed = worldSpeedDefault;
 
-  // mountains/clouds 初期位置を元に戻す（安定化）
+  // reset environment positions
   mountains[0].x = 0; mountains[1].x = W;
   clouds[0].x = 80; clouds[1].x = 220; clouds[2].x = 340;
 }
 
 /* =========================
-   花火パーティクル
+   花火（パーティクル）
    ========================= */
 function spawnFireworks(cx, cy, bursts = 10){
   const colors = ["#ff5050","#ffb84d","#fff06a","#7efc8d","#8ad4ff","#d6a0ff","#ffffff","#ff69b4"];
@@ -195,14 +203,14 @@ function drawMountains(){
 }
 
 /* =========================
-   入力：ジャンプ / ボタン
+   入力（ジャンプ）
    ========================= */
 function doJump(){
   if(gameOver || gameClear) return;
-  tryPlayBGMOnce(); // 初回のユーザー操作でBGMを許可する
+  tryPlayBGMOnce();
   if(!player.falling && jumpStage < maxJumpStage){
     jumpStage++;
-    // 1段目を高めに（既存の設定に合わせる）
+    // 1段目を少し高くする例（必要なら変更）
     player.vy = jumpStage===1 ? -10 : -12;
     playJumpSound();
   }
@@ -213,7 +221,6 @@ document.addEventListener("keydown", e=>{
 });
 document.getElementById("jumpBtn").addEventListener("click", doJump);
 document.getElementById("restartBtn").addEventListener("click", ()=>{
-  // クリックはユーザー操作なので BGM 再生を試行してからリスタート
   tryPlayBGMOnce(true);
   restart();
 });
@@ -257,7 +264,7 @@ function spawnObstacle(){
     if(type==="heal") yPos = 30 + Math.random()*50;
     else if(type==="balloon") yPos = 50 + Math.random()*100;
     else if(type==="zigzag"){ baseY = 140 + Math.random()*60; yPos = baseY; } // 少し高め
-    else yPos = (Math.random()<0.5) ? 250 : 100 + Math.random()*100;
+    else yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100;
 
     obstacles.push({x:W + i*30, y:yPos, width:20, height:20, type:type, angle:0, vy:0, falling:false, baseY:baseY, scored:false});
   }
@@ -288,7 +295,7 @@ function updateObstacles(){
       }
       if(!ob.falling && (ob.type==="normal"||ob.type==="breakable")){
         for(let h of holes){
-          if(ob.x+ob.width > h.x && ob.x < h.x + h.width && ob.y >= 230){
+          if(ob.x+ob.width > h.x && ob.x < h.x + h.width && ob.y >= OB_FALL_THRESHOLD){
             ob.falling = true; ob.vy = 2; break;
           }
         }
@@ -319,7 +326,7 @@ function checkCollision(){
     const ob = obstacles[i];
     if(ob.falling) continue;
 
-    // 円同士判定（回復・風船）
+    // 円同士（回復・風船）
     const dx = (player.x + player.size/2) - (ob.x + ob.width/2);
     const dy = (player.y + player.size/2) - (ob.y + ob.height/2);
     const dist = Math.sqrt(dx*dx + dy*dy);
@@ -338,7 +345,7 @@ function checkCollision(){
       invincible = 30; flash = 10; playEnemyDefeatSound(); continue;
     }
 
-    // 四角当たり判定（敵）
+    // 四角判定（敵）
     if(["normal","zigzag","breakable"].includes(ob.type) &&
        player.x < ob.x + ob.width && player.x + player.size > ob.x &&
        player.y < ob.y + ob.height && player.y + player.size > ob.y){
@@ -352,11 +359,11 @@ function checkCollision(){
     }
   }
 
-  // 穴判定
+  // 穴判定（player の足 = player.y + player.size と GROUND_Y を比較）
   const footY = player.y + player.size;
   const footXCenter = player.x + player.size/2;
   for(let h of holes){
-    if(!player.falling && footY >= 270 && footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4){
+    if(!player.falling && footY >= GROUND_Y && footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4){
       player.falling = true; player.vy = 2; playFallSound(); break;
     }
   }
@@ -365,10 +372,7 @@ function checkCollision(){
 /* =========================
    爆発更新
    ========================= */
-function updateExplosions(){
-  for(let e of explosions) e.radius += 2;
-  explosions = explosions.filter(e => e.radius < e.maxRadius);
-}
+function updateExplosions(){ for(let e of explosions) e.radius += 2; explosions = explosions.filter(e => e.radius < e.maxRadius); }
 
 /* =========================
    描画
@@ -379,73 +383,43 @@ function draw(){
   // 背景グラデ
   const bgGrad = ctx.createLinearGradient(0,0,0,canvas.height);
   bgGrad.addColorStop(0,"#3b75a8"); bgGrad.addColorStop(0.4,"#87CEEB"); bgGrad.addColorStop(1,"#f0f0f0");
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = bgGrad; ctx.fillRect(0,0,canvas.width,canvas.height);
 
   // 山
   drawMountains();
 
   // 雲
-  clouds.forEach(c => { drawCloud(c); });
+  clouds.forEach(c => drawCloud(c));
 
-  // 地面
-  const groundY = 270;
-  const groundGrad = ctx.createLinearGradient(0, groundY, 0, canvas.height);
-  groundGrad.addColorStop(0, "#6b3f1a");
-  groundGrad.addColorStop(1, "#A0522D");
-  ctx.fillStyle = groundGrad;
-  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+  // 地面（GROUND_Y を使用）
+  const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, canvas.height);
+  groundGrad.addColorStop(0,"#6b3f1a"); groundGrad.addColorStop(1,"#A0522D");
+  ctx.fillStyle = groundGrad; ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 
-  // 地面凹凸
+  // 地面の凹凸
   ctx.strokeStyle = "rgba(0,0,0,0.12)";
   for(let i=0;i<canvas.width;i+=6){
     const offset = Math.sin(i * 0.18 + distance * 0.02) * 2;
     ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(i, groundY + offset);
-    ctx.lineTo(i, canvas.height);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i, GROUND_Y + offset); ctx.lineTo(i, canvas.height); ctx.stroke();
   }
 
   // 障害物
   obstacles.forEach(ob=>{
     if(ob.type === "balloon"){
-      ctx.beginPath();
-      ctx.arc(ob.x + ob.width/2, ob.y + ob.height/2, 12, 0, Math.PI*2);
-      ctx.fillStyle = "pink";
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(ob.x + ob.width/2, ob.y + ob.height/2 + 12);
-      ctx.lineTo(ob.x + ob.width/2, ob.y + ob.height/2 + 20);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(ob.x + ob.width/2, ob.y + ob.height/2, 12, 0, Math.PI*2); ctx.fillStyle = "pink"; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(ob.x + ob.width/2, ob.y + ob.height/2 + 12); ctx.lineTo(ob.x + ob.width/2, ob.y + ob.height/2 + 20); ctx.stroke();
     } else if(ob.type === "heal"){
       const cx = ob.x + ob.width/2, cy = ob.y + ob.height/2;
-      ctx.fillStyle = "red";
-      ctx.beginPath();
-      ctx.arc(cx-5, cy-2, 6, 0, Math.PI*2);
-      ctx.arc(cx+5, cy-2, 6, 0, Math.PI*2);
-      ctx.moveTo(cx-11, cy+2);
-      ctx.quadraticCurveTo(cx, cy+18, cx+11, cy+2);
-      ctx.closePath();
-      ctx.fill();
+      ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(cx-5, cy-2, 6, 0, Math.PI*2); ctx.arc(cx+5, cy-2, 6, 0, Math.PI*2);
+      ctx.moveTo(cx-11, cy+2); ctx.quadraticCurveTo(cx, cy+18, cx+11, cy+2); ctx.closePath(); ctx.fill();
     } else if(ob.type === "breakable"){
-      ctx.fillStyle = "orange";
-      ctx.beginPath();
-      ctx.moveTo(ob.x + ob.width/2, ob.y + ob.height);
-      ctx.lineTo(ob.x, ob.y);
-      ctx.lineTo(ob.x + ob.width, ob.y);
-      ctx.closePath();
-      ctx.fill();
-    } else if(ob.type === "normal" || ob.type === "zigzag"){
+      ctx.fillStyle = "orange"; ctx.beginPath();
+      ctx.moveTo(ob.x + ob.width/2, ob.y + ob.height); ctx.lineTo(ob.x, ob.y); ctx.lineTo(ob.x + ob.width, ob.y); ctx.closePath(); ctx.fill();
+    } else {
       const baseColor = ob.type==="normal" ? "green" : "blue";
-      ctx.fillStyle = baseColor;
-      const cx = ob.x + ob.width/2;
-      const cy = ob.y + ob.height/2;
-      const radius = ob.width/2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI*2);
-      ctx.fill();
-
+      const cx = ob.x + ob.width/2, cy = ob.y + ob.height/2, radius = ob.width/2;
+      ctx.fillStyle = baseColor; ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill();
       const spikes = 8;
       for(let i=0;i<spikes;i++){
         const angle = (Math.PI*2/spikes)*i;
@@ -454,55 +428,32 @@ function draw(){
         const sy = cy + Math.sin(angle) * radius;
         const ex = cx + Math.cos(angle) * (radius + spikeLength);
         const ey = cy + Math.sin(angle) * (radius + spikeLength);
-        ctx.strokeStyle = baseColor;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(ex, ey);
-        ctx.stroke();
+        ctx.strokeStyle = baseColor; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
       }
     }
   });
 
-  // 穴
-  ctx.fillStyle = "black";
-  holes.forEach(h => ctx.fillRect(h.x, groundY, h.width, 30));
+  // 穴（GROUND_Y を使用）
+  ctx.fillStyle = "black"; holes.forEach(h => ctx.fillRect(h.x, GROUND_Y, h.width, 30) );
 
   // 爆発
-  explosions.forEach(e=>{
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.radius, 0, Math.PI*2);
-    ctx.fillStyle = e.color || "rgba(255,165,0,0.5)";
-    ctx.fill();
-  });
+  explosions.forEach(e => { ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI*2); ctx.fillStyle = e.color || "rgba(255,165,0,0.5)"; ctx.fill(); });
 
   // フラッシュ
   if(flash>0){ ctx.fillStyle="rgba(255,255,255,0.5)"; ctx.fillRect(0,0,canvas.width,canvas.height); flash--; }
 
-  // プレイヤー描画：画像が読み込まれていれば image、そうでなければ丸でフォールバック
+  // プレイヤー描画（画像が準備できていれば画像で、なければ丸）
   if(playerImage.complete && playerImage.naturalWidth !== 0){
-    // optionally: draw shadow under player
     ctx.save();
-    ctx.globalAlpha = 0.95;
+    // drawImage の y が左上なので player.y は「左上」位置になる（reset で GROUND_Y - size にしている）
     ctx.drawImage(playerImage, player.x, player.y, player.size, player.size);
     ctx.restore();
   } else {
     ctx.fillStyle = "pink";
-    ctx.beginPath();
-    ctx.arc(player.x + player.size/2, player.y + player.size/2, player.size/2, 0, Math.PI*2);
-    ctx.fill();
-    // 目/hige
-    ctx.fillStyle = "black";
-    ctx.beginPath();
-    ctx.arc(player.x+7, player.y+8, 2, 0, Math.PI*2);
-    ctx.arc(player.x+13, player.y+8, 2, 0, Math.PI*2);
-    ctx.fill();
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(player.x+6, player.y+14); ctx.lineTo(player.x-2, player.y+12);
-    ctx.moveTo(player.x+14, player.y+14); ctx.lineTo(player.x+22, player.y+12);
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(player.x + player.size/2, player.y + player.size/2, player.size/2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(player.x+7, player.y+8, 2, 0, Math.PI*2); ctx.arc(player.x+13, player.y+8, 2, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "black"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(player.x+6, player.y+14); ctx.lineTo(player.x-2, player.y+12); ctx.moveTo(player.x+14, player.y+14); ctx.lineTo(player.x+22, player.y+12); ctx.stroke();
   }
 
   // HPバー
@@ -510,25 +461,22 @@ function draw(){
   ctx.fillStyle="gray"; ctx.fillRect(10,10,hpWidth*3,hpHeight);
   ctx.fillStyle="lime"; ctx.fillRect(10,10,hpWidth*Math.max(0,hp),hpHeight);
 
-  // スコア / 距離 表示
+  // スコア / 距離
   ctx.fillStyle="rgba(0,0,0,0.6)"; ctx.fillRect(canvas.width-220,10,210,24);
   ctx.fillStyle="white"; ctx.font="14px sans-serif"; ctx.textAlign="right";
   ctx.fillText(`スコア:${score}  距離:${Math.floor(distance)}  秒:${Math.floor(gameTime/60)}`, canvas.width-12, 28);
 
   // ゴールライン
   if(goalLine){
-    ctx.fillStyle = "gold";
-    ctx.fillRect(goalLine.x, 220, goalLine.width, 50);
-    ctx.fillStyle = "black";
-    ctx.font = "bold 12px sans-serif";
-    ctx.textAlign = "center";
+    ctx.fillStyle = "gold"; ctx.fillRect(goalLine.x, 220, goalLine.width, 50);
+    ctx.fillStyle = "black"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
     ctx.fillText("GOAL", goalLine.x + goalLine.width/2, 215);
   }
 
-  // 花火（描画）
+  // 花火描画
   drawFireworks();
 
-  // Game Over / Clear 表示
+  // GameOver / Clear 表示
   if(gameOver){
     ctx.fillStyle="rgba(0,0,0,0.6)"; ctx.fillRect(0,80,canvas.width,80);
     ctx.fillStyle="red"; ctx.textAlign="center"; ctx.font="bold 30px sans-serif"; ctx.fillText("Game Over!", canvas.width/2, 105);
@@ -546,10 +494,9 @@ function draw(){
    ========================= */
 function loop(){
   if(!gameOver && !gameClear){
-    // 距離
     distance += worldSpeed;
 
-    // 山スクロール（ゆっくり）
+    // 山スクロール
     mountains.forEach(m=>{
       m.x -= 0.5;
       if(m.x <= -W) m.x += 2*W;
@@ -569,13 +516,11 @@ function loop(){
       showMsg("ゴールライン出現！", 2000);
     }
 
-    // ゴールを前方から引き寄せる
+    // ゴール判定／クリア処理
     if(goalLine){
       goalLine.x -= worldSpeed;
-      // プレイヤーがゴールラインを超えたらクリア
       if(player.x + player.size > goalLine.x){
         gameClear = true;
-        // 花火を発生／BGMフェード
         bgmPlayer.fadeOut(0.02, 120);
         playClearSound();
         let cnt = 0;
@@ -591,8 +536,7 @@ function loop(){
     }
 
     // 時間減少
-    gameTime--;
-    if(gameTime <= 0) endGame();
+    gameTime--; if(gameTime <= 0) endGame();
 
     // プレイヤー物理
     if(player.falling){
@@ -602,24 +546,24 @@ function loop(){
     } else {
       player.vy += 0.5;
       player.y += player.vy;
-      if(player.y > 250){ player.y = 250; player.vy = 0; jumpStage = 0; }
+      // 着地判定を GROUND_Y に合わせる（player.size に依存）
+      if(player.y > GROUND_Y - player.size){
+        player.y = GROUND_Y - player.size;
+        player.vy = 0;
+        jumpStage = 0;
+      }
     }
 
-    // 障害物生成・更新
-    spawnTimer++;
-    if(spawnTimer > 90){ spawnObstacle(); spawnTimer = 0; }
-    spawnHoleIfReady();
-    updateObstacles();
+    // 障害物
+    spawnTimer++; if(spawnTimer > 90){ spawnObstacle(); spawnTimer = 0; }
+    spawnHoleIfReady(); updateObstacles();
 
-    // 衝突・爆発更新
-    if(invincible > 0) invincible--;
+    if(invincible>0) invincible--;
     checkCollision();
     updateExplosions();
   }
 
-  // 花火は常に更新
   updateFireworks();
-
   draw();
   requestAnimationFrame(loop);
 }
@@ -635,14 +579,13 @@ function endGame(){
 
 function restart(){
   resetGameState();
-  _bgmPlayAttempted = false; // BGM再生フラグをリセット
+  _bgmPlayAttempted = false;
   showMsg("ゲームを開始しました", 1200);
-  // リスタート時はユーザーの操作（クリック）なので BGMを試す
   tryPlayBGMOnce(true);
 }
 
 /* =========================
-   BGM 再生をユーザー操作と関連させる（1回だけ）
+   BGM 再生トリガ（ユーザー操作関連）
    ========================= */
 let _bgmPlayAttempted = false;
 function tryPlayBGMOnce(force=false){
@@ -660,13 +603,10 @@ function tryPlayBGMOnce(force=false){
    初期化 & 起動
    ========================= */
 resetGameState();
-if(!loopStarted){
-  loopStarted = true;
-  requestAnimationFrame(loop);
-}
+if(!loopStarted){ loopStarted = true; requestAnimationFrame(loop); }
 
-/* 公開（デバッグ用） */
-window._game = { restart, tryPlayBGMOnce, bgmPlayer };
+/* デバッグ用公開 */
+window._game = { restart, tryPlayBGMOnce, bgmPlayer, setPlayerSize: (s)=>{ player.size = s; player.y = GROUND_Y - s; } };
 
 </script>
 </body>
