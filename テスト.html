@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>BGMテスト</title>
+</head>
+<body>
+  <h1>BGM 再生テスト</h1>
+  <button id="playBtn">BGMを再生</button>
+
+  <script>
+    // BGM オブジェクト
+    const bgm = new Audio("sounds/a.mp3");  // HTML と同じ場所に "sounds/a.mp3" を置く
+    bgm.loop = true;                        // ループ再生
+    bgm.volume = 1.0;                       // 音量最大
+
+    // ボタン押下で再生
+    document.getElementById("playBtn").onclick = () => {
+      bgm.currentTime = 0;  // 最初から
+      bgm.play()
+        .then(() => console.log("BGM 再生開始"))
+        .catch(err => console.error("BGM 再生エラー:", err));
+    };
+  </script>
+</body>
+</html>
