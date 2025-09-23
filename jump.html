@@ -21,8 +21,9 @@
 <div id="canvasWrap"><canvas id="game" width="400" height="300"></canvas></div>
 
 <div id="buttonArea">
-  <button id="jumpBtn">ジャンプ（Space）</button>
   <button id="restartBtn">リスタート</button>
+  <button id="jumpBtn">ジャンプ（Space）</button>
+  
 </div>
 
 <div id="rules">
@@ -200,7 +201,7 @@ function doJump(){
   tryPlayBGMOnce();
   if(!player.falling && jumpStage < maxJumpStage){
     jumpStage++;
-    player.vy = jumpStage===1 ? -8 : -12;
+    player.vy = jumpStage===1 ? -10 : -10;
     playJumpSound();
   }
 }
