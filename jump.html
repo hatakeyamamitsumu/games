@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ジャンプゲーム — 完全版（主人公画像版・着地修正）</title>
+<title>ジャンプゲーム — 完全版（主人公画像版・着地修正・zigzag画像）</title>
 <style>
   body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f8f8; display:flex; flex-direction:column; align-items:center; }
   h2 { margin:12px 0; }
@@ -17,7 +17,7 @@
 </style>
 </head>
 <body>
-<h2>ジャンプゲーム 🎈（主人公画像版・着地修正）</h2>
+<h2>ジャンプゲーム 🎈（主人公画像版・着地修正・zigzag画像）</h2>
 <div id="canvasWrap"><canvas id="game" width="400" height="300"></canvas></div>
 
 <div id="buttonArea">
@@ -96,8 +96,24 @@ let loopStarted = false;
 
 /* プレイヤー画像（同じサイズ：player.size で描画） */
 const playerImage = new Image();
-playerImage.src = "characters/hero.png"; // ここに画像を置いてください（相対パス）
+playerImage.src = "characters/hero/hero.png"; // 相対パスで配置してください
 
+const normalImage = new Image();
+normalImage.src = "characters/normal/normal.png"; // ←ファイル名を確認してください
+
+
+/* zigzag 敵の画像（相対パス） */
+const zigzagImage = new Image();
+zigzagImage.src = "characters/zigzag/zigzag.png"; // ← ここに画像を置いてください（相対パス）
+
+const balloonImage = new Image();
+balloonImage.src = "characters/baloon/baloon.png";
+
+const breakableImage = new Image();
+breakableImage.src = "characters/breakable/breakable.png";
+
+const healImage = new Image();
+healImage.src = "characters/heal/heal.png";
 /* BGM / SE パス（必要なファイルを配置） */
 const bgmPlayer = new BGMPlayer("sounds/BGM/a.mp3", {volume:0.05, loop:true});
 const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
@@ -261,12 +277,13 @@ function spawnObstacle(){
     else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
 
     let yPos, baseY;
-    if(type==="heal") yPos = 30 + Math.random()*50;
-    else if(type==="balloon") yPos = 50 + Math.random()*100;
-    else if(type==="zigzag"){ baseY = 140 + Math.random()*60; yPos = baseY; } // 少し高め
+    let width = 20, height = 20;
+    if(type==="heal"){ yPos = 30 + Math.random()*50; width = 26; height = 26; }
+    else if(type==="balloon"){ yPos = 50 + Math.random()*100; width = 26; height = 26; }
+    else if(type==="zigzag"){ baseY = 140 + Math.random()*60; yPos = baseY; width = 26; height = 26; } // zigzag は少し大きめ
     else yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100;
 
-    obstacles.push({x:W + i*30, y:yPos, width:20, height:20, type:type, angle:0, vy:0, falling:false, baseY:baseY, scored:false});
+    obstacles.push({x:W + i*30, y:yPos, width:width, height:height, type:type, angle:0, vy:0, falling:false, baseY:baseY, scored:false});
   }
 }
 function spawnHoleIfReady(){
@@ -404,35 +421,89 @@ function draw(){
     ctx.beginPath(); ctx.moveTo(i, GROUND_Y + offset); ctx.lineTo(i, canvas.height); ctx.stroke();
   }
 
-  // 障害物
-  obstacles.forEach(ob=>{
-    if(ob.type === "balloon"){
-      ctx.beginPath(); ctx.arc(ob.x + ob.width/2, ob.y + ob.height/2, 12, 0, Math.PI*2); ctx.fillStyle = "pink"; ctx.fill();
-      ctx.beginPath(); ctx.moveTo(ob.x + ob.width/2, ob.y + ob.height/2 + 12); ctx.lineTo(ob.x + ob.width/2, ob.y + ob.height/2 + 20); ctx.stroke();
-    } else if(ob.type === "heal"){
-      const cx = ob.x + ob.width/2, cy = ob.y + ob.height/2;
-      ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(cx-5, cy-2, 6, 0, Math.PI*2); ctx.arc(cx+5, cy-2, 6, 0, Math.PI*2);
-      ctx.moveTo(cx-11, cy+2); ctx.quadraticCurveTo(cx, cy+18, cx+11, cy+2); ctx.closePath(); ctx.fill();
-    } else if(ob.type === "breakable"){
-      ctx.fillStyle = "orange"; ctx.beginPath();
-      ctx.moveTo(ob.x + ob.width/2, ob.y + ob.height); ctx.lineTo(ob.x, ob.y); ctx.lineTo(ob.x + ob.width, ob.y); ctx.closePath(); ctx.fill();
+// 障害物（画像対応）
+obstacles.forEach(ob => {
+    if(ob.type === "balloon") {
+        if(balloonImage.complete && balloonImage.naturalWidth !== 0){
+            ctx.drawImage(balloonImage, ob.x, ob.y, ob.width, ob.height);
+        } else {
+            ctx.beginPath();
+            ctx.arc(ob.x+ob.width/2, ob.y+ob.height/2, 12, 0, Math.PI*2);
+            ctx.fillStyle="pink"; ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(ob.x+ob.width/2, ob.y+ob.height/2+12);
+            ctx.lineTo(ob.x+ob.width/2, ob.y+ob.height/2+20);
+            ctx.stroke();
+        }
+    } else if(ob.type === "heal") {
+        if(healImage.complete && healImage.naturalWidth !== 0){
+            ctx.drawImage(healImage, ob.x, ob.y, ob.width, ob.height);
+        } else {
+            const cx = ob.x + ob.width/2, cy = ob.y + ob.height/2;
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(cx-5, cy-2, 6, 0, Math.PI*2);
+            ctx.arc(cx+5, cy-2, 6, 0, Math.PI*2);
+            ctx.moveTo(cx-11, cy+2);
+            ctx.quadraticCurveTo(cx, cy+18, cx+11, cy+2);
+            ctx.closePath();
+            ctx.fill();
+        }
+    } else if(ob.type === "breakable") {
+        if(breakableImage.complete && breakableImage.naturalWidth !== 0){
+            ctx.drawImage(breakableImage, ob.x, ob.y, ob.width, ob.height);
+        } else {
+            ctx.fillStyle = "orange";
+            ctx.beginPath();
+            ctx.moveTo(ob.x + ob.width/2, ob.y + ob.height);
+            ctx.lineTo(ob.x, ob.y);
+            ctx.lineTo(ob.x + ob.width, ob.y);
+            ctx.closePath();
+            ctx.fill();
+        }
+    } else if(ob.type === "zigzag") {
+        if(zigzagImage.complete && zigzagImage.naturalWidth !== 0){
+            ctx.drawImage(zigzagImage, ob.x, ob.y, ob.width, ob.height);
+        } else {
+            ctx.fillStyle = "purple";
+            ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+        }
+    } else if(ob.type === "normal") {  // ここを追加
+        if(normalImage.complete && normalImage.naturalWidth !== 0){
+            ctx.drawImage(normalImage, ob.x, ob.y, ob.width, ob.height);
+        } else {
+            const baseColor = "green";
+            const cx = ob.x + ob.width / 2;
+            const cy = ob.y + ob.height / 2;
+            const radius = ob.width / 2;
+
+            ctx.fillStyle = baseColor;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            const spikes = 8;
+            for (let i = 0; i < spikes; i++) {
+                const angle = (Math.PI * 2 / spikes) * i;
+                const spikeLength = radius * 0.7;
+                const sx = cx + Math.cos(angle) * radius;
+                const sy = cy + Math.sin(angle) * radius;
+                const ex = cx + Math.cos(angle) * (radius + spikeLength);
+                const ey = cy + Math.sin(angle) * (radius + spikeLength);
+
+                ctx.strokeStyle = baseColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+            }
+        }
     } else {
-      const baseColor = ob.type==="normal" ? "green" : "blue";
-      const cx = ob.x + ob.width/2, cy = ob.y + ob.height/2, radius = ob.width/2;
-      ctx.fillStyle = baseColor; ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill();
-      const spikes = 8;
-      for(let i=0;i<spikes;i++){
-        const angle = (Math.PI*2/spikes)*i;
-        const spikeLength = radius * 0.7;
-        const sx = cx + Math.cos(angle) * radius;
-        const sy = cy + Math.sin(angle) * radius;
-        const ex = cx + Math.cos(angle) * (radius + spikeLength);
-        const ey = cy + Math.sin(angle) * (radius + spikeLength);
-        ctx.strokeStyle = baseColor; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
-      }
+        // その他の障害物は適宜追加
     }
-  });
+});
+
 
   // 穴（GROUND_Y を使用）
   ctx.fillStyle = "black"; holes.forEach(h => ctx.fillRect(h.x, GROUND_Y, h.width, 30) );
@@ -446,7 +517,6 @@ function draw(){
   // プレイヤー描画（画像が準備できていれば画像で、なければ丸）
   if(playerImage.complete && playerImage.naturalWidth !== 0){
     ctx.save();
-    // drawImage の y が左上なので player.y は「左上」位置になる（reset で GROUND_Y - size にしている）
     ctx.drawImage(playerImage, player.x, player.y, player.size, player.size);
     ctx.restore();
   } else {
