@@ -120,6 +120,9 @@ healImage.src = "characters/heal/heal.png";
 const chaserImage = new Image();
 chaserImage.src = "characters/chaser/chaser.png";
 
+const chaser2Image = new Image();
+chaser2Image.src = "characters/chaser2/chaser2.png";
+
 /* BGM / SE パス（必要なファイルを配置） */
 const bgmPlayer = new BGMPlayer("sounds/BGM/a.mp3", {volume:0.05, loop:true});
 const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
@@ -277,14 +280,17 @@ function playClearSound(){ playSoundSequence([{freq:1200,type:"sine",duration:0.
    障害物・穴（chaser 追加）
    ========================= */
    function spawnObstacle(){
-  // 様々な種類をランダムで生成。chaser は発生頻度低めに設定
-  const count = Math.floor(Math.random()*3)+1;
+  const count = Math.floor(Math.random()*5)+2;//敵の総登場数を管理
+
   for(let i=0;i<count;i++){
     let type;
-    // 6% 程度で chaser を単体で出す確率（画像優先で丸の代替あり）
-    if(Math.random() < 0.06 && i === 0){
+
+    // 出現確率調整
+    if(Math.random() < 0.04 && i === 0){
+      type = "chaser2"; // 新しい追尾型
+    } else if(Math.random() < 0.10 && i === 0){
       type = "chaser";
-    } else if(Math.random() < 0.08) {
+    } else if(Math.random() < 0.10){
       type = "heal";
     } else {
       type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
@@ -293,55 +299,83 @@ function playClearSound(){ playSoundSequence([{freq:1200,type:"sine",duration:0.
     let yPos, baseY;
     let width = 20, height = 20;
 
-    if(type === "heal"){
-      yPos = 30 + Math.random()*50;
-      width = 26; height = 26;
-    }
-    else if(type === "balloon"){
-      yPos = 50 + Math.random()*100;
-      width = 26; height = 26;
-    }
-    else if(type === "zigzag"){
-      baseY = 140 + Math.random()*60;
-      yPos = baseY;
-      width = 26; height = 26;
-    }
-    else if(type === "normal" || type === "breakable"){
-      // 地面より少し高く、ランダム感も少し残す
-      yPos = (Math.random() < 0.5) ? GROUND_Y - 30 : 90 + Math.random()*60; // 元は GROUND_Y-20、100+Math.random()*100
-      width = 26; height = 26;
-    }
-    else {
-      // chaser のデフォルト（念のため）
-      yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100;
-      width = 26; height = 26;
+    switch(type){
+      case "heal":
+        yPos = 30 + Math.random()*50;
+        width = 26; height = 26;
+        break;
+      case "balloon":
+        yPos = 50 + Math.random()*100;
+        width = 26; height = 26;
+        break;
+      case "zigzag":
+        baseY = 140 + Math.random()*60;
+        yPos = baseY;
+        width = 26; height = 26;
+        break;
+      case "normal":
+      case "breakable":
+        yPos = (Math.random() < 0.5) ? GROUND_Y - 30 : 90 + Math.random()*60;
+        width = 26; height = 26;
+        break;
+      case "chaser":
+        yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100;
+        width = 26; height = 26;
+        break;
+      case "chaser2":
+        yPos = W/2; // 一旦仮の値、下から出現させるので後で上書き
+        width = 26; height = 26;
+        break;
     }
 
-    // chaser の場合は右上から出現させ（出現時のプレイヤー中心へ向かう）
+    // chaser
     if(type === "chaser"){
-      const startX = W + 10; // 画面右外から少し出現
-      const startY = -10;    // 画面上外から出現
-      const targetX = player.x + player.size / 2;
-      const targetY = player.y + player.size / 2;
+      const startX = W + 10;
+      const startY = -10;
+      const targetX = player.x + player.size/2;
+      const targetY = player.y + player.size/2;
       const dx = targetX - startX;
       const dy = targetY - startY;
       const len = Math.hypot(dx, dy) || 1;
-      const speed = 4 + Math.random()*1.5; // 速度調整（少しバラつかせる）
+      const speed = 4 + Math.random()*1.5;
       const vx = (dx / len) * speed;
       const vy = (dy / len) * speed;
 
       obstacles.push({
-        x: startX, y: startY, width: width, height: height, type: "chaser",
+        x: startX, y: startY, width, height, type: "chaser",
         vx, vy, angle:0, vyPhys:0, falling:false, scored:false
       });
+
+    // chaser2
+    } else if(type === "chaser2"){
+    const startX = -10;           // 画面左端の外側
+    const startY = -10;           // 画面上端の外側
+    const targetX = player.x + player.size / 2;
+    const targetY = player.y - 80; // プレイヤーの頭の少し上
+
+    const dx = targetX - startX;
+    const dy = targetY - startY;
+    const len = Math.hypot(dx, dy) || 1;
+    const speed = 2 + Math.random(); // 2〜3
+    const vx = (dx / len) * speed;
+    const vy = (dy / len) * speed;
+
+    obstacles.push({
+        x: startX, y: startY, width: 26, height: 26, type: "chaser2",
+        vx, vy, angle:0, vyPhys:0, falling:false, scored:false
+    });
+
+
     } else {
+      // その他オブジェクト
       obstacles.push({
-        x: W + i*30, y: yPos, width: width, height: height, type: type,
+        x: W + i*30, y: yPos, width, height, type,
         angle: 0, vy: 0, falling: false, baseY: baseY, scored: false
       });
     }
   }
 }
+
 
 function spawnHoleIfReady(){
   holeTimer++;
@@ -385,7 +419,10 @@ function updateObstacles(){
     // 画面外判定（vx を持つものも含む）
     if(!ob.falling && (ob.x < -ob.width || ob.x > canvas.width + ob.width || ob.y < -ob.height || ob.y > canvas.height + ob.height)){
       // 一般物は通過でスコア加算しているものがある。chaser は加算しない。
-      if(!ob.scored && ob.type !== "chaser"){ score++; ob.scored = true; }
+      if (!ob.scored && ob.type !== "chaser" && ob.type !== "chaser2") {
+    score++;
+    ob.scored = true;
+}
       return false;
     }
     if(ob.falling && ob.y > canvas.height + 50) return false;
@@ -399,67 +436,82 @@ function updateObstacles(){
 /* =========================
    衝突判定（chaser を敵判定に追加）
    ========================= */
-function checkCollision(){
-  if(invincible>0 || player.falling || gameClear) return;
+   function checkCollision() {
+    if (invincible > 0 || player.falling || gameClear) return;
 
-  for(let i=0;i<obstacles.length;i++){
-    const ob = obstacles[i];
-    if(ob.falling) continue;
+    for (let i = 0; i < obstacles.length; i++) {
+        const ob = obstacles[i];
+        if (ob.falling) continue;
 
-    // 円同士（回復・風船）
-    const dx = (player.x + player.size/2) - (ob.x + ob.width/2);
-    const dy = (player.y + player.size/2) - (ob.y + ob.height/2);
-    const dist = Math.sqrt(dx*dx + dy*dy);
+        const playerCenterX = player.x + player.size / 2;
+        const playerCenterY = player.y + player.size / 2;
+        const obCenterX = ob.x + ob.width / 2;
+        const obCenterY = ob.y + ob.height / 2;
 
-    if(ob.type === "heal" && dist < player.size/2 + 14){
-      explosions.push({x:ob.x + ob.width/2, y:ob.y + ob.height/2, radius:0, maxRadius:60, color:"rgba(255,50,50,0.6)"});
-      obstacles.splice(i,1); i--;
-      hp = 3; score += 10; flash = 8; invincible = 30; playHealSound(); continue;
+        const dx = playerCenterX - obCenterX;
+        const dy = playerCenterY - obCenterY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // 円判定（回復・風船）
+        if (ob.type === "heal" && dist < player.size / 2 + 14) {
+            explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 60, color: "rgba(255,50,50,0.6)" });
+            obstacles.splice(i, 1); i--;
+            hp = 3; score += 10; flash = 8; invincible = 30;
+            playHealSound();
+            continue;
+        }
+
+        if (ob.type === "balloon" && dist < player.size / 2 + 16) {
+            explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
+            obstacles.splice(i, 1); i--;
+            score += 5; gameTime += 60;
+            player.vy = (playerCenterY < obCenterY) ? -10 : 5;
+            invincible = 30; flash = 10;
+            playEnemyDefeatSound();
+            continue;
+        }
+
+        // 四角判定（敵系）
+        if (["normal", "zigzag", "breakable", "chaser", "chaser2"].includes(ob.type) &&
+            player.x < ob.x + ob.width && player.x + player.size > ob.x &&
+            player.y < ob.y + ob.height && player.y + player.size > ob.y) {
+
+            // breakable 踏みつけ処理
+            if (ob.type === "breakable" && player.vy > 0 && player.y + player.size <= ob.y + 10) {
+                explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
+                obstacles.splice(i, 1); i--;
+                score += 5; gameTime += 60; player.vy = -8;
+                playEnemyDefeatSound();
+                continue;
+            }
+
+            // chaser / chaser2 に当たった場合のダメージ
+            if (ob.type === "chaser" || ob.type === "chaser2") {
+                hp--; invincible = 30; flash = 10; playDamageSound();
+                if (hp <= 0) return endGame();
+                explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 25 });
+                obstacles.splice(i, 1); i--;
+                continue;
+            }
+
+            // 通常敵に当たった場合のダメージ
+            hp--; invincible = 30; flash = 10; playDamageSound();
+            if (hp <= 0) return endGame();
+        }
     }
 
-    if(ob.type === "balloon" && dist < player.size/2 + 16){
-      explosions.push({x:ob.x + ob.width/2, y:ob.y + ob.height/2, radius:0, maxRadius:30});
-      obstacles.splice(i,1); i--;
-      score += 5; gameTime += 60;
-      player.vy = (player.y + player.size/2 < ob.y + ob.height/2) ? -10 : 5;
-      invincible = 30; flash = 10; playEnemyDefeatSound(); continue;
+    // 穴判定（足が地面に届いたら落下）
+    const footY = player.y + player.size;
+    const footXCenter = player.x + player.size / 2;
+    for (let h of holes) {
+        if (!player.falling && footY >= GROUND_Y &&
+            footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4) {
+            player.falling = true;
+            player.vy = 2;
+            playFallSound();
+            break;
+        }
     }
-
-    // 四角判定（敵系：normal, zigzag, breakable, chaser）
-    if(["normal","zigzag","breakable","chaser"].includes(ob.type) &&
-       player.x < ob.x + ob.width && player.x + player.size > ob.x &&
-       player.y < ob.y + ob.height && player.y + player.size > ob.y){
-      // breakable の踏みつけ処理
-      if(ob.type === "breakable" && player.vy > 0 && player.y + player.size <= ob.y + 10){
-        explosions.push({x:ob.x + ob.width/2, y:ob.y + ob.height/2, radius:0, maxRadius:30});
-        obstacles.splice(i,1); i--;
-        score += 5; gameTime += 60; player.vy = -8; playEnemyDefeatSound(); continue;
-      }
-      // chaser に当たったら敵ダメージ（踏みで倒す仕様にするなら別処理）
-      if(ob.type === "chaser"){
-        // ここは「ぶつかるとダメージ」。踏んで倒す仕様にしたければ分岐追加可。
-        hp--; invincible = 30; flash = 10; playDamageSound();
-        if(hp <= 0) return endGame();
-        // 当たった chaser は消す（演出）
-        explosions.push({x:ob.x + ob.width/2, y:ob.y + ob.height/2, radius:0, maxRadius:25});
-        obstacles.splice(i,1); i--;
-        continue;
-      }
-
-      // 通常の敵当たり判定（ダメージ）
-      hp--; invincible = 30; flash = 10; playDamageSound();
-      if(hp <= 0) return endGame();
-    }
-  }
-
-  // 穴判定（player の足 = player.y + player.size と GROUND_Y を比較）
-  const footY = player.y + player.size;
-  const footXCenter = player.x + player.size/2;
-  for(let h of holes){
-    if(!player.falling && footY >= GROUND_Y && footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4){
-      player.falling = true; player.vy = 2; playFallSound(); break;
-    }
-  }
 }
 
 /* =========================
@@ -499,35 +551,41 @@ function draw(){
 
   // 障害物（画像対応）
   obstacles.forEach(ob => {
-      let img =
-          ob.type === "balloon"   ? balloonImage   :
-          ob.type === "heal"      ? healImage      :
-          ob.type === "breakable" ? breakableImage :
-          ob.type === "zigzag"    ? zigzagImage    :
-          ob.type === "normal"    ? normalImage    :
-          ob.type === "chaser"    ? chaserImage    : null;
+    // 画像をタイプごとに割り当て
+    let img =
+        ob.type === "balloon"   ? balloonImage   :
+        ob.type === "heal"      ? healImage      :
+        ob.type === "breakable" ? breakableImage :
+        ob.type === "zigzag"    ? zigzagImage    :
+        ob.type === "normal"    ? normalImage    :
+        ob.type === "chaser"    ? chaserImage    :
+        ob.type === "chaser2"   ? chaser2Image   : null;
 
-      if (img && img.complete && img.naturalWidth) {
-          ctx.drawImage(img, ob.x, ob.y, ob.width, ob.height);
-      } else {
-          ctx.fillStyle =
-              ob.type === "balloon"   ? "pink"   :
-              ob.type === "heal"      ? "red"    :
-              ob.type === "breakable" ? "orange" :
-              ob.type === "zigzag"    ? "purple" :
-              ob.type === "normal"    ? "green"  :
-              ob.type === "chaser"    ? "black"  : "gray";
+    if (img && img.complete && img.naturalWidth) {
+        // 画像が読み込まれていれば描画
+        ctx.drawImage(img, ob.x, ob.y, ob.width, ob.height);
+    } else {
+        // 画像が未読み込みなら色付き円で代替
+        ctx.fillStyle =
+            ob.type === "balloon"   ? "pink"   :
+            ob.type === "heal"      ? "red"    :
+            ob.type === "breakable" ? "orange" :
+            ob.type === "zigzag"    ? "purple" :
+            ob.type === "normal"    ? "green"  :
+            ob.type === "chaser"    ? "black"  :
+            ob.type === "chaser2"   ? "darkblue" : "gray";
 
-          ctx.beginPath();
-          ctx.arc(
-              ob.x + ob.width / 2,
-              ob.y + ob.height / 2,
-              Math.min(ob.width, ob.height) / 2,
-              0, Math.PI * 2
-          );
-          ctx.fill();
-      }
-  });
+        ctx.beginPath();
+        ctx.arc(
+            ob.x + ob.width / 2,
+            ob.y + ob.height / 2,
+            Math.min(ob.width, ob.height) / 2,
+            0, Math.PI * 2
+        );
+        ctx.fill();
+    }
+});
+
 
   // 穴（GROUND_Y を使用）
   ctx.fillStyle = "black"; holes.forEach(h => ctx.fillRect(h.x, GROUND_Y, h.width, 30) );
@@ -604,7 +662,7 @@ function loop(){
     });
 
     // ゴール出現判定
-    if(!goalLine && distance >= goalDistance * 1.5 && score >= goalScore * 1.5){
+    if(!goalLine && distance >= goalDistance * 4.0 && score >= goalScore * 4.0){
       goalLine = { x: canvas.width + 100, width: 12 };
       playGoalSound();
       showMsg("ゴールライン出現！", 2000);
