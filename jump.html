@@ -139,17 +139,49 @@ const mountains = [{x:0,color:"#9ACD9A"},{x:W,color:"#9ACD9A"}];
 function drawMountains(){ mountains.forEach(m=>{ ctx.fillStyle = m.color; ctx.beginPath(); ctx.moveTo(m.x, 200); ctx.lineTo(m.x + 80, 140); ctx.lineTo(m.x + 160, 180); ctx.lineTo(m.x + 240, 150); ctx.lineTo(m.x + 320, 170); ctx.lineTo(m.x + 400, 200); ctx.lineTo(m.x + 400, 270); ctx.lineTo(m.x, 270); ctx.closePath(); ctx.fill(); }); }
 
 /* 入力（ジャンプ） */
-function doJump(){
-  if(gameOver || gameClear) return;
+
+const gravity = 0.6; // 重力（落下速度の増加量）
+
+function doJump() {
+  if (gameOver || gameClear) return;
   tryPlayBGMOnce();
-  if(!player.falling && jumpStage < maxJumpStage){
+
+  // 足場に乗っている場合はジャンプステージをリセット
+  if (player.onPlatform) {
+    jumpStage = 0;
+  }
+
+  if (jumpStage < maxJumpStage) {
     jumpStage++;
-    player.vy = jumpStage===1 ? -10 : -12;
-    player.onPlatform = null; // ジャンプで足場から離れる
+
+    if (jumpStage === 1) {
+      player.vy = -15; // 初回ジャンプ
+    } else if (jumpStage === 2) {
+      player.vy = -15; // 二段ジャンプを少し大きく
+    }
+
+    player.onPlatform = null;  // 足場から離れる
+    player.falling = true;
     player.inPit = false;
+
     playJumpSound();
   }
 }
+
+
+// 毎フレームでの更新
+function updatePlayer() {
+  player.y += player.vy;
+  player.vy += gravity; // 重力で落下加速
+  // 地面や足場との当たり判定処理
+}
+
+
+
+
+
+
+
 document.addEventListener("keydown", e=>{
   if(e.code==="Space"){ e.preventDefault(); doJump(); }
   if(e.code==="Enter" && (gameOver || gameClear)) restart();
@@ -321,7 +353,7 @@ function checkCollision() {
         player.y < ob.y + ob.height && player.y + player.size > ob.y) {
 
       // breakable 踏みつけ処理
-      if (ob.type === "breakable" && player.vy > 0 && player.y + player.size <= ob.y + 10) {
+      if (ob.type === "breakable" && player.vy > 0 && player.y + player.size <= ob.y + 20) {
         explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
         obstacles.splice(i, 1); i--;
         score += 5; gameTime += 60; player.vy = -8;
@@ -344,21 +376,28 @@ function checkCollision() {
     }
   }
 
-  // 立ち状態での穴踏み判定（地面にいるとき）
-  const footXCenter = player.x + player.size / 2;
-  const footY = player.y + player.size;
-  if (!player.falling && footY >= GROUND_Y - 1) {
-    for (let h of holes) {
-      if (footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4) {
-        // 落とし穴に乗った -> 致命的な落下
-        player.falling = true;
-        player.inPit = true;
-        player.vy = 2;
-        playFallSound();
-        return;
-      }
+// 立ち状態での穴踏み判定（地面にいるとき）
+const footY = player.y + player.size; // 足の下端
+if (!player.falling && footY >= GROUND_Y - 1) {
+  for (let h of holes) {
+    // 足の左右端でも判定（マージンを少し広めに）
+    const margin = 2;
+    const playerLeft = player.x + margin;
+    const playerRight = player.x + player.size - margin;
+
+    const holeLeft = h.x;
+    const holeRight = h.x + h.width;
+
+    if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
+      // 足が穴の範囲にかかっている -> 落下
+      player.falling = true;
+      player.inPit = true;
+      player.vy = 2;
+      playFallSound();
+      return;
     }
   }
+}
 }
 
 /* 爆発更新 */
