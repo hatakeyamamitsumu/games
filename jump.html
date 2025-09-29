@@ -456,7 +456,7 @@ function updateObstacles(){
         if (ob.type === "heal" && dist < player.size / 2 + 14) {
             explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 60, color: "rgba(255,50,50,0.6)" });
             obstacles.splice(i, 1); i--;
-            hp = 3; score += 10; flash = 8; invincible = 30;
+            hp = 4; score += 10; flash = 8; invincible = 30;
             playHealSound();
             continue;
         }
