@@ -90,9 +90,11 @@ const breakableImage = new Image(); breakableImage.src = "characters/breakable/b
 const healImage = new Image(); healImage.src = "characters/heal/heal.png";
 const chaserImage = new Image(); chaserImage.src = "characters/chaser/chaser.png";
 const chaser2Image = new Image(); chaser2Image.src = "characters/chaser2/chaser2.png";
+const goalImage = new Image();goalImage.src = "characters/goal/goal1.png";
 
 const bgmPlayer = new BGMPlayer("sounds/BGM/a.mp3", {volume:0.05, loop:true});
 const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
+
 
 const msgBox = document.getElementById('msg');
 function showMsg(text, ms=1800){ msgBox.textContent=text; msgBox.style.display='block'; clearTimeout(showMsg._t); showMsg._t=setTimeout(()=>msgBox.style.display='none', ms); }
@@ -505,10 +507,30 @@ function draw(){
   ctx.fillText(`スコア:${score}  距離:${Math.floor(distance)}  秒:${Math.floor(gameTime/60)}`, canvas.width-12, 28);
 
   if(goalLine){
-    ctx.fillStyle = "gold"; ctx.fillRect(goalLine.x, 220, goalLine.width, 50);
-    ctx.fillStyle = "black"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText("GOAL", goalLine.x + goalLine.width/2, 215);
+  // 画像がロード済みなら画像で描画（地面に合わせて配置）
+  if(goalImage.complete && goalImage.naturalWidth){
+    const gx = goalLine.x;
+    // 地面（GROUND_Y）に沿ってゴールの下端を合わせる
+    const gy = GROUND_Y - goalLine.height;
+    ctx.drawImage(goalImage, gx, gy, goalLine.width, goalLine.height);
+
+    // 画像上に小さく "GOAL" を重ねる（任意）
+    ctx.fillStyle = "black";
+    ctx.font = "bold 12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("GOAL", gx + goalLine.width / 2, gy - 6);
+  } else {
+    // フォールバック：もともとの金色矩形＆テキスト
+    ctx.fillStyle = "gold";
+    const gy = 220;
+    ctx.fillRect(goalLine.x, gy, goalLine.width, 50);
+    ctx.fillStyle = "black";
+    ctx.font = "bold 12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("GOAL", goalLine.x + goalLine.width/2, gy - 5);
   }
+  }
+
 
   drawFireworks();
 
@@ -535,10 +557,19 @@ function loop(){
 
     // ゴール判定
     if(!goalLine && distance >= goalDistance * 4.0 && score >= goalScore * 4.0){
-      goalLine = { x: canvas.width + 100, width: 12 };
-      playGoalSound();
-      showMsg("ゴールライン出現！", 2000);
-    }
+  // 画像の実寸が使えるならそれをベースに、使えない（未ロード）場合はフォールバックサイズを使う
+  const defaultW = 80, defaultH = 80;
+  let gw = defaultW, gh = defaultH;
+  if(goalImage.complete && goalImage.naturalWidth){
+    // 画像を画面に収まるように適度に縮小（最大120px幅）
+    const scale = Math.min(1, 120 / goalImage.naturalWidth);
+    gw = Math.round(goalImage.naturalWidth * scale);
+    gh = Math.round(goalImage.naturalHeight * scale);
+  }
+  goalLine = { x: canvas.width + 100, width: gw, height: gh };
+  playGoalSound();
+  showMsg("ゴールライン出現！", 2000);
+}
     if(goalLine){
       goalLine.x -= worldSpeed;
       if(player.x + player.size > goalLine.x){
