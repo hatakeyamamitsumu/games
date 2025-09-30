@@ -100,7 +100,17 @@ function showMsg(text, ms=1800){ msgBox.textContent=text; msgBox.style.display='
 /* ---------- 初期化 ---------- */
 function resetGameState(){
   const initialSize = 30;
-  player = { x:50, y: GROUND_Y - initialSize, vy:0, size: initialSize, falling:false, onPlatform: null, inPit:false };
+  player = {
+    x:50,
+    y: GROUND_Y - initialSize,
+    vy:0,
+    size: initialSize,
+    falling:false,
+    onPlatform: null,
+    inPit:false,
+    _fallSoundPlayed: false,
+    _fallStarted: false   // ← 追加：この落下が「本当に落ちた」かの判定用フラグ
+  };
   jumpStage = 0; maxJumpStage = 2;
   obstacles = []; explosions = []; holes = [];
   fireworks = [];
@@ -376,11 +386,10 @@ function checkCollision() {
     }
   }
 
-// 立ち状態での穴踏み判定（地面にいるとき）
+  // 立ち状態での穴踏み判定（地面にいるとき）
 const footY = player.y + player.size; // 足の下端
 if (!player.falling && footY >= GROUND_Y - 1) {
   for (let h of holes) {
-    // 足の左右端でも判定（マージンを少し広めに）
     const margin = 2;
     const playerLeft = player.x + margin;
     const playerRight = player.x + player.size - margin;
@@ -389,11 +398,11 @@ if (!player.falling && footY >= GROUND_Y - 1) {
     const holeRight = h.x + h.width;
 
     if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
-      // 足が穴の範囲にかかっている -> 落下
+      // 足が穴の範囲にかかっている -> 落下開始（inPit フラグだけ立てる）
       player.falling = true;
       player.inPit = true;
       player.vy = 2;
-      playFallSound();
+      // NOTE: player._fallStarted はここでは立てない（実際に下に沈んだかを loop 側で判定）
       return;
     }
   }
@@ -642,13 +651,32 @@ function loop(){
             jumpStage = 0;
           }
         }
-      }
+      } 
+    }
+// --- 追加：落下が視覚的に始まったら fallStarted を立てる ---
+// --- 落下開始判定 ---
+if (!player._fallStarted && player.inPit) {
+    if (player.y > GROUND_Y + 1) {  // 地面より少し下に来たら落下開始
+        player._fallStarted = true;
+    }
+}
+
+// --- 落下処理・死亡判定 ---
+if (player._fallStarted) {
+    // 落下音
+    if (!player._fallSoundPlayed) {
+        player._fallSoundPlayed = true;
+        try { playFallSound(); } catch(e){ /* ignore */ }
     }
 
-    // 4) 死亡（穴に落ちて画面外へ出たら）
-    if(player.inPit && player.y > canvas.height + 40){
-      endGame();
-    }
+    // y座標が画面下まで到達したらゲームオーバー
+    // y座標が地面の下1pxを超えたらゲームオーバー
+if (player.y > GROUND_Y + 1) {
+    endGame();
+}
+}
+
+
 
     // spawn / update
     spawnTimer++; if(spawnTimer > 90){ spawnObstacle(); spawnTimer = 0; }
