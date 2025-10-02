@@ -91,6 +91,29 @@ const healImage = new Image(); healImage.src = "characters/heal/heal.png";
 const chaserImage = new Image(); chaserImage.src = "characters/chaser/chaser.png";
 const chaser2Image = new Image(); chaser2Image.src = "characters/chaser2/chaser2.png";
 const goalImage = new Image();goalImage.src = "characters/goal/goal1.png";
+// ↓ forestImage を単一画像から「複数候補」＆タイル方式へ置き換えました
+
+// --- ★ ここに森のファイル名を列挙してください（必要に応じて追加） ---
+const forestFiles = [
+  "characters/forest/forest1.png",
+  "characters/forest/forest2.png",
+  "characters/forest/forest3.png",
+  "characters/forest/forest4.png",
+
+];
+// ---------------------------------------------------------------
+
+// Imageオブジェクト群（先読み）
+const forestImageObjects = forestFiles.map(src => {
+  const img = new Image();
+  img.src = src;
+  return img;
+});
+
+// タイル配列（{image, x}）
+let forestTiles = [];
+const FOREST_HEIGHT = 60;     // 描画高さ（好みで調整）
+const FOREST_SPEED_FACTOR = 0.5; // worldSpeed に対するスクロール速度比
 
 const bgmPlayer = new BGMPlayer("sounds/BGM/a.mp3", {volume:0.05, loop:true});
 const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
@@ -123,6 +146,65 @@ function resetGameState(){
   worldSpeed = worldSpeedDefault;
   mountains[0].x = 0; mountains[1].x = W;
   clouds[0].x = 80; clouds[1].x = 220; clouds[2].x = 340;
+
+  // 森タイル初期化（画面を覆う分＋余裕分）
+  initForest();
+}
+
+/* --- 森タイル初期化 --- */
+function initForest(){
+  forestTiles = [];
+  // 単純に左から右へ幅を積み上げて並べる
+  let x = 0;
+  // 少なくとも画面幅×2 分を並べる（ループの余裕）
+  const targetWidth = canvas.width * 2;
+  while (x < targetWidth) {
+    const img = forestImageObjects[Math.floor(Math.random() * forestImageObjects.length)];
+    // アスペクトが得られれば幅を計算、なければフォールバック比 (3:1)
+    const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : 3;
+    const w = Math.round(FOREST_HEIGHT * aspect) || Math.round(FOREST_HEIGHT * 3);
+    forestTiles.push({ image: img, x: x, w: w });
+    x += w;
+  }
+}
+
+/* --- 毎フレームでタイル位置更新（ループ時に呼ぶ） --- */
+function updateForest(){
+  const speed = worldSpeed * FOREST_SPEED_FACTOR;
+  // まず全タイルを左に動かす
+  for (let t of forestTiles){
+    t.x -= speed;
+  }
+  // 右端の x を求めるヘルパー
+  function rightmostX(){
+    let max = -99999;
+    for (let t of forestTiles){
+      // 今の幅を計算（画像ロード済みなら実寸比に合わせる）
+      const img = t.image;
+      const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
+      const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
+      max = Math.max(max, t.x + drawW);
+    }
+    return max;
+  }
+
+  // 画面左に完全に出たタイルは右端へ回す（別画像を割り当てる）
+  for (let t of forestTiles){
+    const img = t.image;
+    const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
+    const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
+    if (t.x + drawW < 0) {
+      // 新しいランダム画像を選択
+      const newImg = forestImageObjects[Math.floor(Math.random() * forestImageObjects.length)];
+      t.image = newImg;
+      const newAspect = (newImg.naturalWidth && newImg.naturalHeight) ? (newImg.naturalWidth / newImg.naturalHeight) : aspect;
+      const newW = Math.round(FOREST_HEIGHT * newAspect) || drawW;
+      // 右端へ配置
+      const rx = rightmostX();
+      t.x = rx;
+      t.w = newW;
+    }
+  }
 }
 
 /* 花火・雲・山 */
@@ -187,12 +269,6 @@ function updatePlayer() {
   player.vy += gravity; // 重力で落下加速
   // 地面や足場との当たり判定処理
 }
-
-
-
-
-
-
 
 document.addEventListener("keydown", e=>{
   if(e.code==="Space"){ e.preventDefault(); doJump(); }
@@ -439,6 +515,24 @@ function draw(){
     ctx.beginPath(); ctx.moveTo(i, GROUND_Y + offset); ctx.lineTo(i, canvas.height); ctx.stroke();
   }
 
+  // --- 森（タイル化してランダム画像を繰り返す） ---
+  if (forestTiles.length > 0) {
+    for (let t of forestTiles) {
+      const img = t.image;
+      const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
+      const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
+      // 画像がロード済みなら drawImage、そうでなければ簡易矩形で代替表示
+      if (img.complete && img.naturalWidth) {
+        ctx.drawImage(img, Math.floor(t.x), GROUND_Y - FOREST_HEIGHT, drawW, FOREST_HEIGHT);
+      } else {
+        // ロード前のプレースホルダ
+        ctx.fillStyle = "#2e8b57";
+        ctx.fillRect(Math.floor(t.x), GROUND_Y - FOREST_HEIGHT, drawW, FOREST_HEIGHT);
+      }
+    }
+  }
+  // -----------------------------------------------------
+
   // 障害物・足場
   obstacles.forEach(ob => {
     if(ob.type === "platform"){
@@ -512,7 +606,14 @@ function draw(){
     const gx = goalLine.x;
     // 地面（GROUND_Y）に沿ってゴールの下端を合わせる
     const gy = GROUND_Y - goalLine.height;
-    ctx.drawImage(goalImage, gx, gy, goalLine.width, goalLine.height);
+    const scale = 2.0; // 倍率
+ctx.drawImage(
+  goalImage,
+  gx,
+  gy - (goalLine.height * (scale - 1)), // 高さ分ずらす
+  goalLine.width  * scale,
+  goalLine.height * scale
+);
 
     // 画像上に小さく "GOAL" を重ねる（任意）
     ctx.fillStyle = "black";
@@ -554,6 +655,9 @@ function loop(){
     // 背景スクロール
     mountains.forEach(m=>{ m.x -= 0.5; if(m.x <= -W) m.x += 2*W; if(m.x >= 2*W) m.x -= 2*W; });
     clouds.forEach(c=>{ c.x -= c.speed; if(c.x < -60) c.x = canvas.width + 60; });
+
+    // --- forest 更新（タイルを移動／回転） ---
+    updateForest();
 
     // ゴール判定
     if(!goalLine && distance >= goalDistance * 4.0 && score >= goalScore * 4.0){
