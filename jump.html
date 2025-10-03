@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ジャンプゲーム — 足場＆落とし穴（最終修正版）</title>
+<title>ジャンプゲーム — 修正版（bouncer 安全実装）</title>
 <style>
   body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f8f8; display:flex; flex-direction:column; align-items:center; }
   h2 { margin:12px 0; }
@@ -17,7 +17,7 @@
 </style>
 </head>
 <body>
-<h2>ジャンプゲーム 🎈（足場・落とし穴 最終修正版）</h2>
+<h2>ジャンプゲーム 🎈（修正版）</h2>
 <div id="canvasWrap"><canvas id="game" width="400" height="300"></canvas></div>
 
 <div id="buttonArea">
@@ -52,10 +52,7 @@ class BGMPlayer {
   stop(){ this.pause(); this.audio.currentTime = 0; }
   fadeOut(step=0.02, interval=100){
     const audio = this.audio;
-    const fade = setInterval(()=>{
-      if(audio.volume > step){ audio.volume = Math.max(0, audio.volume - step); }
-      else { audio.volume = 0; audio.pause(); clearInterval(fade); }
-    }, interval);
+    const fade = setInterval(()=>{ if(audio.volume > step){ audio.volume = Math.max(0, audio.volume - step); } else { audio.volume = 0; audio.pause(); clearInterval(fade); } }, interval);
   }
   setVolume(v){ this.audio.volume = Math.max(0, Math.min(1, v)); }
   isPlaying(){ return this._isPlaying && !this.audio.paused; }
@@ -65,12 +62,17 @@ class BGMPlayer {
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = canvas.width;
+const H = canvas.height;
 const GROUND_Y = 270;
 const OB_FALL_THRESHOLD = GROUND_Y - 40;
 const worldSpeedDefault = 2;
 let worldSpeed = worldSpeedDefault;
 const goalDistance = 1200;
 const goalScore = 30;
+
+/* 上限（重要） */
+const MAX_OBSTACLES = 40;     // 障害物の総数上限（これ以上は生成しない）
+const SPAWN_INTERVAL = 110;   // 障害物生成間隔（フレーム）
 
 /* ========================= 変数 ========================= */
 let player, jumpStage, maxJumpStage, obstacles, explosions, holes;
@@ -81,7 +83,7 @@ let goalLine = null;
 let gameClear = false;
 let loopStarted = false;
 
-/* 画像（パスがあれば表示されます） */
+/* 画像（パスがあれば表示） */
 const playerImage = new Image(); playerImage.src = "characters/hero/hero.png";
 const normalImage = new Image(); normalImage.src = "characters/normal/normal.png";
 const zigzagImage = new Image(); zigzagImage.src = "characters/zigzag/zigzag.png";
@@ -90,170 +92,78 @@ const breakableImage = new Image(); breakableImage.src = "characters/breakable/b
 const healImage = new Image(); healImage.src = "characters/heal/heal.png";
 const chaserImage = new Image(); chaserImage.src = "characters/chaser/chaser.png";
 const chaser2Image = new Image(); chaser2Image.src = "characters/chaser2/chaser2.png";
+const wiggleImage = new Image(); wiggleImage.src = "characters/wiggle/wiggle1.png";
+const bouncerImage = new Image(); bouncerImage.src = "characters/bouncer/bouncer1.png";
+const goalImage = new Image(); goalImage.src = "graphics/goal/goal1.png";
+const cloudImage = new Image(); cloudImage.src = "graphics/cloud/cloud1.png";
+const mountainImage = new Image(); mountainImage.src = "graphics/mountain/mountain1.png";
 
-const goalImage = new Image();goalImage.src = "graphics/goal/goal1.png";
-const cloudImage = new Image();
-cloudImage.src = "graphics/cloud/cloud1.png"; // あなたの画像パス
-
-const mountainImage = new Image();mountainImage.src = "graphics/mountain/mountain1.png";
-// ↓ forestImage を単一画像から「複数候補」＆タイル方式へ置き換えました
-// --- ★ ここに森のファイル名を列挙してください（必要に応じて追加） ---
+/* forest files (optional) */
 const forestFiles = [
   "graphics/forest/forest1.png",
   "graphics/forest/forest2.png",
   "graphics/forest/forest3.png",
   "graphics/forest/forest4.png",
-
 ];
+const forestImageObjects = forestFiles.map(src => { const img = new Image(); img.src = src; return img; });
 
-
-// ---------------------------------------------------------------
-
-// Imageオブジェクト群（先読み）
-const forestImageObjects = forestFiles.map(src => {
-  const img = new Image();
-  img.src = src;
-  return img;
-});
-
-// タイル配列（{image, x}）
+/* タイル関連 */
 let forestTiles = [];
-const FOREST_HEIGHT = 60;     // 描画高さ（好みで調整）
-const FOREST_SPEED_FACTOR = 0.5; // worldSpeed に対するスクロール速度比
+const FOREST_HEIGHT = 60;
+const FOREST_SPEED_FACTOR = 0.5;
 
+/* Sound/BGM */
 const bgmPlayer = new BGMPlayer("sounds/BGM/a.mp3", {volume:0.05, loop:true});
 const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
 
-
+/* UI */
 const msgBox = document.getElementById('msg');
 function showMsg(text, ms=1800){ msgBox.textContent=text; msgBox.style.display='block'; clearTimeout(showMsg._t); showMsg._t=setTimeout(()=>msgBox.style.display='none', ms); }
 
-/* ---------- 初期化 ---------- */
-function resetGameState(){
-  const initialSize = 30;
-  player = {
-    x:50,
-    y: GROUND_Y - initialSize,
-    vy:0,
-    size: initialSize,
-    falling:false,
-    onPlatform: null,
-    inPit:false,
-    _fallSoundPlayed: false,
-    _fallStarted: false   // ← 追加：この落下が「本当に落ちた」かの判定用フラグ
-  };
-  jumpStage = 0; maxJumpStage = 2;
-  obstacles = []; explosions = []; holes = [];
-  fireworks = [];
-  score = 0; spawnTimer = 0; holeTimer = 0;
-  gameTime = 6000;
-  hp = 4; invincible = 0; flash = 0;
-  distance = 0; goalLine = null; gameClear = false; gameOver = false;
-  worldSpeed = worldSpeedDefault;
-  mountains[0].x = 0; mountains[1].x = W;
-  clouds[0].x = 80; clouds[1].x = 220; clouds[2].x = 340;
-
-  // 森タイル初期化（画面を覆う分＋余裕分）
-  initForest();
-}
-
-/* --- 森タイル初期化 --- */
-function initForest(){
-  forestTiles = [];
-  // 単純に左から右へ幅を積み上げて並べる
-  let x = 0;
-  // 少なくとも画面幅×2 分を並べる（ループの余裕）
-  const targetWidth = canvas.width * 2;
-  while (x < targetWidth) {
-    const img = forestImageObjects[Math.floor(Math.random() * forestImageObjects.length)];
-    // アスペクトが得られれば幅を計算、なければフォールバック比 (3:1)
-    const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : 3;
-    const w = Math.round(FOREST_HEIGHT * aspect) || Math.round(FOREST_HEIGHT * 3);
-    forestTiles.push({ image: img, x: x, w: w });
-    x += w;
-  }
-}
-
-/* --- 毎フレームでタイル位置更新（ループ時に呼ぶ） --- */
-function updateForest(){
-  const speed = worldSpeed * FOREST_SPEED_FACTOR;
-  // まず全タイルを左に動かす
-  for (let t of forestTiles){
-    t.x -= speed;
-  }
-  // 右端の x を求めるヘルパー
-  function rightmostX(){
-    let max = -99999;
-    for (let t of forestTiles){
-      // 今の幅を計算（画像ロード済みなら実寸比に合わせる）
-      const img = t.image;
-      const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
-      const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
-      max = Math.max(max, t.x + drawW);
-    }
-    return max;
-  }
-
-  // 画面左に完全に出たタイルは右端へ回す（別画像を割り当てる）
-  for (let t of forestTiles){
-    const img = t.image;
-    const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
-    const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
-    if (t.x + drawW < 0) {
-      // 新しいランダム画像を選択
-      const newImg = forestImageObjects[Math.floor(Math.random() * forestImageObjects.length)];
-      t.image = newImg;
-      const newAspect = (newImg.naturalWidth && newImg.naturalHeight) ? (newImg.naturalWidth / newImg.naturalHeight) : aspect;
-      const newW = Math.round(FOREST_HEIGHT * newAspect) || drawW;
-      // 右端へ配置
-      const rx = rightmostX();
-      t.x = rx;
-      t.w = newW;
-    }
-  }
-}
-
-/* 花火・雲・山 */
-function spawnFireworks(cx, cy, bursts = 10){
-  const colors = ["#ff5050","#ffb84d","#fff06a","#7efc8d","#8ad4ff","#d6a0ff","#ffffff","#ff69b4"];
-  for(let b=0;b<bursts;b++){
-    const particles = 36 + Math.floor(Math.random()*32);
-    for(let i=0;i<particles;i++){
-      const angle = Math.random()*Math.PI*2;
-      const speed = 2 + Math.random()*6;
-      const vx = Math.cos(angle) * speed * (0.6 + Math.random()*0.8);
-      const vy = Math.sin(angle) * speed * (0.6 + Math.random()*0.8);
-      const life = 60 + Math.floor(Math.random()*80);
-      const size = 1 + Math.random()*4;
-      const color = colors[Math.floor(Math.random()*colors.length)];
-      fireworks.push({ x: cx + (Math.random()-0.5)*30, y: cy + (Math.random()-0.5)*30, vx, vy, size, color, life, age:0, alpha:1 });
-    }
-  }
-}
-function updateFireworks(){ for(let p of fireworks){ p.age++; p.vy += 0.04; p.vx *= 0.995; p.vy *= 0.998; p.x += p.vx; p.y += p.vy; p.alpha = Math.max(0, 1 - p.age / p.life); } fireworks = fireworks.filter(p => p.age < p.life); }
-function drawFireworks(){ for(let p of fireworks){ ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); } ctx.globalAlpha = 1; }
-
+/* clouds & mountains (mountains は reset 前に初期化しておく) */
 const clouds = [
   {x:80, y:50, scale:1, speed:0.2},
   {x:220, y:70, scale:0.8, speed:0.15},
   {x:340, y:40, scale:1.2, speed:0.25}
 ];
+
+const numMountains = 2;
+const mountains = [];
+const mountainWidth = 400;
+const mountainHeight = 120;
+const minGap = 400;
+let currentX = 0;
+for (let i = 0; i < numMountains; i++) {
+  mountains.push({ x: currentX, image: mountainImage });
+  currentX += mountainWidth + minGap + Math.random() * 200;
+}
+function repositionMountain(m, index) {
+  let tries = 0;
+  do {
+    let maxX = 0;
+    mountains.forEach((other, i) => { if (i !== index) maxX = Math.max(maxX, other.x + mountainWidth); });
+    m.x = maxX + minGap + Math.random() * 200;
+    tries++;
+  } while (mountains.some((other, i) => i !== index && Math.abs(other.x - m.x) < mountainWidth) && tries < 10);
+}
+function drawMountains() {
+  mountains.forEach((m, index) => {
+    m.x -= 0.2;
+    if (m.x + mountainWidth < -200) repositionMountain(m, index);
+    if (m.image.complete) ctx.drawImage(m.image, m.x, GROUND_Y - mountainHeight, mountainWidth, mountainHeight);
+    else { ctx.fillStyle = "#9ACD9A"; ctx.fillRect(m.x, GROUND_Y - mountainHeight, mountainWidth, mountainHeight); }
+  });
+}
 function drawCloud(c){
-  // 画像が読み込まれていれば画像で描画
   if (cloudImage.complete && cloudImage.naturalWidth > 0) {
-    // 画像のアスペクトを保って描画サイズを決める
-    const desiredHeight = 40 * c.scale;              // 雲の高さ（調整可）
+    const desiredHeight = 40 * c.scale;
     const aspect = cloudImage.naturalWidth / cloudImage.naturalHeight;
     const drawW = Math.round(desiredHeight * aspect);
     const drawH = Math.round(desiredHeight);
-
-    // 中心を基準に描画したければオフセットを調整
     const dx = Math.round(c.x - drawW / 2);
     const dy = Math.round(c.y - drawH / 2);
-
     ctx.drawImage(cloudImage, dx, dy, drawW, drawH);
   } else {
-    // フォールバック（元の描画）
     ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.beginPath();
     ctx.arc(c.x, c.y, 20 * c.scale, 0, Math.PI * 2);
@@ -264,111 +174,117 @@ function drawCloud(c){
   }
 }
 
+/* 初期化 */
+function resetGameState(){
+  const initialSize = 30;
+  player = {
+    x:120,
+    y: GROUND_Y - initialSize,
+    vy:0,
+    size: initialSize,
+    falling:false,
+    onPlatform: null,
+    inPit:false,
+    _fallSoundPlayed: false,
+    _fallStarted: false
+  };
+  jumpStage = 0; maxJumpStage = 2;
+  obstacles = []; explosions = []; holes = [];
+  fireworks = [];
+  score = 0; spawnTimer = 0; holeTimer = 0;
+  gameTime = 6000;
+  hp = 4; invincible = 0; flash = 0;
+  distance = 0; goalLine = null; gameClear = false; gameOver = false;
+  worldSpeed = worldSpeedDefault;
 
+  // mountains & clouds initial (軽量)
+  if (mountains.length >= 2) { mountains[0].x = 0; mountains[1].x = W; }
+  if (clouds.length >= 3){ clouds[0].x = 80; clouds[1].x = 220; clouds[2].x = 340; }
 
-const numMountains = 2;
-const mountains = [];
-const mountainWidth = 400;
-const mountainHeight = 120;
-const minGap = 400;  // 山同士の最小間隔
-
-// 初期配置
-let currentX = 0;
-for (let i = 0; i < numMountains; i++) {
-  mountains.push({ x: currentX, image: mountainImage });
-  currentX += mountainWidth + minGap + Math.random() * 200;
+  initForest();
 }
 
-// 再配置用関数（衝突判定付き）
-function repositionMountain(m, index) {
-  let tries = 0;
-  do {
-    // 他の山の右端の最大値を取得
-    let maxX = 0;
-    mountains.forEach((other, i) => {
-      if (i !== index) maxX = Math.max(maxX, other.x + mountainWidth);
-    });
-
-    // 新しい位置を決定
-    m.x = maxX + minGap + Math.random() * 200;
-    tries++;
-
-    // 最大10回まで試行
-  } while (
-    mountains.some((other, i) => i !== index && Math.abs(other.x - m.x) < mountainWidth) &&
-    tries < 10
-  );
+/* forest 初期化 */
+function initForest(){
+  forestTiles = [];
+  let x = 0;
+  const targetWidth = canvas.width * 1.5;
+  while (x < targetWidth) {
+    const img = forestImageObjects.length ? forestImageObjects[Math.floor(Math.random() * forestImageObjects.length)] : null;
+    const aspect = (img && img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : 3;
+    const w = Math.round(FOREST_HEIGHT * aspect) || Math.round(FOREST_HEIGHT * 3);
+    forestTiles.push({ image: img, x: x, w: w });
+    x += w;
+    if (forestTiles.length > 30) break;
+  }
 }
 
-function drawMountains() {
-  mountains.forEach((m, index) => {
-    // スクロール
-    m.x -= 0.2;
-
-    // 左端を過ぎたら右端に戻す
-    if (m.x + mountainWidth < 0) {
-      repositionMountain(m, index);
+/* forest 更新 */
+function updateForest(){
+  const speed = worldSpeed * FOREST_SPEED_FACTOR;
+  for (let t of forestTiles){ t.x -= speed; }
+  function rightmostX(){
+    let max = -99999;
+    for (let t of forestTiles){
+      const img = t.image;
+      const aspect = (img && img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
+      const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
+      max = Math.max(max, t.x + drawW);
     }
-
-    // 描画
-    if (m.image.complete) {
-      ctx.drawImage(m.image, m.x, GROUND_Y - mountainHeight, mountainWidth, mountainHeight);
-    } else {
-      ctx.fillStyle = "#9ACD9A";
-      ctx.fillRect(m.x, GROUND_Y - mountainHeight, mountainWidth, mountainHeight);
+    return max;
+  }
+  for (let t of forestTiles){
+    const img = t.image;
+    const aspect = (img && img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
+    const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
+    if (t.x + drawW < -50) {
+      const rx = rightmostX();
+      t.x = rx + 2;
     }
-  });
+  }
 }
 
-
+/* 花火系（軽量） */
+function spawnFireworks(cx, cy, bursts = 6){
+  const colors = ["#ff5050","#ffb84d","#fff06a","#7efc8d","#8ad4ff","#d6a0ff","#ffffff","#ff69b4"];
+  for(let b=0;b<bursts;b++){
+    const particles = 18 + Math.floor(Math.random()*24);
+    for(let i=0;i<particles;i++){
+      const angle = Math.random()*Math.PI*2;
+      const speed = 2 + Math.random()*4;
+      const vx = Math.cos(angle) * speed * (0.6 + Math.random()*0.8);
+      const vy = Math.sin(angle) * speed * (0.6 + Math.random()*0.8);
+      const life = 40 + Math.floor(Math.random()*60);
+      const size = 1 + Math.random()*3;
+      const color = colors[Math.floor(Math.random()*colors.length)];
+      fireworks.push({ x: cx + (Math.random()-0.5)*20, y: cy + (Math.random()-0.5)*20, vx, vy, size, color, life, age:0, alpha:1 });
+    }
+  }
+}
+function updateFireworks(){ for(let p of fireworks){ p.age++; p.vy += 0.04; p.vx *= 0.995; p.vy *= 0.998; p.x += p.vx; p.y += p.vy; p.alpha = Math.max(0, 1 - p.age / p.life); } fireworks = fireworks.filter(p => p.age < p.life); }
+function drawFireworks(){ for(let p of fireworks){ ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); } ctx.globalAlpha = 1; }
 
 /* 入力（ジャンプ） */
-
-const gravity = 0.6; // 重力（落下速度の増加量）
-
+const gravity = 0.6;
 function doJump() {
   if (gameOver || gameClear) return;
   tryPlayBGMOnce();
-
-  // 足場に乗っている場合はジャンプステージをリセット
-  if (player.onPlatform) {
-    jumpStage = 0;
-  }
-
+  if (player.onPlatform) jumpStage = 0;
   if (jumpStage < maxJumpStage) {
     jumpStage++;
-
-    if (jumpStage === 1) {
-      player.vy = -15; // 初回ジャンプ
-    } else if (jumpStage === 2) {
-      player.vy = -15; // 二段ジャンプを少し大きく
-    }
-
-    player.onPlatform = null;  // 足場から離れる
+    player.vy = -15;
+    player.onPlatform = null;
     player.falling = true;
     player.inPit = false;
-
     playJumpSound();
   }
 }
-
-
-// 毎フレームでの更新
-function updatePlayer() {
-  player.y += player.vy;
-  player.vy += gravity; // 重力で落下加速
-  // 地面や足場との当たり判定処理
-}
-
-document.addEventListener("keydown", e=>{
-  if(e.code==="Space"){ e.preventDefault(); doJump(); }
-  if(e.code==="Enter" && (gameOver || gameClear)) restart();
-});
+document.addEventListener("keydown", e=>{ if(e.code==="Space"){ e.preventDefault(); doJump(); } if(e.code==="Enter" && (gameOver || gameClear)) restart(); });
 document.getElementById("jumpBtn").addEventListener("click", doJump);
 document.getElementById("restartBtn").addEventListener("click", ()=>{ tryPlayBGMOnce(true); restart(); });
 canvas.addEventListener("touchstart", e=>{ e.preventDefault(); doJump(); }, {passive:false});
 
-/* SE（同等） */
+/* SE（簡易） */
 function playSoundSequence(seq){ const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); seq.forEach(({freq,type="sine",duration=0.2,delay=0,volume=0.2})=>{ const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = type; osc.frequency.value = freq; const startTime = audioCtx.currentTime + delay; gain.gain.setValueAtTime(volume,startTime); gain.gain.exponentialRampToValueAtTime(0.001,startTime+duration); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(startTime); osc.stop(startTime+duration+0.05); }); }
 function playJumpSound(){ playSoundSequence([{freq:jumpStage===1?440:550,type:"triangle",duration:0.12}]); }
 function playDamageSound(){ playSoundSequence([{freq:160,type:"square",duration:0.22},{freq:80,type:"square",duration:0.22,delay:0.08}]); }
@@ -378,18 +294,23 @@ function playEnemyDefeatSound(){ playSoundSequence([{freq:420,type:"triangle",du
 function playGoalSound(){ playSoundSequence([{freq:880,type:"sine",duration:0.25},{freq:660,type:"sine",duration:0.25,delay:0.2}]); }
 function playClearSound(){ playSoundSequence([{freq:1200,type:"sine",duration:0.25},{freq:900,type:"sine",duration:0.2,delay:0.18},{freq:700,type:"sine",duration:0.18,delay:0.34}]); }
 
-/* ========================= 障害物＆足場＆穴生成 ========================= */
+/* ========================= 障害物生成（安全化・bouncer対応） ========================= */
 function spawnObstacle(){
-  const count = Math.floor(Math.random()*5)+2;
+  const count = Math.floor(Math.random()*3)+1;
   for(let i=0;i<count;i++){
+    if (obstacles.length >= MAX_OBSTACLES) break;
+
+    const r = Math.random();
     let type;
-    if(Math.random() < 0.04 && i === 0) type = "chaser2";
-    else if(Math.random() < 0.10 && i === 0) type = "chaser";
-    else if(Math.random() < 0.10) type = "heal";
-    else if(Math.random() < 0.08) type = "platform";
+    if (i === 0 && r < 0.08) type = "chaser";
+    else if (i === 0 && r < 0.10) type = "chaser2"; // 0.08〜0.10
+    else if (r < 0.18) type = "heal";
+    else if (r < 0.26) type = "platform";
+    else if (r < 0.30) type = "wiggle";
+    else if (r < 0.34) type = "bouncer"; // wiggle後の0.30〜0.34 
     else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
 
-    let yPos, baseY;
+    let yPos = GROUND_Y - 30, baseY;
     let width = 20, height = 20;
 
     switch(type){
@@ -402,7 +323,8 @@ function spawnObstacle(){
       case "chaser":
         yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100; width = 26; height = 26; break;
       case "chaser2":
-        yPos = W/2; width = 26; height = 26; break;
+        // 表示系は後述の生成で上書きするので、ここはデフォルトを与える
+        yPos = 0; width = 26; height = 26; break;
       case "platform":
         width = 40 + Math.floor(Math.random()*80); height = 12;
         yPos = 120 + Math.random()*(GROUND_Y - 160);
@@ -414,12 +336,13 @@ function spawnObstacle(){
       const targetX = player.x + player.size/2, targetY = player.y + player.size/2;
       const dx = targetX - startX, dy = targetY - startY;
       const len = Math.hypot(dx, dy) || 1;
-      const speed = 4 + Math.random()*1.5;
+      const speed = 4 + Math.random()*1.2;
       const vx = (dx / len) * speed, vy = (dy / len) * speed;
       obstacles.push({ x: startX, y: startY, width, height, type: "chaser", vx, vy, angle:0, vyPhys:0, falling:false, scored:false });
     }
     else if(type === "chaser2"){
-      const startX = -10, startY = -10;
+      // 左上（やや画面外）からターゲット方向へ飛んでくる敵
+      const startX = -6, startY = -6;
       const targetX = player.x + player.size / 2, targetY = player.y - 80;
       const dx = targetX - startX, dy = targetY - startY;
       const len = Math.hypot(dx, dy) || 1;
@@ -427,49 +350,134 @@ function spawnObstacle(){
       const vx = (dx / len) * speed, vy = (dy / len) * speed;
       obstacles.push({ x: startX, y: startY, width: 26, height: 26, type: "chaser2", vx, vy, angle:0, vyPhys:0, falling:false, scored:false });
     }
-    else {
+    else if(type === "wiggle"){
+      const baseX = W + i*30;
+      const baseYv = 100 + Math.random() * (GROUND_Y - 150);
+      const speedX = 1 + Math.random()*1.2;
+      const ampX = 8 + Math.random()*16;
+      const freqX = 0.008 + Math.random()*0.02;
+      const ampY = 12 + Math.random()*28;
+      const freqY = 0.008 + Math.random()*0.02;
       obstacles.push({
-        x: W + i*30, y: yPos, width, height, type,
-        angle: 0, vy: 0, falling: false, baseY: baseY, scored: false
+        x: baseX, y: baseYv, width: 26, height: 26, type: "wiggle",
+        baseX, baseY: baseYv, speedX, ampX, freqX, ampY, freqY, t: 0, angle: 0, vy: 0, falling: false, scored: false
       });
+    }
+    else if (type === "bouncer") {
+      // 左上寄りから登場（右へ進む） - 後でプラットフォーム判定で跳ね返ります
+      const startX = -30;
+      const startY = 40 + Math.random() * 80; // 少し上寄せ
+      const speedX = 1.0 + Math.random() * 1.4; // 右向き
+      obstacles.push({
+        x: startX, y: startY, width: 24, height: 24, type: "bouncer",
+        vx: speedX, vy: 0, bounce: 0.65 + Math.random()*0.25, falling: false, scored: false
+      });
+    }
+    else {
+      obstacles.push({ x: W + i*30, y: yPos, width, height, type, angle: 0, vy: 0, falling: false, baseY: baseY, scored: false });
     }
   }
 }
 
+/* 穴生成 */
 function spawnHoleIfReady(){
   holeTimer++;
-  if(holeTimer>=120){
-    if(Math.random()<0.5) holes.push({x:W, width:40});
+  if(holeTimer >= 140){
+    if(Math.random() < 0.45) holes.push({x:W, width:40});
     holeTimer = 0;
   }
 }
 
-/* ========================= updateObstacles（足場移動） ========================= */
+/* ========================= updateObstacles（bouncer 対応） ========================= */
 function updateObstacles(){
+  // まず位置更新（各オブジェクトに prev を付ける）
   for(let ob of obstacles){
     ob.prevX = ob.x;
+    ob.prevY = ob.y;
+
     if(ob.falling){
       ob.vy += 0.6;
       ob.y += ob.vy;
-    } else if (ob.vx !== undefined) {
+      // falling の場合でも x はそのままスクロール（地形で横に流れる）
+      if(ob.vx !== undefined) ob.x += ob.vx;
+    } else if (ob.vx !== undefined && (ob.type === "chaser" || ob.type === "chaser2" || ob.type === "bouncer")) {
+      // 固有の速度オブジェクト（chaser / chaser2 / bouncer）
       ob.x += ob.vx;
       ob.y += ob.vy;
+
+      // bouncer：地面・プラットフォームで跳ねる・穴判定
+      if (ob.type === "bouncer") {
+        // 穴に被ったら落とす判定（簡易）
+        for (let h of holes) {
+          if (!ob.falling && (ob.x + ob.width > h.x && ob.x < h.x + h.width) && ob.y >= OB_FALL_THRESHOLD) {
+            ob.falling = true;
+            ob.vy = 2;
+            break;
+          }
+        }
+
+        // プラットフォーム当たり判定（上から落ちてきて接触したら跳ねる）
+        if (!ob.falling) {
+          for (let plat of obstacles) {
+            if (plat.type !== "platform") continue;
+            // 横オーバーラップ
+            const overlap = (ob.x + ob.width > plat.x) && (ob.x < plat.x + plat.width);
+            // 前フレームの下端がプラットフォームより上、かつ今フレームの下端が >= plat.y（つまり上から接触）
+            if (overlap && (ob.prevY + ob.height <= plat.y) && (ob.y + ob.height >= plat.y)) {
+              // 着地位置に合わせる
+              ob.y = plat.y - ob.height;
+              // 跳ね返り
+              ob.vy = -Math.abs(ob.vy || 0) * (ob.bounce || 0.7);
+              if (Math.abs(ob.vy) < 2) ob.vy = -3 - Math.random()*2;
+              // 摩擦的に横速度を少し減少
+              ob.vx *= 0.98;
+            }
+          }
+          // 地面接触：跳ね返す
+          if (ob.y + ob.height >= GROUND_Y) {
+            ob.y = GROUND_Y - ob.height;
+            ob.vy = -Math.abs(ob.vy || 0) * (ob.bounce || 1.0);
+            if (Math.abs(ob.vy) < 2) ob.vy = -3 - Math.random()*3;
+            ob.vx *= 0.98;
+          } else {
+            // 地面に触れていなければ重力を付加して徐々に落とす（自然な挙動）
+            ob.vy += 0.4;
+          }
+        }
+      }
     } else {
-      const speed = (ob.type==="balloon" || ob.type==="heal") ? worldSpeed * 0.6 : worldSpeed;
-      ob.x -= speed;
-      if(ob.type==="zigzag" && ob.baseY!==undefined){
-        ob.y = ob.baseY + Math.sin(ob.angle) * 30;
-        ob.angle += 0.12;
-      }
-      if(ob.type==="balloon" || ob.type==="heal"){
-        ob.y += Math.sin(ob.angle) * 0.6;
-        ob.x += Math.sin(ob.angle/2) * 0.4;
-        ob.angle += 0.06;
-      }
-      if(!ob.falling && (ob.type==="normal"||ob.type==="breakable")){
-        for(let h of holes){
-          if(ob.x+ob.width > h.x && ob.x < h.x + h.width && ob.y >= OB_FALL_THRESHOLD){
-            ob.falling = true; ob.vy = 2; break;
+      // worldSpeed に引っ張られる通常オブジェクト
+      const speed = (ob.type === "balloon" || ob.type === "heal") ? worldSpeed * 0.6 : worldSpeed;
+
+      if (ob.type === "wiggle") {
+        ob.t = (ob.t || 0) + 1;
+        const moveSpeed = (ob.speedX || worldSpeed * 0.5);
+        const ampX = ob.ampX || 12;
+        const freqX = ob.freqX || 0.01;
+        const ampY = ob.ampY || 24;
+        const freqY = ob.freqY || 0.01;
+        ob.x = ob.baseX - moveSpeed * ob.t + Math.sin(ob.t * freqX * 2 * Math.PI) * ampX;
+        ob.y = ob.baseY + Math.sin(ob.t * freqY * 2 * Math.PI) * ampY;
+      } else {
+        ob.x -= speed;
+
+        if(ob.type === "zigzag" && ob.baseY !== undefined){
+          ob.y = ob.baseY + Math.sin(ob.angle || 0) * 30;
+          ob.angle = (ob.angle || 0) + 0.12;
+        }
+
+        if(ob.type === "balloon" || ob.type === "heal"){
+          ob.y += Math.sin(ob.angle || 0) * 0.6;
+          ob.x += Math.sin((ob.angle || 0) / 2) * 0.4;
+          ob.angle = (ob.angle || 0) + 0.06;
+        }
+
+        // normal/breakable が穴に被ったら落下
+        if(!ob.falling && (ob.type === "normal" || ob.type === "breakable")){
+          for(let h of holes){
+            if(ob.x + ob.width > h.x && ob.x < h.x + h.width && ob.y >= OB_FALL_THRESHOLD){
+              ob.falling = true; ob.vy = 2; break;
+            }
           }
         }
       }
@@ -478,7 +486,8 @@ function updateObstacles(){
 
   // 画面外 or 落下で削除
   obstacles = obstacles.filter(ob=>{
-    if(!ob.falling && (ob.x < -ob.width || ob.x > canvas.width + ob.width || ob.y < -ob.height || ob.y > canvas.height + ob.height)){
+    const outOfScreen = (ob.x < -ob.width*2) || (ob.x > canvas.width + ob.width*2) || (ob.y < -ob.height*2) || (ob.y > canvas.height + ob.height*2);
+    if(!ob.falling && outOfScreen){
       if (!ob.scored && ob.type !== "chaser" && ob.type !== "chaser2") { score++; ob.scored = true; }
       return false;
     }
@@ -486,15 +495,15 @@ function updateObstacles(){
     return true;
   });
 
+  // 穴の移動・クリーニング
   holes.forEach(h => h.x -= worldSpeed);
   holes = holes.filter(h => h.x + h.width > 0);
 }
 
-/* ========================= 衝突判定（敵・アイテム・立ち状態での穴踏み） ========================= */
+/* ========================= 衝突判定 ========================= */
 function checkCollision() {
   if (invincible > 0 || gameClear) return;
 
-  // 敵・アイテム判定（プラットフォーム着地とは別にする）
   for (let i = 0; i < obstacles.length; i++) {
     const ob = obstacles[i];
     if (ob.falling) continue;
@@ -507,7 +516,6 @@ function checkCollision() {
     const dy = playerCenterY - obCenterY;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    // 回復・風船（円判定）
     if (ob.type === "heal" && dist < player.size / 2 + 14) {
       explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 60, color: "rgba(255,50,50,0.6)" });
       obstacles.splice(i, 1); i--;
@@ -525,12 +533,10 @@ function checkCollision() {
       continue;
     }
 
-    // 四角判定（敵系）
-    if (["normal", "zigzag", "breakable", "chaser", "chaser2"].includes(ob.type) &&
+    if (["normal", "zigzag", "breakable", "chaser", "chaser2", "wiggle","bouncer"].includes(ob.type) &&
         player.x < ob.x + ob.width && player.x + player.size > ob.x &&
         player.y < ob.y + ob.height && player.y + player.size > ob.y) {
 
-      // breakable 踏みつけ処理
       if (ob.type === "breakable" && player.vy > 0 && player.y + player.size <= ob.y + 20) {
         explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
         obstacles.splice(i, 1); i--;
@@ -539,7 +545,6 @@ function checkCollision() {
         continue;
       }
 
-      // chaser ダメージ
       if (ob.type === "chaser" || ob.type === "chaser2") {
         hp--; invincible = 30; flash = 10; playDamageSound();
         if (hp <= 0) return endGame();
@@ -548,39 +553,42 @@ function checkCollision() {
         continue;
       }
 
-      // 通常敵に当たった場合のダメージ
+      // bouncer と当たったらダメージ（ただし消さない）
+      if (ob.type === "bouncer") {
+        hp--; invincible = 30; flash = 10; playDamageSound();
+        if (hp <= 0) return endGame();
+        explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 20 });
+        continue;
+      }
+
       hp--; invincible = 30; flash = 10; playDamageSound();
       if (hp <= 0) return endGame();
     }
   }
 
-  // 立ち状態での穴踏み判定（地面にいるとき）
-const footY = player.y + player.size; // 足の下端
-if (!player.falling && footY >= GROUND_Y - 1) {
-  for (let h of holes) {
-    const margin = 2;
-    const playerLeft = player.x + margin;
-    const playerRight = player.x + player.size - margin;
-
-    const holeLeft = h.x;
-    const holeRight = h.x + h.width;
-
-    if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
-      // 足が穴の範囲にかかっている -> 落下開始（inPit フラグだけ立てる）
-      player.falling = true;
-      player.inPit = true;
-      player.vy = 2;
-      // NOTE: player._fallStarted はここでは立てない（実際に下に沈んだかを loop 側で判定）
-      return;
+  // 足元の穴（立っているとき）
+  const footY = player.y + player.size;
+  if (!player.falling && footY >= GROUND_Y - 1) {
+    for (let h of holes) {
+      const margin = 2;
+      const playerLeft = player.x + margin;
+      const playerRight = player.x + player.size - margin;
+      const holeLeft = h.x;
+      const holeRight = h.x + h.width;
+      if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
+        player.falling = true;
+        player.inPit = true;
+        player.vy = 2;
+        return;
+      }
     }
   }
-}
 }
 
 /* 爆発更新 */
 function updateExplosions(){ for(let e of explosions) e.radius += 2; explosions = explosions.filter(e => e.radius < e.maxRadius); }
 
-/* 描画（足場＝矩形、穴＝黒矩形） */
+/* 描画 */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -597,33 +605,30 @@ function draw(){
   groundGrad.addColorStop(0,"#6b3f1a"); groundGrad.addColorStop(1,"#A0522D");
   ctx.fillStyle = groundGrad; ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 
-  // 地面の凹凸
+  // 地面の凹凸（軽量）
   ctx.strokeStyle = "rgba(0,0,0,0.12)";
-  for(let i=0;i<canvas.width;i+=6){
-    const offset = Math.sin(i * 0.18 + distance * 0.02) * 2;
+  for(let i=0;i<canvas.width;i+=10){
+    const offset = Math.sin(i * 0.12 + distance * 0.02) * 2;
     ctx.lineWidth = 0.8;
     ctx.beginPath(); ctx.moveTo(i, GROUND_Y + offset); ctx.lineTo(i, canvas.height); ctx.stroke();
   }
 
-  // --- 森（タイル化してランダム画像を繰り返す） ---
+  // 森タイル
   if (forestTiles.length > 0) {
     for (let t of forestTiles) {
       const img = t.image;
-      const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
+      const aspect = (img && img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : (t.w / Math.max(1, FOREST_HEIGHT));
       const drawW = Math.round(FOREST_HEIGHT * aspect) || t.w;
-      // 画像がロード済みなら drawImage、そうでなければ簡易矩形で代替表示
-      if (img.complete && img.naturalWidth) {
+      if (img && img.complete && img.naturalWidth) {
         ctx.drawImage(img, Math.floor(t.x), GROUND_Y - FOREST_HEIGHT, drawW, FOREST_HEIGHT);
       } else {
-        // ロード前のプレースホルダ
         ctx.fillStyle = "#2e8b57";
         ctx.fillRect(Math.floor(t.x), GROUND_Y - FOREST_HEIGHT, drawW, FOREST_HEIGHT);
       }
     }
   }
-  // -----------------------------------------------------
 
-  // 障害物・足場
+  // 障害物
   obstacles.forEach(ob => {
     if(ob.type === "platform"){
       ctx.fillStyle = "#8B4513";
@@ -640,19 +645,23 @@ function draw(){
         ob.type === "zigzag"    ? zigzagImage    :
         ob.type === "normal"    ? normalImage    :
         ob.type === "chaser"    ? chaserImage    :
-        ob.type === "chaser2"   ? chaser2Image   : null;
+        ob.type === "chaser2"   ? chaser2Image   :
+        ob.type === "wiggle"    ? wiggleImage    :
+        ob.type === "bouncer"   ? bouncerImage   : null;
 
     if (img && img.complete && img.naturalWidth) {
       ctx.drawImage(img, ob.x, ob.y, ob.width, ob.height);
     } else {
       ctx.fillStyle =
-          ob.type === "balloon"   ? "pink"   :
-          ob.type === "heal"      ? "red"    :
-          ob.type === "breakable" ? "orange" :
-          ob.type === "zigzag"    ? "purple" :
-          ob.type === "normal"    ? "green"  :
-          ob.type === "chaser"    ? "black"  :
-          ob.type === "chaser2"   ? "darkblue" : "gray";
+        ob.type === "balloon"   ? "pink"   :
+        ob.type === "heal"      ? "red"    :
+        ob.type === "breakable" ? "orange" :
+        ob.type === "zigzag"    ? "purple" :
+        ob.type === "normal"    ? "green"  :
+        ob.type === "chaser"    ? "black"  :
+        ob.type === "chaser2"   ? "darkblue" :
+        ob.type === "wiggle"    ? "cyan" :
+        ob.type === "bouncer"   ? "brown" : "gray";
 
       ctx.beginPath();
       ctx.arc(ob.x + ob.width / 2, ob.y + ob.height / 2, Math.min(ob.width, ob.height) / 2, 0, Math.PI * 2);
@@ -660,7 +669,7 @@ function draw(){
     }
   });
 
-  // 穴（落とし穴）
+  // 穴
   ctx.fillStyle = "black";
   holes.forEach(h => ctx.fillRect(h.x, GROUND_Y, h.width, 30) );
 
@@ -670,16 +679,12 @@ function draw(){
   // フラッシュ
   if(flash>0){ ctx.fillStyle="rgba(255,255,255,0.5)"; ctx.fillRect(0,0,canvas.width,canvas.height); flash--; }
 
-  // プレイヤー描画
+  // プレイヤー
   if(playerImage.complete && playerImage.naturalWidth !== 0){
-    ctx.save();
     ctx.drawImage(playerImage, player.x, player.y, player.size, player.size);
-    ctx.restore();
   } else {
     ctx.fillStyle = "pink";
     ctx.beginPath(); ctx.arc(player.x + player.size/2, player.y + player.size/2, player.size/2, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(player.x+7, player.y+8, 2, 0, Math.PI*2); ctx.arc(player.x+13, player.y+8, 2, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = "black"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(player.x+6, player.y+14); ctx.lineTo(player.x-2, player.y+12); ctx.moveTo(player.x+14, player.y+14); ctx.lineTo(player.x+22, player.y+12); ctx.stroke();
   }
 
   // UI
@@ -690,38 +695,25 @@ function draw(){
   ctx.fillStyle="white"; ctx.font="14px sans-serif"; ctx.textAlign="right";
   ctx.fillText(`スコア:${score}  距離:${Math.floor(distance)}  秒:${Math.floor(gameTime/60)}`, canvas.width-12, 28);
 
+  // goal
   if(goalLine){
-  // 画像がロード済みなら画像で描画（地面に合わせて配置）
-  if(goalImage.complete && goalImage.naturalWidth){
-    const gx = goalLine.x;
-    // 地面（GROUND_Y）に沿ってゴールの下端を合わせる
-    const gy = GROUND_Y - goalLine.height;
-    const scale = 2.0; // 倍率
-ctx.drawImage(
-  goalImage,
-  gx,
-  gy - (goalLine.height * (scale - 1)), // 高さ分ずらす
-  goalLine.width  * scale,
-  goalLine.height * scale
-);
-
-    // 画像上に小さく "GOAL" を重ねる（任意）
-    ctx.fillStyle = "red";
-    ctx.font = "bold 24px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("GOAL", gx + goalLine.width / 2, gy - 6);
-  } else {
-    // フォールバック：もともとの金色矩形＆テキスト
-    ctx.fillStyle = "gold";
-    const gy = 220;
-    ctx.fillRect(goalLine.x, gy, goalLine.width, 50);
-    ctx.fillStyle = "black";
-    ctx.font = "bold 12px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("GOAL", goalLine.x + goalLine.width/2, gy - 5);
+    if(goalImage.complete && goalImage.naturalWidth){
+      const gx = goalLine.x;
+      const gy = GROUND_Y - goalLine.height;
+      const scale = 2.0;
+      ctx.drawImage(goalImage, gx, gy - (goalLine.height * (scale - 1)), goalLine.width * scale, goalLine.height * scale);
+      ctx.fillStyle = "red"; ctx.font = "bold 24px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("GOAL", gx + goalLine.width / 2, gy - 6);
+    } else {
+      ctx.fillStyle = "gold";
+      const gy = 220;
+      ctx.fillRect(goalLine.x, gy, goalLine.width, 50);
+      ctx.fillStyle = "black";
+      ctx.font = "bold 12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("GOAL", goalLine.x + goalLine.width/2, gy - 5);
+    }
   }
-  }
-
 
   drawFireworks();
 
@@ -737,33 +729,30 @@ ctx.drawImage(
   }
 }
 
-/* ========================= メインループ（落下時に足場との衝突を正しく判定） ========================= */
+/* ========================= メインループ ========================= */
 function loop(){
   if(!gameOver && !gameClear){
     distance += worldSpeed;
 
-    // 背景スクロール
+    // 背景／雲更新
     mountains.forEach(m=>{ m.x -= 0.5; if(m.x <= -W) m.x += 2*W; if(m.x >= 2*W) m.x -= 2*W; });
     clouds.forEach(c=>{ c.x -= c.speed; if(c.x < -60) c.x = canvas.width + 60; });
 
-    // --- forest 更新（タイルを移動／回転） ---
     updateForest();
 
-    // ゴール判定
-    if(!goalLine && distance >= goalDistance * 4.0 && score >= goalScore * 4.0){
-  // 画像の実寸が使えるならそれをベースに、使えない（未ロード）場合はフォールバックサイズを使う
-  const defaultW = 80, defaultH = 80;
-  let gw = defaultW, gh = defaultH;
-  if(goalImage.complete && goalImage.naturalWidth){
-    // 画像を画面に収まるように適度に縮小（最大120px幅）
-    const scale = Math.min(1, 120 / goalImage.naturalWidth);
-    gw = Math.round(goalImage.naturalWidth * scale);
-    gh = Math.round(goalImage.naturalHeight * scale);
-  }
-  goalLine = { x: canvas.width + 100, width: gw, height: gh };
-  playGoalSound();
-  showMsg("ゴールライン出現！", 2000);
-}
+    // ゴール判定（条件を厳しめ）
+    if(!goalLine && distance >= goalDistance * 2.0 && score >= goalScore * 2.0){
+      const defaultW = 80, defaultH = 80;
+      let gw = defaultW, gh = defaultH;
+      if(goalImage.complete && goalImage.naturalWidth){
+        const scale = Math.min(1, 120 / goalImage.naturalWidth);
+        gw = Math.round(goalImage.naturalWidth * scale);
+        gh = Math.round(goalImage.naturalHeight * scale);
+      }
+      goalLine = { x: canvas.width + 100, width: gw, height: gh };
+      playGoalSound();
+      showMsg("ゴールライン出現！", 2000);
+    }
     if(goalLine){
       goalLine.x -= worldSpeed;
       if(player.x + player.size > goalLine.x){
@@ -772,9 +761,9 @@ function loop(){
         playClearSound();
         let cnt = 0;
         const t = setInterval(()=>{
-          spawnFireworks(canvas.width/2 + (Math.random()-0.5)*120, 120 + Math.random()*40, 8);
+          spawnFireworks(canvas.width/2 + (Math.random()-0.5)*120, 120 + Math.random()*40, 6);
           const se = new Audio(fireworkSEPath); se.volume = 0.6; se.play();
-          cnt++; if(cnt>=7) clearInterval(t);
+          cnt++; if(cnt>=6) clearInterval(t);
         }, 400);
         showMsg("クリア！ 花火！", 3000);
       }
@@ -783,132 +772,75 @@ function loop(){
     // 時間
     gameTime--; if(gameTime <= 0) endGame();
 
-    // 1) 先に障害物（足場）を動かす
+    // 1) 先に障害物を動かす
     updateObstacles();
 
-    // 2) プレイヤーの prevY を保持してから物理を適用
+    // 2) プレイヤー物理
     const prevY = player.y;
     const prevFootY = prevY + player.size;
 
-    // 2a) プレイヤーがプラットフォームの上にいる場合は、移動後のプラットフォーム位置に合わせる（プラットフォームの参照が生きているか）
     if(player.onPlatform){
       const p = player.onPlatform;
-      // 足場がまだ残っていて横重なりがあるかチェック
       const stillExists = obstacles.indexOf(p) !== -1;
       const overlapX = stillExists && (player.x + player.size > p.x) && (player.x < p.x + p.width);
       if(!stillExists || !overlapX){
-        // 足場が外れた -> 落下開始
-        player.onPlatform = null;
-        player.falling = true;
-        player.inPit = false;
-        player.vy = 2;
+        player.onPlatform = null; player.falling = true; player.inPit = false; player.vy = 2;
       } else {
-        // 足場上に固定
-        player.y = p.y - player.size;
-        player.vy = 0;
-        player.falling = false;
+        player.y = p.y - player.size; player.vy = 0; player.falling = false;
       }
     }
 
-    // 2b) 落下中 または 空中の重力適用（onPlatform でないとき）
     if(!player.onPlatform){
-      // 既に falling の場合はそのまま、そうでなければ重力を掛ける（立ちから押し出されるケース等）
-      if(player.falling){
-        player.vy += 0.9;
-      } else {
-        // 地面に立っている場合でも微小な積算（通常は player.falling=false なら vy=0）
-        player.vy += 0.5;
-      }
+      if(player.falling) player.vy += 0.9; else player.vy += 0.5;
       player.y += player.vy;
     }
 
     const newFootY = player.y + player.size;
 
-    // 3) 落下区間(prevFootY -> newFootY) にプラットフォームがあれば着地（下へ通過してしまうバグ修正）
-    if(player.vy > 0){ // 下向きに移動している／落下
-      // 探す：横重なりがあり、platform.y が prevFootY < platform.y <= newFootY のもの
-      let landingPlatform = null;
-      let landingY = Infinity;
+    if(player.vy > 0){
+      let landingPlatform = null; let landingY = Infinity;
       for(let ob of obstacles){
         if(ob.type !== "platform") continue;
-        // 横オーバーラップ（player.x fixed）
         const overlapX = (player.x + player.size > ob.x) && (player.x < ob.x + ob.width);
         if(!overlapX) continue;
-        // platform のトップ座標 ob.y が落下区間に入っているか（少し余裕を与える）
         const topY = ob.y;
         if(topY >= prevFootY - 0.5 && topY <= newFootY + 0.5){
-          if(topY < landingY){
-            landingY = topY;
-            landingPlatform = ob;
-          }
+          if(topY < landingY){ landingY = topY; landingPlatform = ob; }
         }
       }
       if(landingPlatform){
-        // 着地処理（最も近い足場に着地）
-        player.y = landingPlatform.y - player.size;
-        player.vy = 0;
-        player.falling = false;
-        player.onPlatform = landingPlatform;
-        player.inPit = false;
+        player.y = landingPlatform.y - player.size; player.vy = 0; player.falling = false; player.onPlatform = landingPlatform; player.inPit = false;
       } else {
-        // もし地面に到達していれば地面判定（地面着地 or 落とし穴）
         if(newFootY >= GROUND_Y){
-          // 地面に達した瞬間、足元が穴かどうか判定
           const footXCenter = player.x + player.size/2;
           let overPit = false;
-          for(let h of holes){
-            if(footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4){
-              overPit = true; break;
-            }
-          }
+          for(let h of holes){ if(footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4){ overPit = true; break; } }
           if(overPit){
-            // 穴の上 -> 致命的に落ちる（inPit = true）; 続けて落ちる
-            player.inPit = true;
-            player.falling = true; // 継続して落ちる
-            // player.y は更新済み
+            player.inPit = true; player.falling = true;
           } else {
-            // 地面に着地して助かる
-            player.inPit = false;
-            player.falling = false;
-            player.vy = 0;
-            player.y = GROUND_Y - player.size;
-            player.onPlatform = null;
-            jumpStage = 0;
+            player.inPit = false; player.falling = false; player.vy = 0; player.y = GROUND_Y - player.size; player.onPlatform = null; jumpStage = 0;
           }
         }
-      } 
-    }
-// --- 追加：落下が視覚的に始まったら fallStarted を立てる ---
-// --- 落下開始判定 ---
-if (!player._fallStarted && player.inPit) {
-    if (player.y > GROUND_Y + 1) {  // 地面より少し下に来たら落下開始
-        player._fallStarted = true;
-    }
-}
-
-// --- 落下処理・死亡判定 ---
-if (player._fallStarted) {
-    // 落下音
-    if (!player._fallSoundPlayed) {
-        player._fallSoundPlayed = true;
-        try { playFallSound(); } catch(e){ /* ignore */ }
+      }
     }
 
-    // y座標が画面下まで到達したらゲームオーバー
-    // y座標が地面の下1pxを超えたらゲームオーバー
-if (player.y > GROUND_Y + 1) {
-    endGame();
-}
-}
+    if(!player._fallStarted && player.inPit){
+      if(player.y > GROUND_Y + 1) player._fallStarted = true;
+    }
+    if(player._fallStarted && !player._fallSoundPlayed){
+      player._fallSoundPlayed = true; try { playFallSound(); } catch(e) {}
+    }
+    if(player.y > canvas.height + 50 && player._fallStarted) endGame();
 
-
-
-    // spawn / update
-    spawnTimer++; if(spawnTimer > 90){ spawnObstacle(); spawnTimer = 0; }
+    // spawn（制限付き）
+    spawnTimer++;
+    if(spawnTimer > SPAWN_INTERVAL){
+      if (obstacles.length < MAX_OBSTACLES - 6) spawnObstacle();
+      spawnTimer = 0;
+    }
     spawnHoleIfReady();
 
     if(invincible>0) invincible--;
-    // 衝突（敵・アイテム・立ち状態での穴踏み判定）
     checkCollision();
     updateExplosions();
   }
