@@ -90,17 +90,23 @@ const breakableImage = new Image(); breakableImage.src = "characters/breakable/b
 const healImage = new Image(); healImage.src = "characters/heal/heal.png";
 const chaserImage = new Image(); chaserImage.src = "characters/chaser/chaser.png";
 const chaser2Image = new Image(); chaser2Image.src = "characters/chaser2/chaser2.png";
-const goalImage = new Image();goalImage.src = "characters/goal/goal1.png";
-// ↓ forestImage を単一画像から「複数候補」＆タイル方式へ置き換えました
 
+const goalImage = new Image();goalImage.src = "graphics/goal/goal1.png";
+const cloudImage = new Image();
+cloudImage.src = "graphics/cloud/cloud1.png"; // あなたの画像パス
+
+const mountainImage = new Image();mountainImage.src = "graphics/mountain/mountain1.png";
+// ↓ forestImage を単一画像から「複数候補」＆タイル方式へ置き換えました
 // --- ★ ここに森のファイル名を列挙してください（必要に応じて追加） ---
 const forestFiles = [
-  "characters/forest/forest1.png",
-  "characters/forest/forest2.png",
-  "characters/forest/forest3.png",
-  "characters/forest/forest4.png",
+  "graphics/forest/forest1.png",
+  "graphics/forest/forest2.png",
+  "graphics/forest/forest3.png",
+  "graphics/forest/forest4.png",
 
 ];
+
+
 // ---------------------------------------------------------------
 
 // Imageオブジェクト群（先読み）
@@ -227,10 +233,94 @@ function spawnFireworks(cx, cy, bursts = 10){
 function updateFireworks(){ for(let p of fireworks){ p.age++; p.vy += 0.04; p.vx *= 0.995; p.vy *= 0.998; p.x += p.vx; p.y += p.vy; p.alpha = Math.max(0, 1 - p.age / p.life); } fireworks = fireworks.filter(p => p.age < p.life); }
 function drawFireworks(){ for(let p of fireworks){ ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); } ctx.globalAlpha = 1; }
 
-const clouds = [ {x:80,y:50,scale:1,speed:0.2}, {x:220,y:70,scale:0.8,speed:0.15}, {x:340,y:40,scale:1.2,speed:0.25} ];
-function drawCloud(c){ ctx.fillStyle="rgba(255,255,255,0.9)"; ctx.beginPath(); ctx.arc(c.x, c.y, 20*c.scale,0,Math.PI*2); ctx.arc(c.x+15*c.scale, c.y-10*c.scale,15*c.scale,0,Math.PI*2); ctx.arc(c.x+30*c.scale, c.y,20*c.scale,0,Math.PI*2); ctx.closePath(); ctx.fill(); }
-const mountains = [{x:0,color:"#9ACD9A"},{x:W,color:"#9ACD9A"}];
-function drawMountains(){ mountains.forEach(m=>{ ctx.fillStyle = m.color; ctx.beginPath(); ctx.moveTo(m.x, 200); ctx.lineTo(m.x + 80, 140); ctx.lineTo(m.x + 160, 180); ctx.lineTo(m.x + 240, 150); ctx.lineTo(m.x + 320, 170); ctx.lineTo(m.x + 400, 200); ctx.lineTo(m.x + 400, 270); ctx.lineTo(m.x, 270); ctx.closePath(); ctx.fill(); }); }
+const clouds = [
+  {x:80, y:50, scale:1, speed:0.2},
+  {x:220, y:70, scale:0.8, speed:0.15},
+  {x:340, y:40, scale:1.2, speed:0.25}
+];
+function drawCloud(c){
+  // 画像が読み込まれていれば画像で描画
+  if (cloudImage.complete && cloudImage.naturalWidth > 0) {
+    // 画像のアスペクトを保って描画サイズを決める
+    const desiredHeight = 40 * c.scale;              // 雲の高さ（調整可）
+    const aspect = cloudImage.naturalWidth / cloudImage.naturalHeight;
+    const drawW = Math.round(desiredHeight * aspect);
+    const drawH = Math.round(desiredHeight);
+
+    // 中心を基準に描画したければオフセットを調整
+    const dx = Math.round(c.x - drawW / 2);
+    const dy = Math.round(c.y - drawH / 2);
+
+    ctx.drawImage(cloudImage, dx, dy, drawW, drawH);
+  } else {
+    // フォールバック（元の描画）
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 20 * c.scale, 0, Math.PI * 2);
+    ctx.arc(c.x + 15 * c.scale, c.y - 10 * c.scale, 15 * c.scale, 0, Math.PI * 2);
+    ctx.arc(c.x + 30 * c.scale, c.y, 20 * c.scale, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+
+
+const numMountains = 2;
+const mountains = [];
+const mountainWidth = 400;
+const mountainHeight = 120;
+const minGap = 400;  // 山同士の最小間隔
+
+// 初期配置
+let currentX = 0;
+for (let i = 0; i < numMountains; i++) {
+  mountains.push({ x: currentX, image: mountainImage });
+  currentX += mountainWidth + minGap + Math.random() * 200;
+}
+
+// 再配置用関数（衝突判定付き）
+function repositionMountain(m, index) {
+  let tries = 0;
+  do {
+    // 他の山の右端の最大値を取得
+    let maxX = 0;
+    mountains.forEach((other, i) => {
+      if (i !== index) maxX = Math.max(maxX, other.x + mountainWidth);
+    });
+
+    // 新しい位置を決定
+    m.x = maxX + minGap + Math.random() * 200;
+    tries++;
+
+    // 最大10回まで試行
+  } while (
+    mountains.some((other, i) => i !== index && Math.abs(other.x - m.x) < mountainWidth) &&
+    tries < 10
+  );
+}
+
+function drawMountains() {
+  mountains.forEach((m, index) => {
+    // スクロール
+    m.x -= 0.2;
+
+    // 左端を過ぎたら右端に戻す
+    if (m.x + mountainWidth < 0) {
+      repositionMountain(m, index);
+    }
+
+    // 描画
+    if (m.image.complete) {
+      ctx.drawImage(m.image, m.x, GROUND_Y - mountainHeight, mountainWidth, mountainHeight);
+    } else {
+      ctx.fillStyle = "#9ACD9A";
+      ctx.fillRect(m.x, GROUND_Y - mountainHeight, mountainWidth, mountainHeight);
+    }
+  });
+}
+
+
 
 /* 入力（ジャンプ） */
 
