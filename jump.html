@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ジャンプゲーム — 修正版（bouncer 安全実装）</title>
+<title>ジャンプゲーム — パラシュート実装版</title>
 <style>
   body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f8f8; display:flex; flex-direction:column; align-items:center; }
   h2 { margin:12px 0; }
@@ -17,7 +17,7 @@
 </style>
 </head>
 <body>
-<h2>ジャンプゲーム 🎈（修正版）</h2>
+<h2>ジャンプゲーム 🎈（パラシュート実装）</h2>
 <div id="canvasWrap"><canvas id="game" width="400" height="300"></canvas></div>
 
 <div id="buttonArea">
@@ -28,10 +28,11 @@
 <div id="rules">
   <h3>ルール</h3>
   <ul>
-    <li>スペースキーかジャンプボタンでジャンプ</li>
-    <li>足場は横に流れてくる（プレイヤーの x は固定）</li>
-    <li>落とし穴（黒い穴）に落ちると致命的。落ちたら死亡アニメ（画面外まで落ちたらGameOver）</li>
-    <li>足場から落ちても、下が通常地面なら着地して生存する（落とし穴でなければ安全）</li>
+    <li>スペースキーかジャンプボタン:ジャンプ。2回目で空中ジャンプ。3回目でパラシュート落下。</li>
+    <li>オレンジ、：上から踏んだら倒せる</li>
+    <li>緑、ボール、ヤカン、火の玉：倒せない</li>
+    <li>風船：どこから当たっても倒せる</li>
+    <li>ハート：体力回復</li>
   </ul>
 </div>
 
@@ -186,9 +187,12 @@ function resetGameState(){
     onPlatform: null,
     inPit:false,
     _fallSoundPlayed: false,
-    _fallStarted: false
+    _fallStarted: false,
+    // parachute
+    parachute: false,
+    parachuteTimer: 0
   };
-  jumpStage = 0; maxJumpStage = 2;
+  jumpStage = 0; maxJumpStage = 3; // ← 3段目でパラシュート
   obstacles = []; explosions = []; holes = [];
   fireworks = [];
   score = 0; spawnTimer = 0; holeTimer = 0;
@@ -269,14 +273,37 @@ const gravity = 0.6;
 function doJump() {
   if (gameOver || gameClear) return;
   tryPlayBGMOnce();
+
   if (player.onPlatform) jumpStage = 0;
-  if (jumpStage < maxJumpStage) {
+
+  // 1回目・2回目は通常ジャンプ（maxJumpStage-1 回）
+  if (jumpStage < maxJumpStage - 1) {
     jumpStage++;
     player.vy = -15;
     player.onPlatform = null;
     player.falling = true;
     player.inPit = false;
+    // パラシュートは解除（安全）
+    player.parachute = false;
+    player.parachuteTimer = 0;
     playJumpSound();
+    return;
+  }
+
+  // 最後の（3回目）押下でパラシュートを展開（上方向に跳ね上げない）
+  if (jumpStage < maxJumpStage) {
+    jumpStage++;
+    player.onPlatform = null;
+    player.falling = true;
+    player.inPit = false;
+    player.parachute = true;
+    player.parachuteTimer = 0;
+    // 現在上向きなら急な上昇を抑える（ゆるく浮かせる）
+    if (player.vy < -3) player.vy = -3;
+    if (player.vy > 1.2) player.vy = 1.2; // すでに速く落ちているなら程よく抑制
+    // パラシュート展開音（任意）
+    try { playSoundSequence([{freq:220,type:"sine",duration:0.18}]); } catch(e){}
+    return;
   }
 }
 document.addEventListener("keydown", e=>{ if(e.code==="Space"){ e.preventDefault(); doJump(); } if(e.code==="Enter" && (gameOver || gameClear)) restart(); });
@@ -323,7 +350,6 @@ function spawnObstacle(){
       case "chaser":
         yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100; width = 26; height = 26; break;
       case "chaser2":
-        // 表示系は後述の生成で上書きするので、ここはデフォルトを与える
         yPos = 0; width = 26; height = 26; break;
       case "platform":
         width = 40 + Math.floor(Math.random()*80); height = 12;
@@ -341,7 +367,6 @@ function spawnObstacle(){
       obstacles.push({ x: startX, y: startY, width, height, type: "chaser", vx, vy, angle:0, vyPhys:0, falling:false, scored:false });
     }
     else if(type === "chaser2"){
-      // 左上（やや画面外）からターゲット方向へ飛んでくる敵
       const startX = -6, startY = -6;
       const targetX = player.x + player.size / 2, targetY = player.y - 80;
       const dx = targetX - startX, dy = targetY - startY;
@@ -364,10 +389,9 @@ function spawnObstacle(){
       });
     }
     else if (type === "bouncer") {
-      // 左上寄りから登場（右へ進む） - 後でプラットフォーム判定で跳ね返ります
       const startX = -30;
-      const startY = 40 + Math.random() * 80; // 少し上寄せ
-      const speedX = 1.0 + Math.random() * 1.4; // 右向き
+      const startY = 40 + Math.random() * 80;
+      const speedX = 1.0 + Math.random() * 1.4;
       obstacles.push({
         x: startX, y: startY, width: 24, height: 24, type: "bouncer",
         vx: speedX, vy: 0, bounce: 0.65 + Math.random()*0.25, falling: false, scored: false
@@ -390,7 +414,6 @@ function spawnHoleIfReady(){
 
 /* ========================= updateObstacles（bouncer 対応） ========================= */
 function updateObstacles(){
-  // まず位置更新（各オブジェクトに prev を付ける）
   for(let ob of obstacles){
     ob.prevX = ob.x;
     ob.prevY = ob.y;
@@ -398,16 +421,12 @@ function updateObstacles(){
     if(ob.falling){
       ob.vy += 0.6;
       ob.y += ob.vy;
-      // falling の場合でも x はそのままスクロール（地形で横に流れる）
       if(ob.vx !== undefined) ob.x += ob.vx;
     } else if (ob.vx !== undefined && (ob.type === "chaser" || ob.type === "chaser2" || ob.type === "bouncer")) {
-      // 固有の速度オブジェクト（chaser / chaser2 / bouncer）
       ob.x += ob.vx;
       ob.y += ob.vy;
 
-      // bouncer：地面・プラットフォームで跳ねる・穴判定
       if (ob.type === "bouncer") {
-        // 穴に被ったら落とす判定（簡易）
         for (let h of holes) {
           if (!ob.falling && (ob.x + ob.width > h.x && ob.x < h.x + h.width) && ob.y >= OB_FALL_THRESHOLD) {
             ob.falling = true;
@@ -416,37 +435,28 @@ function updateObstacles(){
           }
         }
 
-        // プラットフォーム当たり判定（上から落ちてきて接触したら跳ねる）
         if (!ob.falling) {
           for (let plat of obstacles) {
             if (plat.type !== "platform") continue;
-            // 横オーバーラップ
             const overlap = (ob.x + ob.width > plat.x) && (ob.x < plat.x + plat.width);
-            // 前フレームの下端がプラットフォームより上、かつ今フレームの下端が >= plat.y（つまり上から接触）
             if (overlap && (ob.prevY + ob.height <= plat.y) && (ob.y + ob.height >= plat.y)) {
-              // 着地位置に合わせる
               ob.y = plat.y - ob.height;
-              // 跳ね返り
               ob.vy = -Math.abs(ob.vy || 0) * (ob.bounce || 0.7);
               if (Math.abs(ob.vy) < 2) ob.vy = -3 - Math.random()*2;
-              // 摩擦的に横速度を少し減少
               ob.vx *= 0.98;
             }
           }
-          // 地面接触：跳ね返す
           if (ob.y + ob.height >= GROUND_Y) {
             ob.y = GROUND_Y - ob.height;
             ob.vy = -Math.abs(ob.vy || 0) * (ob.bounce || 1.0);
             if (Math.abs(ob.vy) < 2) ob.vy = -3 - Math.random()*3;
             ob.vx *= 0.98;
           } else {
-            // 地面に触れていなければ重力を付加して徐々に落とす（自然な挙動）
             ob.vy += 0.4;
           }
         }
       }
     } else {
-      // worldSpeed に引っ張られる通常オブジェクト
       const speed = (ob.type === "balloon" || ob.type === "heal") ? worldSpeed * 0.6 : worldSpeed;
 
       if (ob.type === "wiggle") {
@@ -472,7 +482,6 @@ function updateObstacles(){
           ob.angle = (ob.angle || 0) + 0.06;
         }
 
-        // normal/breakable が穴に被ったら落下
         if(!ob.falling && (ob.type === "normal" || ob.type === "breakable")){
           for(let h of holes){
             if(ob.x + ob.width > h.x && ob.x < h.x + h.width && ob.y >= OB_FALL_THRESHOLD){
@@ -484,7 +493,6 @@ function updateObstacles(){
     }
   }
 
-  // 画面外 or 落下で削除
   obstacles = obstacles.filter(ob=>{
     const outOfScreen = (ob.x < -ob.width*2) || (ob.x > canvas.width + ob.width*2) || (ob.y < -ob.height*2) || (ob.y > canvas.height + ob.height*2);
     if(!ob.falling && outOfScreen){
@@ -495,7 +503,6 @@ function updateObstacles(){
     return true;
   });
 
-  // 穴の移動・クリーニング
   holes.forEach(h => h.x -= worldSpeed);
   holes = holes.filter(h => h.x + h.width > 0);
 }
@@ -516,27 +523,45 @@ function checkCollision() {
     const dy = playerCenterY - obCenterY;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
+    // Heal
     if (ob.type === "heal" && dist < player.size / 2 + 14) {
       explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 60, color: "rgba(255,50,50,0.6)" });
       obstacles.splice(i, 1); i--;
       hp = 4; score += 10; flash = 8; invincible = 30;
+        // ★ パラシュート解除 ★
+  player.parachute = false;
+  player.parachuteTimer = 0;
       playHealSound();
       continue;
     }
+
+    // Balloon（当たったら小さく弾くが画面外へ行かないように抑える）
     if (ob.type === "balloon" && dist < player.size / 2 + 16) {
       explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
       obstacles.splice(i, 1); i--;
       score += 5; gameTime += 60;
-      player.vy = (playerCenterY < obCenterY) ? -10 : 5;
+
+      // 敵接触したらパラシュートを解除（要求された動作）
+      player.parachute = false;
+      player.parachuteTimer = 0;
+
+      // 上方向の反動を強すぎない値に
+      player.vy = (playerCenterY < obCenterY) ? -6 : 4;
       invincible = 30; flash = 10;
       playEnemyDefeatSound();
       continue;
     }
 
+    // 敵（踏み/接触）のブロック：接触した瞬間にパラシュートを解除する
     if (["normal", "zigzag", "breakable", "chaser", "chaser2", "wiggle","bouncer"].includes(ob.type) &&
         player.x < ob.x + ob.width && player.x + player.size > ob.x &&
         player.y < ob.y + ob.height && player.y + player.size > ob.y) {
 
+      // ← 接触時にパラシュート解除（ここが重要）
+      player.parachute = false;
+      player.parachuteTimer = 0;
+
+      // 上から踏んだ（breakable を壊す）判定
       if (ob.type === "breakable" && player.vy > 0 && player.y + player.size <= ob.y + 20) {
         explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
         obstacles.splice(i, 1); i--;
@@ -553,7 +578,6 @@ function checkCollision() {
         continue;
       }
 
-      // bouncer と当たったらダメージ（ただし消さない）
       if (ob.type === "bouncer") {
         hp--; invincible = 30; flash = 10; playDamageSound();
         if (hp <= 0) return endGame();
@@ -679,12 +703,23 @@ function draw(){
   // フラッシュ
   if(flash>0){ ctx.fillStyle="rgba(255,255,255,0.5)"; ctx.fillRect(0,0,canvas.width,canvas.height); flash--; }
 
-  // プレイヤー
+  // プレイヤー（パラシュートがあれば簡易表示）
   if(playerImage.complete && playerImage.naturalWidth !== 0){
     ctx.drawImage(playerImage, player.x, player.y, player.size, player.size);
   } else {
     ctx.fillStyle = "pink";
     ctx.beginPath(); ctx.arc(player.x + player.size/2, player.y + player.size/2, player.size/2, 0, Math.PI*2); ctx.fill();
+  }
+
+  // 簡易パラシュート描画（テスト用）
+  if (player.parachute) {
+    // 半透明の丸（傘）をプレイヤーの上に描く
+    ctx.globalAlpha = 0.95;
+    ctx.beginPath();
+    ctx.ellipse(player.x + player.size/2, player.y - 6, player.size * 0.9, 10, 0, Math.PI, 2*Math.PI);
+    ctx.fillStyle = "rgba(255,200,220,0.95)";
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
 
   // UI
@@ -779,19 +814,38 @@ function loop(){
     const prevY = player.y;
     const prevFootY = prevY + player.size;
 
+    // プラットフォームに乗っているかの処理（元のロジックを保持）
     if(player.onPlatform){
       const p = player.onPlatform;
-      const stillExists = obstacles.indexOf(p) !== -1;
+      const stillExists = obstacles.indexOf(p) !== -1 && p.type === "platform";
       const overlapX = stillExists && (player.x + player.size > p.x) && (player.x < p.x + p.width);
       if(!stillExists || !overlapX){
-        player.onPlatform = null; player.falling = true; player.inPit = false; player.vy = 2;
+        player.onPlatform = null; player.falling = true; player.inPit = false;
+        // ここでパラシュートは解除しておく（安全）
+        player.parachute = false;
+        player.parachuteTimer = 0;
+        player.vy = Math.max(player.vy, 2);
       } else {
         player.y = p.y - player.size; player.vy = 0; player.falling = false;
+        // 着地したらパラシュート解除
+        player.parachute = false;
+        player.parachuteTimer = 0;
       }
     }
 
     if(!player.onPlatform){
-      if(player.falling) player.vy += 0.9; else player.vy += 0.5;
+      // パラシュート中は重力を弱くして降下をゆっくりにする
+      if (player.parachute) {
+        const parachuteGravity = 0.08; // 小さいほどゆっくり
+        player.vy += parachuteGravity;
+        const parachuteMaxFall = 1.5;
+        if (player.vy > parachuteMaxFall) player.vy = parachuteMaxFall;
+        player.parachuteTimer = (player.parachuteTimer || 0) + 1;
+        // 自動解除（任意）：長時間使わせたくない場合
+        if (player.parachuteTimer > 360) { player.parachute = false; player.parachuteTimer = 0; }
+      } else {
+        player.vy += (player.falling ? 0.9 : 0.5);
+      }
       player.y += player.vy;
     }
 
@@ -809,7 +863,15 @@ function loop(){
         }
       }
       if(landingPlatform){
-        player.y = landingPlatform.y - player.size; player.vy = 0; player.falling = false; player.onPlatform = landingPlatform; player.inPit = false;
+        player.y = landingPlatform.y - player.size;
+        player.vy = 0;
+        player.falling = false;
+        player.onPlatform = landingPlatform;
+        player.inPit = false;
+        // 着地でパラシュート解除
+        player.parachute = false;
+        player.parachuteTimer = 0;
+        jumpStage = 0;
       } else {
         if(newFootY >= GROUND_Y){
           const footXCenter = player.x + player.size/2;
@@ -819,6 +881,7 @@ function loop(){
             player.inPit = true; player.falling = true;
           } else {
             player.inPit = false; player.falling = false; player.vy = 0; player.y = GROUND_Y - player.size; player.onPlatform = null; jumpStage = 0;
+            player.parachute = false; player.parachuteTimer = 0;
           }
         }
       }
