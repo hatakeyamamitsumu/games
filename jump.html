@@ -499,7 +499,7 @@ function updateObstacles(){
       if (!ob.scored && ob.type !== "chaser" && ob.type !== "chaser2") { score++; ob.scored = true; }
       return false;
     }
-    if(ob.falling && ob.y > canvas.height + 50) return false;
+    if(ob.falling && ob.y > canvas.height +1) return false;
     return true;
   });
 
