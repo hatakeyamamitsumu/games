@@ -407,7 +407,7 @@ function spawnObstacle(){
 function spawnHoleIfReady(){
   holeTimer++;
   if(holeTimer >= 140){
-    if(Math.random() < 0.45) holes.push({x:W, width:40});
+    if(Math.random() < 0.45) holes.push({x:W, width:70});
     holeTimer = 0;
   }
 }
@@ -591,22 +591,31 @@ function checkCollision() {
   }
 
   // 足元の穴（立っているとき）
-  const footY = player.y + player.size;
-  if (!player.falling && footY >= GROUND_Y - 1) {
-    for (let h of holes) {
-      const margin = 2;
-      const playerLeft = player.x + margin;
-      const playerRight = player.x + player.size - margin;
-      const holeLeft = h.x;
-      const holeRight = h.x + h.width;
-      if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
-        player.falling = true;
-        player.inPit = true;
-        player.vy = 2;
-        return;
+  // 足元の穴（少しでも落ちたら即ゲームオーバー）
+const footY = player.y + player.size;
+if (footY >= GROUND_Y - 1) {
+  for (let h of holes) {
+    const margin = 2;
+    const playerLeft = player.x + margin;
+    const playerRight = player.x + player.size - margin;
+    const holeLeft = h.x;
+    const holeRight = h.x + h.width;
+
+    // プレイヤーの足元が穴の範囲にかかっている場合
+    if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
+      // 少しでも下に落ちた瞬間にゲームオーバー
+      if (player.y > GROUND_Y) {
+        return endGame();
       }
+
+      // そうでない場合も「落下開始」状態に
+      player.falling = true;
+      player.inPit = true;
+      player.vy = 2;
+      return;
     }
   }
+}
 }
 
 /* 爆発更新 */
