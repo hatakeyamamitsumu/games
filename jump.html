@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ジャンプゲーム — パラシュート実装版</title>
+<title>ジャンプゲーム — パラシュート実装版（忍者追加）</title>
 <style>
   body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f8f8; display:flex; flex-direction:column; align-items:center; }
   h2 { margin:12px 0; }
@@ -17,7 +17,7 @@
 </style>
 </head>
 <body>
-<h2>ジャンプゲーム 🎈（パラシュート実装）</h2>
+<h2>ジャンプゲーム 🎈（パラシュート実装 + 忍者）</h2>
 <div id="canvasWrap"><canvas id="game" width="400" height="300"></canvas></div>
 
 <div id="buttonArea">
@@ -95,6 +95,7 @@ const chaserImage = new Image(); chaserImage.src = "characters/chaser/chaser.png
 const chaser2Image = new Image(); chaser2Image.src = "characters/chaser2/chaser2.png";
 const wiggleImage = new Image(); wiggleImage.src = "characters/wiggle/wiggle1.png";
 const bouncerImage = new Image(); bouncerImage.src = "characters/bouncer/bouncer1.png";
+const ninjyaImage = new Image(); ninjyaImage.src = "characters/ninjya/ninjya.png"; // ← 忍者画像
 const goalImage = new Image(); goalImage.src = "graphics/goal/goal1.png";
 const cloudImage = new Image(); cloudImage.src = "graphics/cloud/cloud1.png";
 const mountainImage = new Image(); mountainImage.src = "graphics/mountain/mountain1.png";
@@ -321,7 +322,7 @@ function playEnemyDefeatSound(){ playSoundSequence([{freq:420,type:"triangle",du
 function playGoalSound(){ playSoundSequence([{freq:880,type:"sine",duration:0.25},{freq:660,type:"sine",duration:0.25,delay:0.2}]); }
 function playClearSound(){ playSoundSequence([{freq:1200,type:"sine",duration:0.25},{freq:900,type:"sine",duration:0.2,delay:0.18},{freq:700,type:"sine",duration:0.18,delay:0.34}]); }
 
-/* ========================= 障害物生成（安全化・bouncer対応） ========================= */
+/* ========================= 障害物生成（ninjya追加） ========================= */
 function spawnObstacle(){
   const count = Math.floor(Math.random()*3)+1;
   for(let i=0;i<count;i++){
@@ -331,74 +332,116 @@ function spawnObstacle(){
     let type;
     if (i === 0 && r < 0.08) type = "chaser";
     else if (i === 0 && r < 0.10) type = "chaser2"; // 0.08〜0.10
+    else if (r < 0.14) type = "ninjya";             // ← 忍者（少しだけの確率）
     else if (r < 0.18) type = "heal";
     else if (r < 0.26) type = "platform";
     else if (r < 0.30) type = "wiggle";
-    else if (r < 0.34) type = "bouncer"; // wiggle後の0.30〜0.34 
+    else if (r < 0.34) type = "bouncer";
     else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
 
     let yPos = GROUND_Y - 30, baseY;
     let width = 20, height = 20;
 
     switch(type){
-      case "heal": yPos = 30 + Math.random()*50; width = 26; height = 26; break;
-      case "balloon": yPos = 50 + Math.random()*100; width = 26; height = 26; break;
-      case "zigzag": baseY = 140 + Math.random()*60; yPos = baseY; width = 26; height = 26; break;
+      case "ninjya":
+        width = 28; height = 28;
+        yPos = 50 + Math.random()*(GROUND_Y - 100);
+        // 忍者は横移動（vx）とフェード関連プロパティを持たせる
+        obstacles.push({
+          x: W + i*40,
+          y: yPos,
+          width, height,
+          type: "ninjya",
+          vx: -1.8 - Math.random()*1.2, // 左へ進む速度
+          alpha: 1,
+          fadeDir: -1,
+          fadeSpeed: 0.018 + Math.random()*0.02,
+          fadeTimer: Math.floor(Math.random()*40)+20, // 初期表示時間（フレーム）
+          visibleTimerRange: [50, 100], // 出現時のランダム継続
+          hiddenTimerRange: [20,50],   // 非表示時のランダム継続
+          scored: false
+        });
+        break;
+      case "heal": yPos = 30 + Math.random()*50; width = 26; height = 26; obstacles.push({ x: W + i*30, y: yPos, width, height, type: "heal", angle: 0, vy:0, falling:false, scored:false }); break;
+      case "balloon": yPos = 50 + Math.random()*100; width = 26; height = 26; obstacles.push({ x: W + i*30, y: yPos, width, height, type: "balloon", angle:0, vy:0, falling:false, scored:false }); break;
+      case "zigzag": baseY = 140 + Math.random()*60; yPos = baseY; width = 26; height = 26; obstacles.push({ x: W + i*30, y: yPos, width, height, type: "zigzag", baseY, angle: 0, vy: 0, falling:false, scored:false }); break;
       case "normal":
       case "breakable":
-        yPos = (Math.random() < 0.5) ? GROUND_Y - 30 : 90 + Math.random()*60; width = 26; height = 26; break;
+        yPos = (Math.random() < 0.5) ? GROUND_Y - 30 : 90 + Math.random()*60; width = 26; height = 26;
+        obstacles.push({ x: W + i*30, y: yPos, width, height, type, angle:0, vy:0, falling:false, baseY: baseY, scored:false });
+        break;
       case "chaser":
-        yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100; width = 26; height = 26; break;
+        yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100; width = 26; height = 26; 
+        const startX = W + 10, startY = -10;
+        const targetX = player.x + player.size/2, targetY = player.y + player.size/2;
+        const dx = targetX - startX, dy = targetY - startY;
+        const len = Math.hypot(dx, dy) || 1;
+        const speed = 4 + Math.random()*1.2;
+        const vx = (dx / len) * speed, vy = (dy / len) * speed;
+        obstacles.push({ x: startX, y: startY, width, height, type: "chaser", vx, vy, angle:0, vyPhys:0, falling:false, scored:false });
+        break;
       case "chaser2":
-        yPos = 0; width = 26; height = 26; break;
+        const sX = -6, sY = -6;
+        const tX = player.x + player.size / 2, tY = player.y - 80;
+        const dxx = tX - sX, dyy = tY - sY;
+        const llen = Math.hypot(dxx, dyy) || 1;
+        const sp = 2 + Math.random();
+        const vx2 = (dxx / llen) * sp, vy2 = (dyy / llen) * sp;
+        obstacles.push({ x: sX, y: sY, width: 26, height: 26, type: "chaser2", vx: vx2, vy: vy2, angle:0, vyPhys:0, falling:false, scored:false });
+        break;
       case "platform":
         width = 40 + Math.floor(Math.random()*80); height = 12;
         yPos = 120 + Math.random()*(GROUND_Y - 160);
+        obstacles.push({ x: W + i*30, y: yPos, width, height, type: "platform", scored:false });
         break;
-    }
+        case "wiggle":
+{
+  const baseX = W + i * 30;
+  const baseYv = 100 + Math.random() * (GROUND_Y - 150);
 
-    if(type === "chaser"){
-      const startX = W + 10, startY = -10;
-      const targetX = player.x + player.size/2, targetY = player.y + player.size/2;
-      const dx = targetX - startX, dy = targetY - startY;
-      const len = Math.hypot(dx, dy) || 1;
-      const speed = 4 + Math.random()*1.2;
-      const vx = (dx / len) * speed, vy = (dy / len) * speed;
-      obstacles.push({ x: startX, y: startY, width, height, type: "chaser", vx, vy, angle:0, vyPhys:0, falling:false, scored:false });
-    }
-    else if(type === "chaser2"){
-      const startX = -6, startY = -6;
-      const targetX = player.x + player.size / 2, targetY = player.y - 80;
-      const dx = targetX - startX, dy = targetY - startY;
-      const len = Math.hypot(dx, dy) || 1;
-      const speed = 2 + Math.random();
-      const vx = (dx / len) * speed, vy = (dy / len) * speed;
-      obstacles.push({ x: startX, y: startY, width: 26, height: 26, type: "chaser2", vx, vy, angle:0, vyPhys:0, falling:false, scored:false });
-    }
-    else if(type === "wiggle"){
-      const baseX = W + i*30;
-      const baseYv = 100 + Math.random() * (GROUND_Y - 150);
-      const speedX = 1 + Math.random()*1.2;
-      const ampX = 8 + Math.random()*16;
-      const freqX = 0.008 + Math.random()*0.02;
-      const ampY = 12 + Math.random()*28;
-      const freqY = 0.008 + Math.random()*0.02;
-      obstacles.push({
-        x: baseX, y: baseYv, width: 26, height: 26, type: "wiggle",
-        baseX, baseY: baseYv, speedX, ampX, freqX, ampY, freqY, t: 0, angle: 0, vy: 0, falling: false, scored: false
-      });
-    }
-    else if (type === "bouncer") {
-      const startX = -30;
-      const startY = 40 + Math.random() * 80;
-      const speedX = 1.0 + Math.random() * 1.4;
-      obstacles.push({
-        x: startX, y: startY, width: 24, height: 24, type: "bouncer",
-        vx: speedX, vy: 0, bounce: 0.65 + Math.random()*0.25, falling: false, scored: false
-      });
-    }
-    else {
-      obstacles.push({ x: W + i*30, y: yPos, width, height, type, angle: 0, vy: 0, falling: false, baseY: baseY, scored: false });
+  const speedX = 0.8 + Math.random() * 0.5;    // 横移動はほどほど
+  const ampX   = 20 + Math.random() * 20;      // X方向の揺れ幅を大きく
+  const freqX  = 0.004 + Math.random() * 0.01; // X方向の揺れ周期
+  const ampY   = 20 + Math.random() * 30;      // Y方向の揺れ幅を大きく
+  const freqY  = 0.004 + Math.random() * 0.01; // Y方向の揺れ周期
+
+  obstacles.push({
+    x: baseX,
+    y: baseYv,
+    width: 26,
+    height: 26,
+    type: "wiggle",
+    baseX,
+    baseY: baseYv,
+    speedX,
+    ampX,
+    freqX,
+    ampY,
+    freqY,
+    t: 0,
+    angle: 0,
+    vy: 0,
+    falling: false,
+    scored: false
+  });
+}
+break;
+
+
+      case "bouncer":
+        {
+          const startX = -30;
+          const startY = 40 + Math.random() * 80;
+          const speedX = 1.0 + Math.random() * 1.4;
+          obstacles.push({
+            x: startX, y: startY, width: 24, height: 24, type: "bouncer",
+            vx: speedX, vy: 0, bounce: 0.65 + Math.random()*0.25, falling: false, scored: false
+          });
+        }
+        break;
+      default:
+        obstacles.push({ x: W + i*30, y: yPos, width, height, type, angle: 0, vy: 0, falling: false, baseY: baseY, scored: false });
+        break;
     }
   }
 }
@@ -412,17 +455,22 @@ function spawnHoleIfReady(){
   }
 }
 
-/* ========================= updateObstacles（bouncer 対応） ========================= */
+/* ========================= updateObstacles（ninjya対応） ========================= */
 function updateObstacles(){
   for(let ob of obstacles){
     ob.prevX = ob.x;
     ob.prevY = ob.y;
 
+    // 落下中
     if(ob.falling){
       ob.vy += 0.6;
       ob.y += ob.vy;
       if(ob.vx !== undefined) ob.x += ob.vx;
-    } else if (ob.vx !== undefined && (ob.type === "chaser" || ob.type === "chaser2" || ob.type === "bouncer")) {
+      continue;
+    }
+
+    // chaser/chaser2/bouncer（既存の挙動）
+    if (ob.vx !== undefined && (ob.type === "chaser" || ob.type === "chaser2" || ob.type === "bouncer")) {
       ob.x += ob.vx;
       ob.y += ob.vy;
 
@@ -456,43 +504,100 @@ function updateObstacles(){
           }
         }
       }
-    } else {
-      const speed = (ob.type === "balloon" || ob.type === "heal") ? worldSpeed * 0.6 : worldSpeed;
+      continue;
+    }
 
-      if (ob.type === "wiggle") {
-        ob.t = (ob.t || 0) + 1;
-        const moveSpeed = (ob.speedX || worldSpeed * 0.5);
-        const ampX = ob.ampX || 12;
-        const freqX = ob.freqX || 0.01;
-        const ampY = ob.ampY || 24;
-        const freqY = ob.freqY || 0.01;
-        ob.x = ob.baseX - moveSpeed * ob.t + Math.sin(ob.t * freqX * 2 * Math.PI) * ampX;
-        ob.y = ob.baseY + Math.sin(ob.t * freqY * 2 * Math.PI) * ampY;
-      } else {
-        ob.x -= speed;
+    // 通常タイプ（横スクロール）
+    const speed = (ob.type === "balloon" || ob.type === "heal") ? worldSpeed * 0.6 : worldSpeed;
 
-        if(ob.type === "zigzag" && ob.baseY !== undefined){
-          ob.y = ob.baseY + Math.sin(ob.angle || 0) * 30;
-          ob.angle = (ob.angle || 0) + 0.12;
+    // wiggle
+    if (ob.type === "wiggle") {
+      ob.t = (ob.t || 0) + 1;
+      const moveSpeed = (ob.speedX || worldSpeed * 0.5);
+      const ampX = ob.ampX || 12;
+      const freqX = ob.freqX || 0.01;
+      const ampY = ob.ampY || 24;
+      const freqY = ob.freqY || 0.01;
+      ob.x = ob.baseX - moveSpeed * ob.t + Math.sin(ob.t * freqX * 2 * Math.PI) * ampX;
+      ob.y = ob.baseY + Math.sin(ob.t * freqY * 2 * Math.PI) * ampY;
+      continue;
+    }
+
+    // ← ここで ninjya 用の移動・フェード処理
+    if (ob.type === "ninjya") {
+  // 横移動
+  if (ob.vx !== undefined) ob.x += ob.vx;
+  else ob.x -= worldSpeed;
+
+  // フェード処理
+  ob.alpha = ob.alpha ?? 1;
+  ob.fadeDir = ob.fadeDir ?? -1;
+  ob.fadeSpeed = ob.fadeSpeed || 0.02;
+
+  // 初期フェードタイマーをランダム化（右端でもすぐ消えないように）
+  if (ob.fadeTimer === undefined) {
+    const r1 = ob.hiddenTimerRange || [30, 80];
+    const r2 = ob.visibleTimerRange || [50, 100];
+    ob.fadeTimer = Math.floor(Math.random() < 0.5 
+      ? r1[0] + Math.random() * (r1[1]-r1[0])
+      : r2[0] + Math.random() * (r2[1]-r2[0])
+    );
+  }
+
+  if (ob.fadeTimer > 0) {
+    ob.fadeTimer--;
+  } else {
+    ob.alpha += ob.fadeDir * ob.fadeSpeed;
+
+    if (ob.alpha <= 0) {
+      ob.alpha = 0;
+      ob.fadeDir = 1;
+      const r = ob.hiddenTimerRange || [30, 80];
+      ob.fadeTimer = Math.floor(r[0] + Math.random() * (r[1] - r[0]));
+    } else if (ob.alpha >= 1) {
+      ob.alpha = 1;
+      ob.fadeDir = -1;
+      const r = ob.visibleTimerRange || [50, 100];
+      ob.fadeTimer = Math.floor(r[0] + Math.random() * (r[1] - r[0]));
+    }
+  }
+
+
+      // 落とし穴に落ちる判定（必要なら通常と同様に）
+      for (let h of holes) {
+        if (!ob.falling && (ob.x + ob.width > h.x && ob.x < h.x + h.width) && ob.y >= OB_FALL_THRESHOLD) {
+          ob.falling = true;
+          ob.vy = 2;
+          break;
         }
+      }
+      continue;
+    }
 
-        if(ob.type === "balloon" || ob.type === "heal"){
-          ob.y += Math.sin(ob.angle || 0) * 0.6;
-          ob.x += Math.sin((ob.angle || 0) / 2) * 0.4;
-          ob.angle = (ob.angle || 0) + 0.06;
-        }
+    // それ以外（normal, breakable, etc.）
+    ob.x -= speed;
 
-        if(!ob.falling && (ob.type === "normal" || ob.type === "breakable")){
-          for(let h of holes){
-            if(ob.x + ob.width > h.x && ob.x < h.x + h.width && ob.y >= OB_FALL_THRESHOLD){
-              ob.falling = true; ob.vy = 2; break;
-            }
-          }
+    if(ob.type === "zigzag" && ob.baseY !== undefined){
+      ob.y = ob.baseY + Math.sin(ob.angle || 0) * 30;
+      ob.angle = (ob.angle || 0) + 0.12;
+    }
+
+    if(ob.type === "balloon" || ob.type === "heal"){
+      ob.y += Math.sin(ob.angle || 0) * 0.6;
+      ob.x += Math.sin((ob.angle || 0) / 2) * 0.4;
+      ob.angle = (ob.angle || 0) + 0.06;
+    }
+
+    if(!ob.falling && (ob.type === "normal" || ob.type === "breakable")){
+      for(let h of holes){
+        if(ob.x + ob.width > h.x && ob.x < h.x + h.width && ob.y >= OB_FALL_THRESHOLD){
+          ob.falling = true; ob.vy = 2; break;
         }
       }
     }
   }
 
+  // 画面外消去（ninjyaは透明でも画面外なら削除）
   obstacles = obstacles.filter(ob=>{
     const outOfScreen = (ob.x < -ob.width*2) || (ob.x > canvas.width + ob.width*2) || (ob.y < -ob.height*2) || (ob.y > canvas.height + ob.height*2);
     if(!ob.falling && outOfScreen){
@@ -507,13 +612,16 @@ function updateObstacles(){
   holes = holes.filter(h => h.x + h.width > 0);
 }
 
-/* ========================= 衝突判定 ========================= */
+/* ========================= 衝突判定（ninjyaは透明中は当たり判定なし） ========================= */
 function checkCollision() {
   if (invincible > 0 || gameClear) return;
 
   for (let i = 0; i < obstacles.length; i++) {
     const ob = obstacles[i];
     if (ob.falling) continue;
+
+    // ✳️ 忍者がかなり透明なら当たり判定をスキップ
+    if (ob.type === "ninjya" && (ob.alpha === undefined ? 1 : ob.alpha) < 0.6) continue;
 
     const playerCenterX = player.x + player.size / 2;
     const playerCenterY = player.y + player.size / 2;
@@ -528,40 +636,32 @@ function checkCollision() {
       explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 60, color: "rgba(255,50,50,0.6)" });
       obstacles.splice(i, 1); i--;
       hp = 4; score += 10; flash = 8; invincible = 30;
-        // ★ パラシュート解除 ★
-  player.parachute = false;
-  player.parachuteTimer = 0;
+      player.parachute = false;
+      player.parachuteTimer = 0;
       playHealSound();
       continue;
     }
 
-    // Balloon（当たったら小さく弾くが画面外へ行かないように抑える）
+    // Balloon（当たったら小さく弾く）
     if (ob.type === "balloon" && dist < player.size / 2 + 16) {
       explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
       obstacles.splice(i, 1); i--;
       score += 5; gameTime += 60;
-
-      // 敵接触したらパラシュートを解除（要求された動作）
-      player.parachute = false;
-      player.parachuteTimer = 0;
-
-      // 上方向の反動を強すぎない値に
+      player.parachute = false; player.parachuteTimer = 0;
       player.vy = (playerCenterY < obCenterY) ? -6 : 4;
       invincible = 30; flash = 10;
       playEnemyDefeatSound();
       continue;
     }
 
-    // 敵（踏み/接触）のブロック：接触した瞬間にパラシュートを解除する
-    if (["normal", "zigzag", "breakable", "chaser", "chaser2", "wiggle","bouncer"].includes(ob.type) &&
+    // 敵（踏み/接触）
+    if (["normal", "zigzag", "breakable", "chaser", "chaser2", "wiggle","bouncer","ninjya"].includes(ob.type) &&
         player.x < ob.x + ob.width && player.x + player.size > ob.x &&
         player.y < ob.y + ob.height && player.y + player.size > ob.y) {
 
-      // ← 接触時にパラシュート解除（ここが重要）
       player.parachute = false;
       player.parachuteTimer = 0;
 
-      // 上から踏んだ（breakable を壊す）判定
       if (ob.type === "breakable" && player.vy > 0 && player.y + player.size <= ob.y + 20) {
         explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 30 });
         obstacles.splice(i, 1); i--;
@@ -570,11 +670,12 @@ function checkCollision() {
         continue;
       }
 
-      if (ob.type === "chaser" || ob.type === "chaser2") {
+      if (ob.type === "chaser" || ob.type === "chaser2" || ob.type === "ninjya") {
         hp--; invincible = 30; flash = 10; playDamageSound();
         if (hp <= 0) return endGame();
         explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 25 });
-        obstacles.splice(i, 1); i--;
+        // chaser系は消える、忍者は残す（お好みで消す/残すを切り替えてください）
+        if (ob.type !== "ninjya") { obstacles.splice(i, 1); i--; }
         continue;
       }
 
@@ -590,32 +691,28 @@ function checkCollision() {
     }
   }
 
-  // 足元の穴（立っているとき）
   // 足元の穴（少しでも落ちたら即ゲームオーバー）
-const footY = player.y + player.size;
-if (footY >= GROUND_Y - 1) {
-  for (let h of holes) {
-    const margin = 2;
-    const playerLeft = player.x + margin;
-    const playerRight = player.x + player.size - margin;
-    const holeLeft = h.x;
-    const holeRight = h.x + h.width;
-
-    // プレイヤーの足元が穴の範囲にかかっている場合
-    if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
-      // 少しでも下に落ちた瞬間にゲームオーバー
-      if (player.y > GROUND_Y) {
-        return endGame();
+  const footY = player.y + player.size;
+  if (footY >= GROUND_Y - 1) {
+    for (let h of holes) {
+      const margin = 2;
+      const playerLeft = player.x + margin;
+      const playerRight = player.x + player.size - margin;
+      const holeLeft = h.x;
+      const holeRight = h.x + h.width;
+      if ((playerLeft < holeRight) && (playerRight > holeLeft)) {
+        // 少しでも下に落ちた瞬間にゲームオーバー
+        if (player.y > GROUND_Y) {
+          return endGame();
+        }
+        // そうでない場合も「落下開始」状態に
+        player.falling = true;
+        player.inPit = true;
+        player.vy = 2;
+        return;
       }
-
-      // そうでない場合も「落下開始」状態に
-      player.falling = true;
-      player.inPit = true;
-      player.vy = 2;
-      return;
     }
   }
-}
 }
 
 /* 爆発更新 */
@@ -661,7 +758,7 @@ function draw(){
     }
   }
 
-  // 障害物
+  // 障害物描画
   obstacles.forEach(ob => {
     if(ob.type === "platform"){
       ctx.fillStyle = "#8B4513";
@@ -671,6 +768,7 @@ function draw(){
       return;
     }
 
+    // 画像選択（ninjya 含む）
     let img =
         ob.type === "balloon"   ? balloonImage   :
         ob.type === "heal"      ? healImage      :
@@ -680,7 +778,14 @@ function draw(){
         ob.type === "chaser"    ? chaserImage    :
         ob.type === "chaser2"   ? chaser2Image   :
         ob.type === "wiggle"    ? wiggleImage    :
-        ob.type === "bouncer"   ? bouncerImage   : null;
+        ob.type === "bouncer"   ? bouncerImage   :
+        ob.type === "ninjya"    ? ninjyaImage    : null;
+
+    // 忍者の透明度を反映
+    ctx.save();
+    if (ob.type === "ninjya") {
+      ctx.globalAlpha = (ob.alpha === undefined) ? 1 : ob.alpha;
+    }
 
     if (img && img.complete && img.naturalWidth) {
       ctx.drawImage(img, ob.x, ob.y, ob.width, ob.height);
@@ -694,12 +799,15 @@ function draw(){
         ob.type === "chaser"    ? "black"  :
         ob.type === "chaser2"   ? "darkblue" :
         ob.type === "wiggle"    ? "cyan" :
-        ob.type === "bouncer"   ? "brown" : "gray";
+        ob.type === "bouncer"   ? "brown" :
+        ob.type === "ninjya"    ? "gray" : "gray";
 
       ctx.beginPath();
       ctx.arc(ob.x + ob.width / 2, ob.y + ob.height / 2, Math.min(ob.width, ob.height) / 2, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    ctx.restore();
   });
 
   // 穴
@@ -722,7 +830,6 @@ function draw(){
 
   // 簡易パラシュート描画（テスト用）
   if (player.parachute) {
-    // 半透明の丸（傘）をプレイヤーの上に描く
     ctx.globalAlpha = 0.95;
     ctx.beginPath();
     ctx.ellipse(player.x + player.size/2, player.y - 6, player.size * 0.9, 10, 0, Math.PI, 2*Math.PI);
@@ -830,27 +937,23 @@ function loop(){
       const overlapX = stillExists && (player.x + player.size > p.x) && (player.x < p.x + p.width);
       if(!stillExists || !overlapX){
         player.onPlatform = null; player.falling = true; player.inPit = false;
-        // ここでパラシュートは解除しておく（安全）
         player.parachute = false;
         player.parachuteTimer = 0;
         player.vy = Math.max(player.vy, 2);
       } else {
         player.y = p.y - player.size; player.vy = 0; player.falling = false;
-        // 着地したらパラシュート解除
         player.parachute = false;
         player.parachuteTimer = 0;
       }
     }
 
     if(!player.onPlatform){
-      // パラシュート中は重力を弱くして降下をゆっくりにする
       if (player.parachute) {
-        const parachuteGravity = 0.08; // 小さいほどゆっくり
+        const parachuteGravity = 0.08;
         player.vy += parachuteGravity;
         const parachuteMaxFall = 1.5;
         if (player.vy > parachuteMaxFall) player.vy = parachuteMaxFall;
         player.parachuteTimer = (player.parachuteTimer || 0) + 1;
-        // 自動解除（任意）：長時間使わせたくない場合
         if (player.parachuteTimer > 360) { player.parachute = false; player.parachuteTimer = 0; }
       } else {
         player.vy += (player.falling ? 0.9 : 0.5);
@@ -877,7 +980,6 @@ function loop(){
         player.falling = false;
         player.onPlatform = landingPlatform;
         player.inPit = false;
-        // 着地でパラシュート解除
         player.parachute = false;
         player.parachuteTimer = 0;
         jumpStage = 0;
