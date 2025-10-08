@@ -339,6 +339,7 @@ function spawnObstacle(){
     else if (r < 0.16) type = "pendulum";           // ← 新しい振り子敵（少しだけ）
     else if (r < 0.20) type = "heal";
     else if (r < 0.26) type = "platform";
+    else if (r < 0.55) type = "fallingPlatform"; // 落下足場
     else if (r < 0.30) type = "wiggle";
     else if (r < 0.34) type = "bouncer";
     else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
@@ -423,6 +424,23 @@ function spawnObstacle(){
         yPos = 120 + Math.random()*(GROUND_Y - 160);
         obstacles.push({ x: W + i*30, y: yPos, width, height, type: "platform", scored:false });
         break;
+        case "fallingPlatform":
+  width = 40; height = 10;
+  yPos = GROUND_Y - 80 - Math.random() * 60; // 空中に配置
+  obstacles.push({
+    x: W + i * 60,
+    y: yPos,
+    width, height,
+    type: "fallingPlatform",
+    vy: 0,
+    triggered: false,      // プレイヤーが乗ると true に
+    fallDelay: 15,         // 乗ってから落下までのフレーム数（60fpsで1秒）
+    fallTimer: 0,          // カウント用
+    scored: false
+  });
+  break;
+
+
       case "wiggle":
 {
   const baseX = W + i * 30;
@@ -534,6 +552,43 @@ function updateObstacles(){
       }
       continue;
     }
+    if (ob.type === "fallingPlatform") {
+  // プレイヤーが乗っている判定
+  const playerBottom = player.y + player.size;
+  const onTop =
+    player.vy >= 0 &&
+    player.x + player.size > ob.x &&
+    player.x < ob.x + ob.width &&
+    playerBottom >= ob.y &&
+    playerBottom <= ob.y + ob.height;
+
+  // 乗った瞬間に落下タイマー開始
+  if (onTop && !ob.triggered) {
+    ob.triggered = true;
+    ob.fallTimer = 0;
+    ob.vy = 0; // 初期落下速度リセット
+  }
+
+  // 乗ってから指定フレーム後に落下
+  if (ob.triggered) {
+    ob.fallTimer++;
+    if (ob.fallTimer > ob.fallDelay) {
+      ob.vy += 0.4;  // 加速
+      ob.y += ob.vy;
+    }
+  }
+
+  // 地面の下に消えたら obstacles 配列から削除
+  if (ob.y > H + 50) ob.remove = true;
+
+  // 描画
+  ctx.fillStyle = ob.triggered ? "#8B4513" : "#A0522D";
+  ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+  ctx.strokeStyle = "#543210";
+  ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
+}
+
+
 
     // 通常タイプ（横スクロール）
     const speed = (ob.type === "balloon" || ob.type === "heal") ? worldSpeed * 0.6 : worldSpeed;
@@ -839,6 +894,19 @@ function draw(){
       ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
       return;
     }
+    if (ob.type === "fallingPlatform") {
+  // 落下前と落下後で少し色を変える
+  if (!ob.triggered) {
+    ctx.fillStyle = "#A0522D"; // 通常時（少し明るめの茶色）
+  } else {
+    ctx.fillStyle = "#8B4513"; // 落下直前・落下中（暗め）
+  }
+  ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+  ctx.strokeStyle = "#543210";
+  ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
+  return;
+}
+
 
     // 画像選択（ninjya 含む、pendulum 追加）
     let img =
@@ -976,147 +1044,195 @@ function draw(){
 
 /* ========================= メインループ ========================= */
 function loop(){
-  if(!gameOver && !gameClear){
-    distance += worldSpeed;
+  if(gameOver || gameClear) return;
 
-    // 背景／雲更新
-    mountains.forEach(m=>{ m.x -= 0.5; if(m.x <= -W) m.x += 2*W; if(m.x >= 2*W) m.x -= 2*W; });
-    clouds.forEach(c=>{ c.x -= c.speed; if(c.x < -60) c.x = canvas.width + 60; });
+  // -------------------------
+  // 距離と背景更新
+  // -------------------------
+  distance += worldSpeed;
+  mountains.forEach(m => {
+    m.x -= 0.5; 
+    if(m.x <= -W) m.x += 2*W; 
+    if(m.x >= 2*W) m.x -= 2*W;
+  });
+  clouds.forEach(c => {
+    c.x -= c.speed;
+    if(c.x < -60) c.x = canvas.width + 60;
+  });
+  updateForest();
 
-    updateForest();
-
-    // ゴール判定（条件を厳しめ）
-    if(!goalLine && distance >= goalDistance * 2.0 && score >= goalScore * 2.0){
-      const defaultW = 80, defaultH = 80;
-      let gw = defaultW, gh = defaultH;
-      if(goalImage.complete && goalImage.naturalWidth){
-        const scale = Math.min(1, 120 / goalImage.naturalWidth);
-        gw = Math.round(goalImage.naturalWidth * scale);
-        gh = Math.round(goalImage.naturalHeight * scale);
-      }
-      goalLine = { x: canvas.width + 100, width: gw, height: gh };
-      playGoalSound();
-      showMsg("ゴールライン出現！", 2000);
+  // -------------------------
+  // ゴール判定
+  // -------------------------
+  if(!goalLine && distance >= goalDistance * 2.0 && score >= goalScore * 2.0){
+    const defaultW = 80, defaultH = 80;
+    let gw = defaultW, gh = defaultH;
+    if(goalImage.complete && goalImage.naturalWidth){
+      const scale = Math.min(1, 120 / goalImage.naturalWidth);
+      gw = Math.round(goalImage.naturalWidth * scale);
+      gh = Math.round(goalImage.naturalHeight * scale);
     }
-    if(goalLine){
-      goalLine.x -= worldSpeed;
-      if(player.x + player.size > goalLine.x){
-        gameClear = true;
-        bgmPlayer.fadeOut(0.02, 120);
-        playClearSound();
-        let cnt = 0;
-        const t = setInterval(()=>{
-          spawnFireworks(canvas.width/2 + (Math.random()-0.5)*120, 120 + Math.random()*40, 6);
-          const se = new Audio(fireworkSEPath); se.volume = 0.6; se.play();
-          cnt++; if(cnt>=6) clearInterval(t);
-        }, 400);
-        showMsg("クリア！ 花火！", 3000);
-      }
-    }
-
-    // 時間
-    gameTime--; if(gameTime <= 0) endGame();
-
-    // 1) 先に障害物を動かす
-    updateObstacles();
-
-    // 2) プレイヤー物理
-    const prevY = player.y;
-    const prevFootY = prevY + player.size;
-
-    // プラットフォームに乗っているかの処理（元のロジックを保持）
-    if(player.onPlatform){
-      const p = player.onPlatform;
-      const stillExists = obstacles.indexOf(p) !== -1 && p.type === "platform";
-      const overlapX = stillExists && (player.x + player.size > p.x) && (player.x < p.x + p.width);
-      if(!stillExists || !overlapX){
-        player.onPlatform = null; player.falling = true; player.inPit = false;
-        player.parachute = false;
-        player.parachuteTimer = 0;
-        player.vy = Math.max(player.vy, 2);
-      } else {
-        player.y = p.y - player.size; player.vy = 0; player.falling = false;
-        player.parachute = false;
-        player.parachuteTimer = 0;
-      }
-    }
-
-    if(!player.onPlatform){
-      if (player.parachute) {
-        const parachuteGravity = 0.08;
-        player.vy += parachuteGravity;
-        const parachuteMaxFall = 1.5;
-        if (player.vy > parachuteMaxFall) player.vy = parachuteMaxFall;
-        player.parachuteTimer = (player.parachuteTimer || 0) + 1;
-        if (player.parachuteTimer > 360) { player.parachute = false; player.parachuteTimer = 0; }
-      } else {
-        player.vy += (player.falling ? 0.9 : 0.5);
-      }
-      player.y += player.vy;
-    }
-
-    const newFootY = player.y + player.size;
-
-    if(player.vy > 0){
-      let landingPlatform = null; let landingY = Infinity;
-      for(let ob of obstacles){
-        if(ob.type !== "platform") continue;
-        const overlapX = (player.x + player.size > ob.x) && (player.x < ob.x + ob.width);
-        if(!overlapX) continue;
-        const topY = ob.y;
-        if(topY >= prevFootY - 0.5 && topY <= newFootY + 0.5){
-          if(topY < landingY){ landingY = topY; landingPlatform = ob; }
-        }
-      }
-      if(landingPlatform){
-        player.y = landingPlatform.y - player.size;
-        player.vy = 0;
-        player.falling = false;
-        player.onPlatform = landingPlatform;
-        player.inPit = false;
-        player.parachute = false;
-        player.parachuteTimer = 0;
-        jumpStage = 0;
-      } else {
-        if(newFootY >= GROUND_Y){
-          const footXCenter = player.x + player.size/2;
-          let overPit = false;
-          for(let h of holes){ if(footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4){ overPit = true; break; } }
-          if(overPit){
-            player.inPit = true; player.falling = true;
-          } else {
-            player.inPit = false; player.falling = false; player.vy = 0; player.y = GROUND_Y - player.size; player.onPlatform = null; jumpStage = 0;
-            player.parachute = false; player.parachuteTimer = 0;
-          }
-        }
-      }
-    }
-
-    if(!player._fallStarted && player.inPit){
-      if(player.y > GROUND_Y + 1) player._fallStarted = true;
-    }
-    if(player._fallStarted && !player._fallSoundPlayed){
-      player._fallSoundPlayed = true; try { playFallSound(); } catch(e) {}
-    }
-    if(player.y > canvas.height + 50 && player._fallStarted) endGame();
-
-    // spawn（制限付き）
-    spawnTimer++;
-    if(spawnTimer > SPAWN_INTERVAL){
-      if (obstacles.length < MAX_OBSTACLES - 6) spawnObstacle();
-      spawnTimer = 0;
-    }
-    spawnHoleIfReady();
-
-    if(invincible>0) invincible--;
-    checkCollision();
-    updateExplosions();
+    goalLine = { x: canvas.width + 100, width: gw, height: gh };
+    playGoalSound();
+    showMsg("ゴールライン出現！", 2000);
   }
 
+  if(goalLine){
+    goalLine.x -= worldSpeed;
+    if(player.x + player.size > goalLine.x){
+      gameClear = true;
+      bgmPlayer.fadeOut(0.02, 120);
+      playClearSound();
+      let cnt = 0;
+      const t = setInterval(() => {
+        spawnFireworks(canvas.width/2 + (Math.random()-0.5)*120, 120 + Math.random()*40, 6);
+        new Audio(fireworkSEPath).play();
+        if(++cnt >= 6) clearInterval(t);
+      }, 400);
+      showMsg("クリア！ 花火！", 3000);
+    }
+  }
+
+  // -------------------------
+  // 時間更新
+  // -------------------------
+  gameTime--;
+  if(gameTime <= 0) endGame();
+
+  // -------------------------
+  // 障害物更新
+  // -------------------------
+  updateObstacles();
+  obstacles = obstacles.filter(ob => !ob.remove);
+
+  // -------------------------
+  // プレイヤー物理
+  // -------------------------
+  const prevY = player.y;
+  const prevFootY = prevY + player.size;
+
+  // プラットフォーム上の処理
+  if(player.onPlatform){
+    const p = player.onPlatform;
+    const stillExists = obstacles.includes(p) && p.type === "platform";
+    const overlapX = stillExists && (player.x + player.size > p.x) && (player.x < p.x + p.width);
+    if(!stillExists || !overlapX){
+      player.onPlatform = null;
+      player.falling = true;
+      player.inPit = false;
+      player.parachute = false;
+      player.parachuteTimer = 0;
+      player.vy = Math.max(player.vy, 2);
+    } else {
+      player.y = p.y - player.size;
+      player.vy = 0;
+      player.falling = false;
+      player.parachute = false;
+      player.parachuteTimer = 0;
+    }
+  }
+
+  // 自由落下／パラシュート
+  if(!player.onPlatform){
+    if(player.parachute){
+      player.vy += 0.08;
+      if(player.vy > 1.5) player.vy = 1.5;
+      player.parachuteTimer = (player.parachuteTimer||0)+1;
+      if(player.parachuteTimer > 360){
+        player.parachute = false;
+        player.parachuteTimer = 0;
+      }
+    } else {
+      player.vy += player.falling ? 0.9 : 0.5;
+    }
+    player.y += player.vy;
+  }
+
+  const newFootY = player.y + player.size;
+
+  // -------------------------
+  // プラットフォーム着地判定
+  // -------------------------
+  let landingY = Infinity, landingPlatform = null;
+  for(let ob of obstacles){
+    if(ob.type !== "platform" && ob.type !== "fallingPlatform") continue;
+    const overlapX = (player.x + player.size > ob.x) && (player.x < ob.x + ob.width);
+    if(!overlapX) continue;
+    const topY = ob.y;
+    if(topY >= prevFootY-0.5 && topY <= newFootY+0.5){
+      if(topY < landingY){ landingY = topY; landingPlatform = ob; }
+    }
+  }
+
+  if(landingPlatform){
+    player.y = landingPlatform.y - player.size;
+    player.vy = 0;
+    player.falling = false;
+    player.onPlatform = landingPlatform;
+    player.inPit = false;
+    player.parachute = false;
+    player.parachuteTimer = 0;
+    jumpStage = 0;
+
+    if(landingPlatform.type === "fallingPlatform" && !landingPlatform.triggered){
+      landingPlatform.triggered = true;
+      landingPlatform.fallTimer = 0;
+    }
+  } else {
+    // 地面・穴判定
+    if(newFootY >= GROUND_Y){
+      const footXCenter = player.x + player.size/2;
+      const overPit = holes.some(h => footXCenter > h.x+4 && footXCenter < h.x+h.width-4);
+      if(overPit){
+        player.inPit = true;
+        player.falling = true;
+      } else {
+        player.inPit = false;
+        player.falling = false;
+        player.vy = 0;
+        player.y = GROUND_Y - player.size;
+        player.onPlatform = null;
+        jumpStage = 0;
+        player.parachute = false;
+        player.parachuteTimer = 0;
+      }
+    }
+  }
+
+  // -------------------------
+  // 落下開始音
+  // -------------------------
+  if(!player._fallStarted && player.inPit && player.y > GROUND_Y+1) player._fallStarted = true;
+  if(player._fallStarted && !player._fallSoundPlayed){ player._fallSoundPlayed = true; try{ playFallSound(); }catch(e){} }
+  if(player.y > canvas.height+50 && player._fallStarted) endGame();
+
+  // -------------------------
+  // spawn
+  // -------------------------
+  spawnTimer++;
+  if(spawnTimer > SPAWN_INTERVAL){
+    if(obstacles.length < MAX_OBSTACLES-6) spawnObstacle();
+    spawnTimer = 0;
+  }
+  spawnHoleIfReady();
+
+  if(invincible > 0) invincible--;
+  checkCollision();
+  updateExplosions();
+
+  // -------------------------
+  // 花火
+  // -------------------------
   updateFireworks();
+
+  // -------------------------
+  // 描画
+  // -------------------------
   draw();
+
   requestAnimationFrame(loop);
 }
+
 
 /* ========================= Game Over / Restart ========================= */
 function endGame(){
