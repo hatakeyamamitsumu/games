@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ジャンプゲーム — パラシュート実装版（忍者 + 振り子追加）</title>
+<title>ジャンプゲーム — パラシュート実装版（修正版）</title>
 <style>
   body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f8f8; display:flex; flex-direction:column; align-items:center; }
   h2 { margin:12px 0; }
@@ -125,7 +125,6 @@ const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
 const msgBox = document.getElementById('msg');
 function showMsg(text, ms=1800){ msgBox.textContent=text; msgBox.style.display='block'; clearTimeout(showMsg._t); showMsg._t=setTimeout(()=>msgBox.style.display='none', ms); }
 
-/* clouds & mountains (mountains は reset 前に初期化しておく) */
 const clouds = [
   {x:80, y:50, scale:1, speed:0.2},
   {x:220, y:70, scale:0.8, speed:0.15},
@@ -253,24 +252,91 @@ function updateForest(){
 }
 
 /* 花火系（軽量） */
-function spawnFireworks(cx, cy, bursts = 6){
+// --- 置き換え用：安全に表示される花火処理 ---
+/* fireworks 配列は既に resetGameState() で初期化されている想定 */
+function spawnFireworks(cx, cy, bursts = 6) {
   const colors = ["#ff5050","#ffb84d","#fff06a","#7efc8d","#8ad4ff","#d6a0ff","#ffffff","#ff69b4"];
-  for(let b=0;b<bursts;b++){
-    const particles = 18 + Math.floor(Math.random()*24);
-    for(let i=0;i<particles;i++){
-      const angle = Math.random()*Math.PI*2;
-      const speed = 2 + Math.random()*4;
-      const vx = Math.cos(angle) * speed * (0.6 + Math.random()*0.8);
-      const vy = Math.sin(angle) * speed * (0.6 + Math.random()*0.8);
-      const life = 40 + Math.floor(Math.random()*60);
-      const size = 1 + Math.random()*3;
-      const color = colors[Math.floor(Math.random()*colors.length)];
-      fireworks.push({ x: cx + (Math.random()-0.5)*20, y: cy + (Math.random()-0.5)*20, vx, vy, size, color, life, age:0, alpha:1 });
+  let created = 0;
+  for (let b = 0; b < bursts; b++) {
+    const particles = 24 + Math.floor(Math.random() * 48); // 24〜71
+    for (let i = 0; i < particles; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2.5 + Math.random() * 6.5; // 初速（広がりを出す）
+      const vx = Math.cos(angle) * speed + (Math.random() - 0.5) * 0.6;
+      const vy = Math.sin(angle) * speed + (Math.random() - 0.5) * 0.6;
+      fireworks.push({
+        x: cx + (Math.random() - 0.5) * 10,
+        y: cy + (Math.random() - 0.5) * 10,
+        vx, vy,
+        size: 2 + Math.random() * 2,           // 最小3pxにして見やすく
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 60 + Math.floor(Math.random() * 120),
+        age: 0,
+        alpha: 1
+      });
+      created++;
+    }
+  }
+  // 万一の蓄積防止
+  if (fireworks.length > 5000) fireworks.splice(0, fireworks.length - 5000);
+  console.log(`[spawnFireworks] created ${created} particles, total fireworks=${fireworks.length}`);
+}
+
+function updateFireworks() {
+  if (!fireworks || fireworks.length === 0) return;
+  // 後ろから削る方式で splice 安全に
+  for (let i = fireworks.length - 1; i >= 0; i--) {
+    const p = fireworks[i];
+    p.age++;
+    // 軽い重力でゆっくり落ちる
+    p.vy += 0.03;
+    // ゆるい減衰
+    p.vx *= 0.998;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha = Math.max(0, 1 - p.age / p.life);
+
+    // 範囲外・寿命切れは除去
+    if (p.age >= p.life || p.alpha <= 0.01 ||
+        p.x < -50 || p.x > canvas.width + 50 || p.y < -50 || p.y > canvas.height + 120) {
+      fireworks.splice(i, 1);
     }
   }
 }
-function updateFireworks(){ for(let p of fireworks){ p.age++; p.vy += 0.04; p.vx *= 0.995; p.vy *= 0.998; p.x += p.vx; p.y += p.vy; p.alpha = Math.max(0, 1 - p.age / p.life); } fireworks = fireworks.filter(p => p.age < p.life); }
-function drawFireworks(){ for(let p of fireworks){ ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); } ctx.globalAlpha = 1; }
+
+function drawFireworks() {
+  if (!fireworks || fireworks.length === 0) return;
+
+  ctx.save();
+
+  // まずは additive 合成で光る表現（見えにくければ 'source-over' に戻す）
+  const prevComp = ctx.globalCompositeOperation;
+  ctx.globalCompositeOperation = 'lighter';
+
+  for (let p of fireworks) {
+    // safety: 座標が NaN になっていないかチェック（デバッグ時に一度だけログ）
+    // if (!drawFireworks._warned && (isNaN(p.x) || isNaN(p.y))) { console.warn("Invalid particle coords", p); drawFireworks._warned = true; }
+
+    const size = Math.max(2, p.size);      // 最小 2px
+    // メインの光る点
+    ctx.globalAlpha = Math.max(0.16, p.alpha); // 完全に消える前に見えるよう最低値設定
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+    ctx.fill();
+
+    // やや大きめの半透明の広がりをもう一枚描いて光のボケを表現
+    ctx.globalAlpha = Math.max(0.06, p.alpha * 0.28);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size * 2.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // restore
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = prevComp;
+  ctx.restore();
+}
 
 /* 入力（ジャンプ） */
 const gravity = 0.6;
@@ -337,11 +403,13 @@ function spawnObstacle(){
     else if (i === 0 && r < 0.10) type = "chaser2"; // 0.08〜0.10
     else if (r < 0.14) type = "ninjya";             // ← 忍者（少しだけの確率）
     else if (r < 0.16) type = "pendulum";           // ← 新しい振り子敵（少しだけ）
-    else if (r < 0.20) type = "heal";
-    else if (r < 0.26) type = "platform";
-    else if (r < 0.55) type = "fallingPlatform"; // 落下足場
-    else if (r < 0.30) type = "wiggle";
-    else if (r < 0.34) type = "bouncer";
+    else if (r < 0.30) type = "heal";
+    else if (r < 0.16) type = "platform";
+    else if (r < 0.14) type = "bouncer";
+    else if (r < 0.10) type = "wiggle";
+    else if (r < 0.15) type = "fallingPlatform"; // 落下足場
+
+    
     else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
 
     let yPos = GROUND_Y - 30, baseY;
@@ -351,7 +419,6 @@ function spawnObstacle(){
       case "ninjya":
         width = 28; height = 28;
         yPos = 50 + Math.random()*(GROUND_Y - 100);
-        // 忍者は横移動（vx）とフェード関連プロパティを持たせる
         obstacles.push({
           x: W + i*40,
           y: yPos,
@@ -581,7 +648,7 @@ function updateObstacles(){
   // 地面の下に消えたら obstacles 配列から削除
   if (ob.y > H + 50) ob.remove = true;
 
-  // 描画
+  // 描画（ここは update に含めているが draw() でも上書きされます）
   ctx.fillStyle = ob.triggered ? "#8B4513" : "#A0522D";
   ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
   ctx.strokeStyle = "#543210";
@@ -691,14 +758,6 @@ function updateObstacles(){
   // ← プレイヤーとの接触判定はなし（倒れない）
   continue;
 }
-
-
-
-
-
-
-
-
 
     // それ以外（normal, breakable, etc.）
     ob.x -= speed;
@@ -929,24 +988,24 @@ function draw(){
     }
 
     // pendulum の場合は支点からロープを描画
-    if (ob.type === "pendulum") {
-      const cx = ob.x + ob.width/2;
-      const cy = ob.y + ob.height/2;
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgba(60,60,60,0.6)";
-      ctx.beginPath();
-      ctx.moveTo(ob.baseX, ob.anchorY);
-      ctx.lineTo(cx, cy);
-      ctx.stroke();
+    //if (ob.type === "pendulum") {
+      //const cx = ob.x + ob.width/2;
+      //const cy = ob.y + ob.height/2;
+      //ctx.lineWidth = 2;
+      //ctx.strokeStyle = "rgba(60,60,60,0.6)";
+      //ctx.beginPath();
+      //ctx.moveTo(ob.baseX, ob.anchorY || 0);
+      //ctx.lineTo(cx, cy);
+      //ctx.stroke();
 
       // 影（軽く）
-      ctx.globalAlpha = 0.12;
-      ctx.beginPath();
-      ctx.ellipse(cx, GROUND_Y + 6, ob.width * 0.9, 6, 0, 0, Math.PI*2);
-      ctx.fillStyle = "black";
-      ctx.fill();
-      ctx.globalAlpha = (ob.type === "ninjya") ? (ob.alpha ?? 1) : 1;
-    }
+      //ctx.globalAlpha = 0.12;
+      //ctx.beginPath();
+      //ctx.ellipse(cx, GROUND_Y + 6, ob.width * 0.9, 6, 0, 0, Math.PI*2);
+      //ctx.fillStyle = "black";
+      //ctx.fill();
+      //ctx.globalAlpha = (ob.type === "ninjya") ? (ob.alpha ?? 1) : 1;
+    //}
 
     if (img && img.complete && img.naturalWidth) {
       ctx.drawImage(img, ob.x, ob.y, ob.width, ob.height);
@@ -1044,27 +1103,39 @@ function draw(){
 
 /* ========================= メインループ ========================= */
 function loop(){
-  if(gameOver || gameClear) return;
+  // ゲームオーバー時だけループ停止（クリア時はループを継続して花火を描画する）
+  if (gameOver) {
+    loopStarted = false;
+    return;
+  }
 
   // -------------------------
-  // 距離と背景更新
+  // 距離と背景更新（ゲームクリア時はワールドをゆっくり停止させる演出）
   // -------------------------
-  distance += worldSpeed;
-  mountains.forEach(m => {
-    m.x -= 0.5; 
-    if(m.x <= -W) m.x += 2*W; 
-    if(m.x >= 2*W) m.x -= 2*W;
-  });
-  clouds.forEach(c => {
-    c.x -= c.speed;
-    if(c.x < -60) c.x = canvas.width + 60;
-  });
-  updateForest();
+  if (!gameClear) {
+    distance += worldSpeed;
+    mountains.forEach(m => {
+      m.x -= 0.5;
+      if (m.x <= -W) m.x += 2*W;
+      if (m.x >= 2*W) m.x -= 2*W;
+    });
+    clouds.forEach(c => {
+      c.x -= c.speed;
+      if (c.x < -60) c.x = canvas.width + 60;
+    });
+    updateForest();
+  } else {
+    // クリア時は世界速度を徐々に落とす（任意の演出）
+    worldSpeed = Math.max(0, worldSpeed - 0.02);
+    mountains.forEach(m => { m.x -= 0.5 * (worldSpeed > 0 ? 1 : 0); });
+    clouds.forEach(c => { c.x -= c.speed * (worldSpeed > 0 ? 1 : 0); });
+    // forest は動かないようにする（updateForest を呼ばない）
+  }
 
   // -------------------------
-  // ゴール判定
+  // ゴール判定（ゴール通過時の処理は一度だけ行う）
   // -------------------------
-  if(!goalLine && distance >= goalDistance * 2.0 && score >= goalScore * 2.0){
+  if (!goalLine && distance >= goalDistance * 2.0 && score >= goalScore * 2.0){
     const defaultW = 80, defaultH = 80;
     let gw = defaultW, gh = defaultH;
     if(goalImage.complete && goalImage.naturalWidth){
@@ -1077,166 +1148,167 @@ function loop(){
     showMsg("ゴールライン出現！", 2000);
   }
 
-  if(goalLine){
+  if (goalLine && !gameClear) {
     goalLine.x -= worldSpeed;
-    if(player.x + player.size > goalLine.x){
+    if (player.x + player.size > goalLine.x) {
+      // ゴール到達：ゲームを「クリア」状態にするがループは止めない
       gameClear = true;
+      // ループ停止はしない（ここを削除／変更したのが肝）
       bgmPlayer.fadeOut(0.02, 120);
       playClearSound();
+
+      // 花火連発（setInterval で spawnFireworks を呼ぶ）
       let cnt = 0;
       const t = setInterval(() => {
         spawnFireworks(canvas.width/2 + (Math.random()-0.5)*120, 120 + Math.random()*40, 6);
-        new Audio(fireworkSEPath).play();
-        if(++cnt >= 6) clearInterval(t);
+        try { new Audio(fireworkSEPath).play(); } catch(e){}
+        if (++cnt >= 6) clearInterval(t);
       }, 400);
+
       showMsg("クリア！ 花火！", 3000);
     }
+  } else if (goalLine) {
+    // goalLine が既に出ていて gameClear==true の場合も、goalLine を少し移動させておく（演出）
+    goalLine.x -= worldSpeed;
   }
 
   // -------------------------
-  // 時間更新
+  // ゲーム処理：クリア時は敵やプレイヤーの挙動を止める（必要なら完全停止に）
   // -------------------------
-  gameTime--;
-  if(gameTime <= 0) endGame();
+  if (!gameClear) {
+    // 通常プレイ時の更新
+    gameTime--;
+    if (gameTime <= 0) endGame();
 
-  // -------------------------
-  // 障害物更新
-  // -------------------------
-  updateObstacles();
-  obstacles = obstacles.filter(ob => !ob.remove);
+    updateObstacles();
+    obstacles = obstacles.filter(ob => !ob.remove);
 
-  // -------------------------
-  // プレイヤー物理
-  // -------------------------
-  const prevY = player.y;
-  const prevFootY = prevY + player.size;
+    // プレイヤー物理（そのまま）
+    const prevY = player.y;
+    const prevFootY = prevY + player.size;
 
-  // プラットフォーム上の処理
-  if(player.onPlatform){
-    const p = player.onPlatform;
-    const stillExists = obstacles.includes(p) && p.type === "platform";
-    const overlapX = stillExists && (player.x + player.size > p.x) && (player.x < p.x + p.width);
-    if(!stillExists || !overlapX){
-      player.onPlatform = null;
-      player.falling = true;
+    if (player.onPlatform) {
+      const p = player.onPlatform;
+      const stillExists = obstacles.includes(p) && p.type === "platform";
+      const overlapX = stillExists && (player.x + player.size > p.x) && (player.x < p.x + p.width);
+      if (!stillExists || !overlapX) {
+        player.onPlatform = null;
+        player.falling = true;
+        player.inPit = false;
+        player.parachute = false;
+        player.parachuteTimer = 0;
+        player.vy = Math.max(player.vy, 2);
+      } else {
+        player.y = p.y - player.size;
+        player.vy = 0;
+        player.falling = false;
+        player.parachute = false;
+        player.parachuteTimer = 0;
+      }
+    }
+
+    if (!player.onPlatform) {
+      if (player.parachute) {
+        player.vy += 0.08;
+        if (player.vy > 1.5) player.vy = 1.5;
+        player.parachuteTimer = (player.parachuteTimer || 0) + 1;
+        if (player.parachuteTimer > 360) {
+          player.parachute = false;
+          player.parachuteTimer = 0;
+        }
+      } else {
+        player.vy += player.falling ? 0.9 : 0.5;
+      }
+      player.y += player.vy;
+    }
+
+    const newFootY = player.y + player.size;
+
+    // プラットフォーム着地判定
+    let landingY = Infinity, landingPlatform = null;
+    for (let ob of obstacles) {
+      if (ob.type !== "platform" && ob.type !== "fallingPlatform") continue;
+      const overlapX = (player.x + player.size > ob.x) && (player.x < ob.x + ob.width);
+      if (!overlapX) continue;
+      const topY = ob.y;
+      if (topY >= prevFootY - 0.5 && topY <= newFootY + 0.5) {
+        if (topY < landingY) { landingY = topY; landingPlatform = ob; }
+      }
+    }
+
+    if (landingPlatform) {
+      player.y = landingPlatform.y - player.size;
+      player.vy = 0;
+      player.falling = false;
+      player.onPlatform = landingPlatform;
       player.inPit = false;
       player.parachute = false;
       player.parachuteTimer = 0;
-      player.vy = Math.max(player.vy, 2);
-    } else {
-      player.y = p.y - player.size;
-      player.vy = 0;
-      player.falling = false;
-      player.parachute = false;
-      player.parachuteTimer = 0;
-    }
-  }
-
-  // 自由落下／パラシュート
-  if(!player.onPlatform){
-    if(player.parachute){
-      player.vy += 0.08;
-      if(player.vy > 1.5) player.vy = 1.5;
-      player.parachuteTimer = (player.parachuteTimer||0)+1;
-      if(player.parachuteTimer > 360){
-        player.parachute = false;
-        player.parachuteTimer = 0;
+      jumpStage = 0;
+      if (landingPlatform.type === "fallingPlatform" && !landingPlatform.triggered) {
+        landingPlatform.triggered = true;
+        landingPlatform.fallTimer = 0;
       }
     } else {
-      player.vy += player.falling ? 0.9 : 0.5;
+      if (newFootY >= GROUND_Y) {
+        const footXCenter = player.x + player.size/2;
+        const overPit = holes.some(h => footXCenter > h.x + 4 && footXCenter < h.x + h.width - 4);
+        if (overPit) {
+          player.inPit = true;
+          player.falling = true;
+        } else {
+          player.inPit = false;
+          player.falling = false;
+          player.vy = 0;
+          player.y = GROUND_Y - player.size;
+          player.onPlatform = null;
+          jumpStage = 0;
+          player.parachute = false;
+          player.parachuteTimer = 0;
+        }
+      }
     }
-    player.y += player.vy;
-  }
 
-  const newFootY = player.y + player.size;
+    if (!player._fallStarted && player.inPit && player.y > GROUND_Y + 1) player._fallStarted = true;
+    if (player._fallStarted && !player._fallSoundPlayed) { player._fallSoundPlayed = true; try{ playFallSound(); } catch(e){} }
+    if (player.y > canvas.height + 50 && player._fallStarted) endGame();
 
-  // -------------------------
-  // プラットフォーム着地判定
-  // -------------------------
-  let landingY = Infinity, landingPlatform = null;
-  for(let ob of obstacles){
-    if(ob.type !== "platform" && ob.type !== "fallingPlatform") continue;
-    const overlapX = (player.x + player.size > ob.x) && (player.x < ob.x + ob.width);
-    if(!overlapX) continue;
-    const topY = ob.y;
-    if(topY >= prevFootY-0.5 && topY <= newFootY+0.5){
-      if(topY < landingY){ landingY = topY; landingPlatform = ob; }
+    // spawn
+    spawnTimer++;
+    if (spawnTimer > SPAWN_INTERVAL) {
+      if (obstacles.length < MAX_OBSTACLES - 6) spawnObstacle();
+      spawnTimer = 0;
     }
-  }
+    spawnHoleIfReady();
 
-  if(landingPlatform){
-    player.y = landingPlatform.y - player.size;
-    player.vy = 0;
-    player.falling = false;
-    player.onPlatform = landingPlatform;
-    player.inPit = false;
-    player.parachute = false;
-    player.parachuteTimer = 0;
-    jumpStage = 0;
-
-    if(landingPlatform.type === "fallingPlatform" && !landingPlatform.triggered){
-      landingPlatform.triggered = true;
-      landingPlatform.fallTimer = 0;
-    }
+    if (invincible > 0) invincible--;
+    checkCollision();
+    updateExplosions();
   } else {
-    // 地面・穴判定
-    if(newFootY >= GROUND_Y){
-      const footXCenter = player.x + player.size/2;
-      const overPit = holes.some(h => footXCenter > h.x+4 && footXCenter < h.x+h.width-4);
-      if(overPit){
-        player.inPit = true;
-        player.falling = true;
-      } else {
-        player.inPit = false;
-        player.falling = false;
-        player.vy = 0;
-        player.y = GROUND_Y - player.size;
-        player.onPlatform = null;
-        jumpStage = 0;
-        player.parachute = false;
-        player.parachuteTimer = 0;
-      }
-    }
+    // gameClear == true のときは、通常のゲーム処理（敵生成や当たり判定）はスキップして
+    // 花火の更新・描画だけを行う。必要ならここで演出（BGMフェード等）を追加。
   }
 
   // -------------------------
-  // 落下開始音
-  // -------------------------
-  if(!player._fallStarted && player.inPit && player.y > GROUND_Y+1) player._fallStarted = true;
-  if(player._fallStarted && !player._fallSoundPlayed){ player._fallSoundPlayed = true; try{ playFallSound(); }catch(e){} }
-  if(player.y > canvas.height+50 && player._fallStarted) endGame();
-
-  // -------------------------
-  // spawn
-  // -------------------------
-  spawnTimer++;
-  if(spawnTimer > SPAWN_INTERVAL){
-    if(obstacles.length < MAX_OBSTACLES-6) spawnObstacle();
-    spawnTimer = 0;
-  }
-  spawnHoleIfReady();
-
-  if(invincible > 0) invincible--;
-  checkCollision();
-  updateExplosions();
-
-  // -------------------------
-  // 花火
+  // 花火は常に更新（ゲームクリア後も描画を継続）
   // -------------------------
   updateFireworks();
 
   // -------------------------
-  // 描画
+  // 描画（draw() の中で drawFireworks() を呼んでいる想定）
   // -------------------------
   draw();
 
+  // ループ継続
   requestAnimationFrame(loop);
 }
+
 
 
 /* ========================= Game Over / Restart ========================= */
 function endGame(){
   gameOver = true;
+  loopStarted = false; // 重要：ループが止まったことをフラグに記録
   showMsg("ゲームオーバー", 2000);
   try { bgmPlayer.stop(); } catch(e){ }
 }
@@ -1246,6 +1318,12 @@ function restart(){
   _bgmPlayAttempted = false;
   showMsg("ゲームを開始しました", 1200);
   tryPlayBGMOnce(true);
+
+  // ループが停止している（＝以前 gameOver/gameClear で止まった）なら再開
+  if(!loopStarted){
+    loopStarted = true;
+    requestAnimationFrame(loop);
+  }
 }
 
 /* BGM トリガ */
