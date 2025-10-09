@@ -395,22 +395,21 @@ function playClearSound(){ playSoundSequence([{freq:1200,type:"sine",duration:0.
 function spawnObstacle(){
   const count = Math.floor(Math.random()*3)+1;
   for(let i=0;i<count;i++){
-    if (obstacles.length >= MAX_OBSTACLES) break;
-
     const r = Math.random();
-    let type;
-    if (i === 0 && r < 0.08) type = "chaser";
-    else if (i === 0 && r < 0.10) type = "chaser2"; // 0.08〜0.10
-    else if (r < 0.14) type = "ninjya";             // ← 忍者（少しだけの確率）
-    else if (r < 0.16) type = "pendulum";           // ← 新しい振り子敵（少しだけ）
-    else if (r < 0.30) type = "heal";
-    else if (r < 0.16) type = "platform";
-    else if (r < 0.14) type = "bouncer";
-    else if (r < 0.10) type = "wiggle";
-    else if (r < 0.15) type = "fallingPlatform"; // 落下足場
+let type;
 
-    
-    else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
+if (i === 0 && r < 0.12) type = "chaser";       // 強敵1: 12%
+else if (i === 0 && r < 0.20) type = "chaser2"; // 強敵2: 8%
+else if (r < 0.23) type = "ninjya";            // 忍者: 3%
+else if (r < 0.28) type = "pendulum";          // 振り子敵: 5%
+else if (r < 0.38) type = "heal";              // 回復: 10%
+else if (r < 0.48) type = "platform";          // 足場: 10%
+else if (r < 0.53) type = "fallingPlatform";   // 落下足場: 5%
+else if (r < 0.58) type = "bouncer";           // 弾む敵: 5%
+else if (r < 0.66) type = "wiggle";            // ゆらゆら敵: 8%
+else {
+  type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
+}
 
     let yPos = GROUND_Y - 30, baseY;
     let width = 20, height = 20;
