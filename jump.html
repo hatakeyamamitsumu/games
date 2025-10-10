@@ -511,7 +511,7 @@ else {
   width = 80; height = 12;
   obstacles.push({
     x: W + Math.random() * 200,
-    y: GROUND_Y - 20 - Math.random() * 10,  // GROUND_Y の20〜30px上
+    y: GROUND_Y - 40 - Math.random() * 10,  // GROUND_Y の20〜30px上
     width, height,
     type: "spring",
     color: "gold",
@@ -971,20 +971,24 @@ if(ob.type === "platform"){
 // スプリング
 if(ob.type === "spring"){
   if(springImage.complete && springImage.naturalWidth){
-    const drawWidth = ob.width * 0.6;                // 幅を狭く
-    const drawHeight = ob.height*1.4;                   // 高さ
+    const drawWidth = 26;                
+    const drawHeight = 26;                   
     const drawX = ob.x + (ob.width - drawWidth)/2;  // 中央揃え
-    ctx.drawImage(springImage, drawX, ob.y, drawWidth, drawHeight);
+    const drawY = ob.y + (ob.height - drawHeight)/2; // 垂直方向も中央揃え
+    ctx.drawImage(springImage, drawX, drawY, drawWidth, drawHeight);
   } else {
     // 画像が読み込めていない場合の代替描画
-    const drawWidth = ob.width * 0.3;
+    const drawWidth = 26;
+    const drawHeight = 26;
     const drawX = ob.x + (ob.width - drawWidth)/2;
+    const drawY = ob.y + (ob.height - drawHeight)/2;
     ctx.fillStyle = "gold";
-    ctx.fillRect(drawX, ob.y, drawWidth, ob.height);
+    ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
     ctx.strokeStyle = "#DAA520";
-    ctx.strokeRect(drawX, ob.y, drawWidth, ob.height);
+    ctx.strokeRect(drawX, drawY, drawWidth, drawHeight);
   }
   return;
+
 }
     if (ob.type === "fallingPlatform") {
   // 落下前と落下後で少し色を変える
@@ -1268,7 +1272,7 @@ function loop(){
   player.falling = true;
   player.onPlatform = null;
   playJumpSound && playJumpSound(); // 音があるなら再利用
-  spawnFireworks(player.x + player.size/2, player.y, 3); // ミニ花火演出もおすすめ
+  //spawnFireworks(player.x + player.size/2, player.y, 3); // ミニ花火演出もおすすめ
 }
 
     } else {
