@@ -99,7 +99,7 @@ const ninjyaImage = new Image(); ninjyaImage.src = "characters/ninjya/ninjya.png
 const goalImage = new Image(); goalImage.src = "graphics/goal/goal1.png";
 const cloudImage = new Image(); cloudImage.src = "graphics/cloud/cloud1.png";
 const mountainImage = new Image(); mountainImage.src = "graphics/mountain/mountain1.png";
-
+const springImage = new Image();springImage.src = "characters/spring/spring1.png";
 /* pendulum image */
 const pendulumImage = new Image(); pendulumImage.src = "characters/pendulum/pendulum1.png";
 
@@ -400,9 +400,11 @@ let type;
 
 if (i === 0 && r < 0.12) type = "chaser";       // 強敵1: 12%
 else if (i === 0 && r < 0.20) type = "chaser2"; // 強敵2: 8%
+
 else if (r < 0.23) type = "ninjya";            // 忍者: 3%
 else if (r < 0.28) type = "pendulum";          // 振り子敵: 5%
 else if (r < 0.38) type = "heal";              // 回復: 10%
+else if (r < 0.45) type = "spring";
 else if (r < 0.48) type = "platform";          // 足場: 10%
 else if (r < 0.53) type = "fallingPlatform";   // 落下足場: 5%
 else if (r < 0.58) type = "bouncer";           // 弾む敵: 5%
@@ -502,6 +504,18 @@ else {
     triggered: false,      // プレイヤーが乗ると true に
     fallDelay: 15,         // 乗ってから落下までのフレーム数（60fpsで1秒）
     fallTimer: 0,          // カウント用
+    scored: false
+  });
+  break;
+  case "spring":
+  width = 80; height = 12;
+  obstacles.push({
+    x: W + Math.random() * 200,
+    y: GROUND_Y - 20 - Math.random() * 10,  // GROUND_Y の20〜30px上
+    width, height,
+    type: "spring",
+    color: "gold",
+    vy: 0,
     scored: false
   });
   break;
@@ -945,13 +959,33 @@ function draw(){
 
   // 障害物描画
   obstacles.forEach(ob => {
-    if(ob.type === "platform"){
-      ctx.fillStyle = "#8B4513";
-      ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
-      ctx.strokeStyle = "#543210";
-      ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
-      return;
-    }
+    // 通常のプラットフォーム
+if(ob.type === "platform"){
+  ctx.fillStyle = "#8B4513";
+  ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+  ctx.strokeStyle = "#543210";
+  ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
+  return;
+}
+
+// スプリング
+if(ob.type === "spring"){
+  if(springImage.complete && springImage.naturalWidth){
+    const drawWidth = ob.width * 0.6;                // 幅を狭く
+    const drawHeight = ob.height*1.4;                   // 高さ
+    const drawX = ob.x + (ob.width - drawWidth)/2;  // 中央揃え
+    ctx.drawImage(springImage, drawX, ob.y, drawWidth, drawHeight);
+  } else {
+    // 画像が読み込めていない場合の代替描画
+    const drawWidth = ob.width * 0.3;
+    const drawX = ob.x + (ob.width - drawWidth)/2;
+    ctx.fillStyle = "gold";
+    ctx.fillRect(drawX, ob.y, drawWidth, ob.height);
+    ctx.strokeStyle = "#DAA520";
+    ctx.strokeRect(drawX, ob.y, drawWidth, ob.height);
+  }
+  return;
+}
     if (ob.type === "fallingPlatform") {
   // 落下前と落下後で少し色を変える
   if (!ob.triggered) {
@@ -986,26 +1020,6 @@ function draw(){
       ctx.globalAlpha = (ob.alpha === undefined) ? 1 : ob.alpha;
     }
 
-    // pendulum の場合は支点からロープを描画
-    //if (ob.type === "pendulum") {
-      //const cx = ob.x + ob.width/2;
-      //const cy = ob.y + ob.height/2;
-      //ctx.lineWidth = 2;
-      //ctx.strokeStyle = "rgba(60,60,60,0.6)";
-      //ctx.beginPath();
-      //ctx.moveTo(ob.baseX, ob.anchorY || 0);
-      //ctx.lineTo(cx, cy);
-      //ctx.stroke();
-
-      // 影（軽く）
-      //ctx.globalAlpha = 0.12;
-      //ctx.beginPath();
-      //ctx.ellipse(cx, GROUND_Y + 6, ob.width * 0.9, 6, 0, 0, Math.PI*2);
-      //ctx.fillStyle = "black";
-      //ctx.fill();
-      //ctx.globalAlpha = (ob.type === "ninjya") ? (ob.alpha ?? 1) : 1;
-    //}
-
     if (img && img.complete && img.naturalWidth) {
       ctx.drawImage(img, ob.x, ob.y, ob.width, ob.height);
     } else {
@@ -1020,6 +1034,7 @@ function draw(){
         ob.type === "wiggle"    ? "cyan" :
         ob.type === "bouncer"   ? "brown" :
         ob.type === "ninjya"    ? "gray" :
+        ob.type === "spring" ? "gold" :
         ob.type === "pendulum"  ? "purple" : "gray";
 
       ctx.beginPath();
@@ -1226,7 +1241,7 @@ function loop(){
     // プラットフォーム着地判定
     let landingY = Infinity, landingPlatform = null;
     for (let ob of obstacles) {
-      if (ob.type !== "platform" && ob.type !== "fallingPlatform") continue;
+      if (ob.type !== "platform" && ob.type !== "fallingPlatform" && ob.type !== "spring") continue;
       const overlapX = (player.x + player.size > ob.x) && (player.x < ob.x + ob.width);
       if (!overlapX) continue;
       const topY = ob.y;
@@ -1248,6 +1263,14 @@ function loop(){
         landingPlatform.triggered = true;
         landingPlatform.fallTimer = 0;
       }
+      if (landingPlatform.type === "spring") {
+  player.vy = -30; // ← 強力なジャンプ！
+  player.falling = true;
+  player.onPlatform = null;
+  playJumpSound && playJumpSound(); // 音があるなら再利用
+  spawnFireworks(player.x + player.size/2, player.y, 3); // ミニ花火演出もおすすめ
+}
+
     } else {
       if (newFootY >= GROUND_Y) {
         const footXCenter = player.x + player.size/2;
