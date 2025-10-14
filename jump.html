@@ -72,10 +72,12 @@ const goalDistance = 1200;
 const goalScore = 30;
 
 /* 上限（重要） */
-const MAX_OBSTACLES = 40;     // 障害物の総数上限（これ以上は生成しない）
+// =========================
+// グローバル変数
+// =========================
+const MAX_OBSTACLES = 40;     // 障害物の総数上限
 const SPAWN_INTERVAL = 110;   // 障害物生成間隔（フレーム）
 
-/* ========================= 変数 ========================= */
 let player, jumpStage, maxJumpStage, obstacles, explosions, holes;
 let fireworks;
 let score, gameOver, spawnTimer, holeTimer, gameTime, hp, invincible, flash;
@@ -84,7 +86,28 @@ let goalLine = null;
 let gameClear = false;
 let loopStarted = false;
 
-/* 画像（パスがあれば表示） */
+// -------------------------
+// 前景関連
+// -------------------------
+let foregrounds = [];  // 前景配列
+
+// 3種類の前景画像
+const foregroundImagesSrc = [
+  "graphics/foreground/foreground1.png",
+  "graphics/foreground/foreground2.png",
+  "graphics/foreground/foreground3.png"
+];
+
+// Imageオブジェクトに変換
+const foregroundImages = foregroundImagesSrc.map(src => {
+  const img = new Image();
+  img.src = src;
+  return img;
+});
+
+// -------------------------
+// キャラクター・背景画像
+// -------------------------
 const playerImage = new Image(); playerImage.src = "characters/hero/hero.png";
 const normalImage = new Image(); normalImage.src = "characters/normal/normal.png";
 const zigzagImage = new Image(); zigzagImage.src = "characters/zigzag/zigzag.png";
@@ -95,43 +118,57 @@ const chaserImage = new Image(); chaserImage.src = "characters/chaser/chaser.png
 const chaser2Image = new Image(); chaser2Image.src = "characters/chaser2/chaser2.png";
 const wiggleImage = new Image(); wiggleImage.src = "characters/wiggle/wiggle1.png";
 const bouncerImage = new Image(); bouncerImage.src = "characters/bouncer/bouncer1.png";
-const ninjyaImage = new Image(); ninjyaImage.src = "characters/ninjya/ninjya.png"; // ← 忍者画像
+const ninjyaImage = new Image(); ninjyaImage.src = "characters/ninjya/ninjya.png";
 const goalImage = new Image(); goalImage.src = "graphics/goal/goal1.png";
 const cloudImage = new Image(); cloudImage.src = "graphics/cloud/cloud1.png";
 const mountainImage = new Image(); mountainImage.src = "graphics/mountain/mountain1.png";
-
-const springImage= new Image();springImage.src = "characters/spring/spring1.png";
-/* pendulum image */
+const springImage = new Image(); springImage.src = "characters/spring/spring1.png";
 const pendulumImage = new Image(); pendulumImage.src = "characters/pendulum/pendulum1.png";
 
-/* forest files (optional) */
+// -------------------------
+// 森（オプション）
+// -------------------------
 const forestFiles = [
   "graphics/forest/forest1.png",
   "graphics/forest/forest2.png",
   "graphics/forest/forest3.png",
-  "graphics/forest/forest4.png",
+  "graphics/forest/forest4.png"
 ];
 const forestImageObjects = forestFiles.map(src => { const img = new Image(); img.src = src; return img; });
 
-/* タイル関連 */
 let forestTiles = [];
 const FOREST_HEIGHT = 60;
 const FOREST_SPEED_FACTOR = 0.5;
 
-/* Sound/BGM */
+// -------------------------
+// Sound/BGM
+// -------------------------
 const bgmPlayer = new BGMPlayer("sounds/BGM/a.mp3", {volume:0.05, loop:true});
 const fireworkSEPath = "sounds/Sound_Effect/firework.mp3";
 
-/* UI */
+// -------------------------
+// UI
+// -------------------------
 const msgBox = document.getElementById('msg');
-function showMsg(text, ms=1800){ msgBox.textContent=text; msgBox.style.display='block'; clearTimeout(showMsg._t); showMsg._t=setTimeout(()=>msgBox.style.display='none', ms); }
+function showMsg(text, ms=1800){
+  msgBox.textContent = text;
+  msgBox.style.display='block';
+  clearTimeout(showMsg._t);
+  showMsg._t = setTimeout(()=> msgBox.style.display='none', ms);
+}
 
+// -------------------------
+// 雲
+// -------------------------
 const clouds = [
   {x:80, y:50, scale:1, speed:0.2},
   {x:220, y:70, scale:0.8, speed:0.15},
   {x:340, y:40, scale:1.2, speed:0.25}
 ];
 
+// -------------------------
+// 山
+// -------------------------
 const numMountains = 2;
 const mountains = [];
 const mountainWidth = 400;
@@ -142,6 +179,7 @@ for (let i = 0; i < numMountains; i++) {
   mountains.push({ x: currentX, image: mountainImage });
   currentX += mountainWidth + minGap + Math.random() * 200;
 }
+
 function repositionMountain(m, index) {
   let tries = 0;
   do {
@@ -574,6 +612,44 @@ break;
     }
   }
 }
+// -----------------------------
+// 前景生成関数（安全版）
+// -----------------------------
+function spawnForeground() {
+  // 幅と高さ
+  const fgWidth = 100;
+  const fgHeight = 100;
+
+  // 画面右端からの出現位置をランダムに決定
+  const minX = canvas.width + 50;
+  const maxX = canvas.width + 300;
+  const xCandidate = minX + Math.random() * (maxX - minX);
+
+  // 前景同士の重なりチェック（50px間隔）
+  for (let fg of foregrounds) {
+    if (xCandidate < fg.x + fg.width + 50) return; // 重なりそうなら生成スキップ
+  }
+
+
+
+  // ランダムに画像を選択
+  const img = foregroundImages[Math.floor(Math.random() * foregroundImages.length)];
+
+  // y座標を底辺が GROUND_Y + 100 になるように計算
+  const yCandidate = (GROUND_Y + 100) - fgHeight; // ← これで底面が GROUND_Y + 100 に
+
+  // 前景を追加
+  foregrounds.push({
+    x: xCandidate,
+    y: yCandidate,
+    width: fgWidth,
+    height: fgHeight,
+    image: img
+  });
+}
+
+
+
 
 /* 穴生成 */
 function spawnHoleIfReady(){
@@ -850,6 +926,20 @@ if (ob.type === "spring") {
   holes.forEach(h => h.x -= worldSpeed);
   holes = holes.filter(h => h.x + h.width > 0);
 }
+function updateForegrounds() {
+  // 前景のスクロール
+  for (let fg of foregrounds) {
+    fg.x -= worldSpeed ; // 少し遅めで奥行き感
+  }
+
+  // 画面外に出た前景を削除
+  foregrounds = foregrounds.filter(fg => fg.x + fg.width > 0);
+
+  // 描画
+  for (let fg of foregrounds) {
+  ctx.drawImage(fg.image, fg.x, fg.y, fg.width, fg.height);
+}
+}
 
 /* ========================= 衝突判定（ninjyaは透明中は当たり判定なし） ========================= */
 function checkCollision() {
@@ -1005,6 +1095,9 @@ function draw(){
     ctx.lineWidth = 0.8;
     ctx.beginPath(); ctx.moveTo(i, GROUND_Y + offset); ctx.lineTo(i, canvas.height); ctx.stroke();
   }
+    // 穴
+    ctx.fillStyle = "#4B2E20";
+  holes.forEach(h => ctx.fillRect(h.x, GROUND_Y, h.width, 30) );
 
   // 森タイル
   if (forestTiles.length > 0) {
@@ -1092,9 +1185,7 @@ function draw(){
     ctx.restore();
   });
 
-  // 穴
-  ctx.fillStyle = "black";
-  holes.forEach(h => ctx.fillRect(h.x, GROUND_Y, h.width, 30) );
+
 
   // 爆発
   explosions.forEach(e => { ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI*2); ctx.fillStyle = e.color || "rgba(255,165,0,0.5)"; ctx.fill(); });
@@ -1119,17 +1210,8 @@ function draw(){
     ctx.fill();
     ctx.globalAlpha = 1;
   }
-
-  // UI
-  const hpWidth = 25, hpHeight = 18;
-  ctx.fillStyle="gray"; ctx.fillRect(10,10,hpWidth*4,hpHeight);
-  ctx.fillStyle="lime"; ctx.fillRect(10,10,hpWidth*Math.max(0,hp),hpHeight);
-  ctx.fillStyle="rgba(0,0,0,0.6)"; ctx.fillRect(canvas.width-220,10,210,24);
-  ctx.fillStyle="white"; ctx.font="14px sans-serif"; ctx.textAlign="right";
-  ctx.fillText(`スコア:${score}  距離:${Math.floor(distance)}  秒:${Math.floor(gameTime/60)}`, canvas.width-12, 28);
-
-  // goal
-  if(goalLine){
+    // goal
+    if(goalLine){
     if(goalImage.complete && goalImage.naturalWidth){
       const gx = goalLine.x;
       const gy = GROUND_Y - goalLine.height;
@@ -1147,6 +1229,28 @@ function draw(){
       ctx.fillText("GOAL", goalLine.x + goalLine.width/2, gy - 5);
     }
   }
+// ---------------------
+// 前景の描画
+// ---------------------
+for (let fg of foregrounds) {
+  if (fg.image.complete && fg.image.naturalWidth) {
+    ctx.drawImage(fg.image, fg.x, GROUND_Y - fg.height, fg.width, fg.height);
+  } else {
+    ctx.fillStyle = "green";
+    ctx.fillRect(fg.x, GROUND_Y - fg.height, fg.width, fg.height);
+  }
+}
+
+
+  // UI
+  const hpWidth = 25, hpHeight = 18;
+  ctx.fillStyle="gray"; ctx.fillRect(10,10,hpWidth*4,hpHeight);
+  ctx.fillStyle="lime"; ctx.fillRect(10,10,hpWidth*Math.max(0,hp),hpHeight);
+  ctx.fillStyle="rgba(0,0,0,0.6)"; ctx.fillRect(canvas.width-220,10,210,24);
+  ctx.fillStyle="white"; ctx.font="14px sans-serif"; ctx.textAlign="right";
+  ctx.fillText(`スコア:${score}  距離:${Math.floor(distance)}  秒:${Math.floor(gameTime/60)}`, canvas.width-12, 28);
+
+
 
   drawFireworks();
 
@@ -1192,7 +1296,7 @@ function loop(){
     clouds.forEach(c => { c.x -= c.speed * (worldSpeed > 0 ? 1 : 0); });
     // forest は動かないようにする（updateForest を呼ばない）
   }
-
+  if (Math.random() < 0.01) spawnForeground();
   // -------------------------
   // ゴール判定（ゴール通過時の処理は一度だけ行う）
   // -------------------------
@@ -1242,6 +1346,7 @@ function loop(){
     if (gameTime <= 0) endGame();
 
     updateObstacles();
+    updateForegrounds();
     obstacles = obstacles.filter(ob => !ob.remove);
 
     // プレイヤー物理（そのまま）
