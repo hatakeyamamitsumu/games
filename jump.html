@@ -95,7 +95,8 @@ let foregrounds = [];  // 前景配列
 const foregroundImagesSrc = [
   "graphics/foreground/foreground1.png",
   "graphics/foreground/foreground2.png",
-  "graphics/foreground/foreground3.png"
+  "graphics/foreground/foreground3.png",
+  "graphics/foreground/foreground4.png"
 ];
 
 // Imageオブジェクトに変換
@@ -445,9 +446,11 @@ function spawnObstacle(){
     else if (r < 0.20) type = "spring";          
     else if (r < 0.25) type = "heal";
     else if (r < 0.30) type = "platform";
+    
     else if (r < 0.35) type = "bouncer";
     else if (r < 0.40) type = "wiggle";
     else if (r < 0.45) type = "fallingPlatform"; // 落下足場
+    else if (r < 0.50) type = "risingPlatform";
 
     
     else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
@@ -545,9 +548,25 @@ function spawnObstacle(){
         yPos = 120 + Math.random()*(GROUND_Y - 160);
         obstacles.push({ x: W + i*30, y: yPos, width, height, type: "platform", scored:false });
         break;
+        case "risingPlatform":
+        width = 40 + Math.floor(Math.random()*80);; height = 10;
+  yPos = GROUND_Y - 120 - Math.random() * 60; // 空中に配置
+  obstacles.push({
+    x: W + i * 60,
+    y: yPos,
+    width, height,
+    type: "risingPlatform",
+    vy: 0,
+    triggered: false,
+    riseDelay: 15,  // 乗ってから上昇するまでの待機時間
+    riseTimer: 0,
+    remove: false
+  });
+  break;
+
         case "fallingPlatform":
-  width = 40; height = 10;
-  yPos = GROUND_Y - 80 - Math.random() * 60; // 空中に配置
+        width = 40 + Math.floor(Math.random()*80);; height = 10;
+  yPos = GROUND_Y - 120 - Math.random() * 60; // 空中に配置
   obstacles.push({
     x: W + i * 60,
     y: yPos,
@@ -711,6 +730,61 @@ function updateObstacles(){
       }
       continue;
     }
+    if (ob.type === "risingPlatform") {
+  // ---------- 接触判定 ----------
+  const playerBottom = player.y + player.size;
+  const onTop =
+    player.vy >= 0 &&
+    player.x + player.size > ob.x &&
+    player.x < ob.x + ob.width &&
+    playerBottom >= ob.y &&
+    playerBottom <= ob.y + ob.height;
+
+  // ---------- 乗った瞬間 ----------
+  if (onTop) {
+    player.y = ob.y - player.size;
+    player.vy = 0;
+    player.onPlatform = ob;
+
+    if (!ob.triggered) {
+      ob.triggered = true;
+      ob.riseTimer = 0;
+    }
+  }
+
+  // ---------- 上昇処理 ----------
+  if (ob.triggered) {
+    ob.riseTimer++;
+    if (ob.riseTimer > ob.riseDelay) {
+      ob.vy = -1.2; // 上昇速度
+      ob.y += ob.vy;
+
+      // プレイヤーが乗っていれば一緒に上昇
+      if (player.onPlatform === ob) {
+        player.y += ob.vy;
+        player.vy = 0; // 重力を打ち消す
+      }
+    }
+  }
+
+  // ---------- 画面外に出たら削除 ----------
+  if (ob.y + ob.height < -50) {
+    ob.remove = true;
+    if (player.onPlatform === ob) player.onPlatform = null;
+  }
+
+  // ---------- 描画 ----------
+  ctx.fillStyle = ob.triggered ? "#CD853F" : "#DEB887";
+  ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+  ctx.strokeStyle = "#654321";
+  ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
+}
+
+ 
+
+
+
+
     if (ob.type === "fallingPlatform") {
   // プレイヤーが乗っている判定
   const playerBottom = player.y + player.size;
@@ -746,7 +820,6 @@ function updateObstacles(){
   ctx.strokeStyle = "#543210";
   ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
 }
-
 
 
     // 通常タイプ（横スクロール）
@@ -1123,6 +1196,18 @@ function draw(){
       ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
       return;
     }
+    if (ob.type === "risingPlatform") {
+  if (!ob.triggered) {
+    ctx.fillStyle = "#CD853F"; // 通常時：明るめの茶色
+  } else {
+    ctx.fillStyle = "#8B4513"; // 上昇中：濃いめ
+  }
+  ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+  ctx.strokeStyle = "#543210";
+  ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
+  return;
+}
+
     if (ob.type === "fallingPlatform") {
   // 落下前と落下後で少し色を変える
   if (!ob.triggered) {
@@ -1389,6 +1474,44 @@ function loop(){
     }
 
     const newFootY = player.y + player.size;
+// -----------------
+// risingPlatform用
+// -----------------
+for (let ob of obstacles) {
+  if (ob.type !== "risingPlatform") continue;
+
+  const playerBottom = player.y + player.size;
+  const horizontalOverlap = player.x + player.size > ob.x && player.x < ob.x + ob.width;
+  const crossingTop = playerBottom <= ob.y && playerBottom + player.vy >= ob.y;
+
+  if (horizontalOverlap && crossingTop) {
+    // 乗った瞬間
+    player.y = ob.y - player.size;
+    player.vy = 0;
+    player.onPlatform = ob;
+
+    if (!ob.triggered) {
+      ob.triggered = true;
+      ob.riseTimer = 0;
+    }
+  }
+
+  // 上昇処理
+  if (ob.triggered) {
+    ob.riseTimer++;
+    if (ob.riseTimer > ob.riseDelay) {
+      ob.vy = -1.2;
+      ob.y += ob.vy;
+      if (player.onPlatform === ob) player.y += ob.vy;
+    }
+  }
+
+  // 画面外削除
+  if (ob.y + ob.height < -50) {
+    ob.remove = true;
+    if (player.onPlatform === ob) player.onPlatform = null;
+  }
+}
 
     // プラットフォーム着地判定
     let landingY = Infinity, landingPlatform = null;
