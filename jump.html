@@ -1088,13 +1088,58 @@ if (ob.type === "spring") {
       ob.angle = (ob.angle || 0) + 0.06;
     }
 
-    if(!ob.falling && (ob.type === "normal" || ob.type === "breakable")){
-      for(let h of holes){
-        if(ob.x + ob.width > h.x && ob.x < h.x + h.width && ob.y >= OB_FALL_THRESHOLD){
-          ob.falling = true; ob.vy = 2; break;
-        }
-      }
+    if (!ob.falling && ob.type === "normal") {
+  // 横揺れアニメーション（プルプル震える）
+  if (ob.shakeAngle === undefined) ob.shakeAngle = 0;
+  ob.shakeAngle += 0.5; // 数値を小さくするとゆっくり震える
+  const shakeAmount = 1.5; // 揺れ幅（1.5で±1.5px）
+  ob.x += Math.sin(ob.shakeAngle) * shakeAmount;
+
+  // 穴に落ちる判定
+  for (let h of holes) {
+    if (
+      ob.x + ob.width > h.x &&
+      ob.x < h.x + h.width &&
+      ob.y >= OB_FALL_THRESHOLD
+    ) {
+      ob.falling = true;
+      ob.vy = 2;
+      break;
     }
+  }
+}
+
+
+if (!ob.falling && ob.type === "breakable") {
+  // ゆっくりピョコピョコ（上方向のみ）
+  if (ob.jumpPhase === undefined) {
+    ob.jumpPhase = 0;
+    ob.vyJump = -1.0; // 上昇速度を小さくしてゆっくりに
+    ob.baseY = ob.baseY || ob.y;
+  }
+
+  // 上下運動
+  ob.y += ob.vyJump;
+  ob.vyJump += 0.05; // 重力を弱めてゆっくり落ちる
+  if (ob.y > ob.baseY) { // 底に戻ったら再ジャンプ
+    ob.y = ob.baseY;
+    ob.vyJump = -1.0; // ゆっくり再ジャンプ
+  }
+
+  // 穴に落ちる判定
+  for (let h of holes) {
+    if (
+      ob.x + ob.width > h.x &&
+      ob.x < h.x + h.width &&
+      ob.y >= OB_FALL_THRESHOLD
+    ) {
+      ob.falling = true;
+      ob.vy = 2;
+      break;
+    }
+  }
+}
+
   }
 
   // 画面外消去（ninjyaは透明でも画面外なら削除）
