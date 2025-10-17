@@ -125,6 +125,7 @@ const cloudImage = new Image(); cloudImage.src = "graphics/cloud/cloud1.png";
 const mountainImage = new Image(); mountainImage.src = "graphics/mountain/mountain1.png";
 const springImage = new Image(); springImage.src = "characters/spring/spring1.png";
 const pendulumImage = new Image(); pendulumImage.src = "characters/pendulum/pendulum1.png";
+const wandererImage = new Image();wandererImage.src = "characters/wanderer/wanderer1.png";
 
 // -------------------------
 // 森（オプション）
@@ -439,8 +440,10 @@ function spawnObstacle(){
 
     const r = Math.random();
     let type;
+    
     if (i === 0 && r < 0.08) type = "chaser";
     else if (i === 0 && r < 0.10) type = "chaser2"; // 0.08〜0.10
+    else if (r < 0.12) type = "wanderer"
     else if (r < 0.14) type = "ninjya";             // ← 忍者（少しだけの確率）
     else if (r < 0.16) type = "pendulum"; 
     else if (r < 0.20) type = "spring";          
@@ -451,6 +454,8 @@ function spawnObstacle(){
     else if (r < 0.40) type = "wiggle";
     else if (r < 0.45) type = "fallingPlatform"; // 落下足場
     else if (r < 0.50) type = "risingPlatform";
+     
+
 
     
     else type = ["normal","zigzag","breakable","balloon"][Math.floor(Math.random()*4)];
@@ -516,6 +521,32 @@ function spawnObstacle(){
         });
         break;
 
+        case "wanderer": {
+  const width = 26;
+  const height = 26;
+
+  // 画面の外から出現（四辺ランダム）
+  const side = Math.floor(Math.random() * 4); // 0=左,1=右,2=上,3=下
+  let x, y, vx, vy;
+  const spd = 1.5 + Math.random() * 1.5;
+
+  if (side === 0) { x = -30; y = Math.random() * (GROUND_Y - 80); vx = spd; vy = 0; }
+  else if (side === 1) { x = W + 30; y = Math.random() * (GROUND_Y - 80); vx = -spd; vy = 0; }
+  else if (side === 2) { x = Math.random() * W; y = -30; vx = 0; vy = spd; }
+  else { x = Math.random() * W; y = GROUND_Y + 30; vx = 0; vy = -spd; }
+
+  obstacles.push({
+    x, y, vx, vy,
+    width, height,
+    type: "wanderer",
+    img: wandererImage, // 事前に読み込んだ画像を参照
+    changeTimer: Math.floor(Math.random() * 80 + 60),
+    scored: false
+  });
+  break;
+}
+
+
       case "heal": yPos = 30 + Math.random()*50; width = 26; height = 26; obstacles.push({ x: W + i*30, y: yPos, width, height, type: "heal", angle: 0, vy:0, falling:false, scored:false }); break;
       case "balloon": yPos = 50 + Math.random()*100; width = 26; height = 26; obstacles.push({ x: W + i*30, y: yPos, width, height, type: "balloon", angle:0, vy:0, falling:false, scored:false }); break;
       case "zigzag": baseY = 140 + Math.random()*60; yPos = baseY; width = 26; height = 26; obstacles.push({ x: W + i*30, y: yPos, width, height, type: "zigzag", baseY, angle: 0, vy: 0, falling:false, scored:false }); break;
@@ -524,25 +555,66 @@ function spawnObstacle(){
         yPos = (Math.random() < 0.5) ? GROUND_Y - 30 : 90 + Math.random()*60; width = 26; height = 26;
         obstacles.push({ x: W + i*30, y: yPos, width, height, type, angle:0, vy:0, falling:false, baseY: baseY, scored:false });
         break;
-      case "chaser":
-        yPos = (Math.random()<0.5) ? GROUND_Y - 20 : 100 + Math.random()*100; width = 26; height = 26; 
-        const startXc = W + 10, startYc = -10;
-        const targetX = player.x + player.size/2, targetY = player.y + player.size/2;
-        const dx = targetX - startXc, dy = targetY - startYc;
-        const len = Math.hypot(dx, dy) || 1;
-        const speed = 4 + Math.random()*1.2;
-        const vx = (dx / len) * speed, vy = (dy / len) * speed;
-        obstacles.push({ x: startXc, y: startYc, width, height, type: "chaser", vx, vy, angle:0, vyPhys:0, falling:false, scored:false });
-        break;
-      case "chaser2":
-        const sX = -6, sY = -6;
-        const tX = player.x + player.size / 2, tY = player.y - 80;
-        const dxx = tX - sX, dyy = tY - sY;
-        const llen = Math.hypot(dxx, dyy) || 1;
-        const sp = 2 + Math.random();
-        const vx2 = (dxx / llen) * sp, vy2 = (dyy / llen) * sp;
-        obstacles.push({ x: sX, y: sY, width: 26, height: 26, type: "chaser2", vx: vx2, vy: vy2, angle:0, vyPhys:0, falling:false, scored:false });
-        break;
+        case "chaser": {
+  yPos = (Math.random() < 0.5) ? GROUND_Y - 20 : 100 + Math.random() * 100;
+  width = 26;
+  height = 26;
+
+  const startXc = W + 10;
+  const startYc = -10;
+  const targetX = player.x + player.size / 2;
+  const targetY = player.y + player.size / 2;
+  const dx = targetX - startXc;
+  const dy = targetY - startYc;
+  const len = Math.hypot(dx, dy) || 1;
+  const speed = 4 + Math.random() * 1.2;
+  const vx = (dx / len) * speed;
+  const vy = (dy / len) * speed;
+
+  obstacles.push({
+    x: startXc,
+    y: startYc,
+    width,
+    height,
+    type: "chaser",
+    vx,
+    vy,
+    angle: 0,
+    vyPhys: 0,
+    falling: false,
+    scored: false
+  });
+  break;
+}
+
+case "chaser2": {
+  const sX = -6;
+  const sY = -6;
+  const tX = player.x + player.size / 2;
+  const tY = player.y - 80;
+  const dxx = tX - sX;
+  const dyy = tY - sY;
+  const llen = Math.hypot(dxx, dyy) || 1;
+  const sp = 2 + Math.random();
+  const vx2 = (dxx / llen) * sp;
+  const vy2 = (dyy / llen) * sp;
+
+  obstacles.push({
+    x: sX,
+    y: sY,
+    width: 26,
+    height: 26,
+    type: "chaser2",
+    vx: vx2,
+    vy: vy2,
+    angle: 0,
+    vyPhys: 0,
+    falling: false,
+    scored: false
+  });
+  break;
+}
+
       case "platform":
         width = 40 + Math.floor(Math.random()*80); height = 12;
         yPos = 120 + Math.random()*(GROUND_Y - 160);
@@ -837,6 +909,46 @@ function updateObstacles(){
       ob.y = ob.baseY + Math.sin(ob.t * freqY * 2 * Math.PI) * ampY;
       continue;
     }
+    if (ob.type === "wanderer") {
+  // 移動
+  ob.x += ob.vx;
+  ob.y += ob.vy;
+
+  // 方向転換タイマー
+  ob.changeTimer--;
+  if (ob.changeTimer <= 0) {
+    if (Math.random() < 0.6) { // 60%の確率で進路変更
+      // 直角方向ベクトルの候補
+      const directions = [
+        { vx: 1, vy: 0 },   // 右
+        { vx: -1, vy: 0 },  // 左
+        { vx: 0, vy: 1 },   // 下
+        { vx: 0, vy: -1 }   // 上
+      ];
+      // ランダムに1つ選んで速度をかける
+      const choice = directions[Math.floor(Math.random() * directions.length)];
+      const speed = 1.5 + Math.random() * 1.5;
+      ob.vx = choice.vx * speed;
+      ob.vy = choice.vy * speed;
+    }
+    ob.changeTimer = Math.floor(Math.random() * 80 + 60); // タイマー再設定
+  }
+
+  // 画面外に出たら削除フラグ
+  const margin = 50;
+  if (ob.x < -margin || ob.x > W + margin || ob.y < -margin || ob.y > GROUND_Y + margin) {
+    ob.remove = true;
+  }
+
+
+  // 描画（仮）
+  ctx.fillStyle = ob.color || "purple";
+  ctx.beginPath();
+  ctx.arc(ob.x + ob.width/2, ob.y + ob.height/2, ob.width/2, 0, Math.PI*2);
+  ctx.fill();
+
+  continue;
+}
 
     // ← ここで ninjya 用の移動・フェード処理
     if (ob.type === "ninjya") {
@@ -1055,6 +1167,15 @@ function checkCollision() {
       playEnemyDefeatSound();
       continue;
     }
+// Wanderer 敵
+if (ob.type === "wanderer" && dist < player.size / 2 + 16) {
+  explosions.push({ x: obCenterX, y: obCenterY, radius: 0, maxRadius: 40, color: "rgba(200,0,255,0.5)" });
+  obstacles.splice(i, 1); i--;
+  hp--; flash = 8;
+  playDamageSound();
+  if (hp <= 0) gameOver = true;
+  continue;
+}
 
     // 敵（踏み/接触） -- pendulum を含める
     if (["normal", "zigzag", "breakable", "chaser", "chaser2", "wiggle","bouncer","ninjya","pendulum"].includes(ob.type) &&
@@ -1235,6 +1356,7 @@ function draw(){
         ob.type === "bouncer"   ? bouncerImage   :
         ob.type === "ninjya"    ? ninjyaImage    :
         ob.type === "pendulum"  ? pendulumImage  :
+        ob.type === "wanderer"  ? wandererImage  :
         ob.type === "spring"    ? springImage    : null;
 
     // 忍者の透明度を反映
@@ -1260,6 +1382,7 @@ function draw(){
         ob.type === "bouncer"   ? "brown" :
         ob.type === "ninjya"    ? "gray" :
         ob.type === "pendulum"  ? "purple" :
+        ob.type === "wanderer"  ? "purple" :
         ob.type === "spring"    ? "springImage" : "gray";
 
       ctx.beginPath();
