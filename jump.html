@@ -126,6 +126,7 @@ const mountainImage = new Image(); mountainImage.src = "graphics/mountain/mounta
 const springImage = new Image(); springImage.src = "characters/spring/spring1.png";
 const pendulumImage = new Image(); pendulumImage.src = "characters/pendulum/pendulum1.png";
 const wandererImage = new Image();wandererImage.src = "characters/wanderer/wanderer1.png";
+const blockImage = new Image();blockImage.src = "characters/block/block1.png";
 
 // -------------------------
 // 森（オプション）
@@ -454,6 +455,7 @@ function spawnObstacle(){
     else if (r < 0.40) type = "wiggle";
     else if (r < 0.45) type = "fallingPlatform"; // 落下足場
     else if (r < 0.50) type = "risingPlatform";
+    else if (r < 0.65) type = "block"; // ← block を追加
      
 
 
@@ -685,6 +687,22 @@ case "chaser2": {
   });
 }
 break;
+case "block":
+  width = 26;      // 画像サイズに合わせて調整
+  height = 26;     // 画像サイズに合わせて調整
+  yPos = 270;      // 固定
+  obstacles.push({
+    x: W + i * 30, // 出現位置
+    y: yPos-52,
+    width, height,
+    type: "block",
+    vx: 0,
+    vy: 0,
+    falling: false,
+    remove: false,
+    img: blockImage // characters/block/block1.pngを事前に読み込む
+  });
+  break;
 
       case "bouncer":
         {
@@ -1035,6 +1053,60 @@ function updateObstacles(){
   // ← プレイヤーとの接触判定はなし（倒れない）
   continue;
 }
+// block の処理
+if (ob.type === "block") {
+  // 横スクロール
+  ob.x -= worldSpeed;
+
+  // プレイヤー座標
+  const playerBottom = player.y + player.size;
+  const playerRight = player.x + player.size;
+  const obRight = ob.x + ob.width;
+
+  // 判定（少し余裕を持たせる）
+  const tolerance = 4;
+  const onTop =
+    player.vy >= 0 &&
+    playerBottom >= ob.y - tolerance &&
+    playerBottom - player.vy <= ob.y &&
+    playerRight > ob.x &&
+    player.x < obRight;
+
+  if (onTop) {
+    // プレイヤーをブロック上に固定
+    player.y = ob.y - player.size;
+
+    // 軽く跳ねる
+    player.vy = -5;
+    player.falling = false;
+    player.onGround = false;
+
+    // ★HPを1回復（上限4など制限をかけたい場合は Math.min にする）
+    hp = Math.min(hp + 1, 4);
+
+    // エフェクト（任意）
+    explosions.push({
+      x: ob.x + ob.width / 2,
+      y: ob.y,
+      radius: 0,
+      maxRadius: 20,
+    });
+
+    flash = 8;
+    invincible = 10;
+    try { playHealSound(); } catch(e) {}
+  }
+
+  // 描画
+  ctx.drawImage(blockImage, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue;
+}
+
+
 if (ob.type === "spring") {
   // クールダウン処理
   if (ob.cooldown > 0) {
@@ -1247,6 +1319,41 @@ if (ob.type === "wanderer" && dist < player.size / 2 + 16) {
         // if (ob.type !== "ninjya" && ob.type !== "pendulum") { obstacles.splice(i, 1); i--; }
         continue;
       }
+      // block（プレイヤーが上に乗れるブロック）
+      if (ob.type === "block") {
+  // 横スクロール
+  ob.x -= worldSpeed;
+
+  const playerBottom = player.y + player.size;
+  const onTop =
+    player.vy >= 0 && // 落下中のみ
+    player.x + player.size > ob.x &&
+    player.x < ob.x + ob.width &&
+    playerBottom >= ob.y &&
+    playerBottom <= ob.y + ob.height;
+
+  if (onTop) {
+    // 着地した瞬間にジャンプカウントをリセット
+    if (player.onPlatform !== ob) {
+      jumpStage = 0;
+    }
+
+    // プレイヤーをブロックの上に固定
+    player.y = ob.y - player.size;
+    player.vy = 0;
+    player.onPlatform = ob;
+  } else if (player.onPlatform === ob) {
+    player.onPlatform = null;
+  }
+
+  // 描画 blockImage（事前に読み込んでおく）
+  ctx.drawImage(blockImage, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue; // 以降の処理はスキップ
+}
     // spring（上から踏んだら跳ねる）
     if (ob.type === "spring" &&
         player.x < ob.x + ob.width && player.x + player.size > ob.x) {
@@ -1390,19 +1497,20 @@ function draw(){
 
     // 画像選択（ninjya 含む、pendulum 追加）
     let img =
-        ob.type === "balloon"   ? balloonImage   :
-        ob.type === "heal"      ? healImage      :
-        ob.type === "breakable" ? breakableImage :
-        ob.type === "zigzag"    ? zigzagImage    :
-        ob.type === "normal"    ? normalImage    :
-        ob.type === "chaser"    ? chaserImage    :
-        ob.type === "chaser2"   ? chaser2Image   :
-        ob.type === "wiggle"    ? wiggleImage    :
-        ob.type === "bouncer"   ? bouncerImage   :
-        ob.type === "ninjya"    ? ninjyaImage    :
-        ob.type === "pendulum"  ? pendulumImage  :
-        ob.type === "wanderer"  ? wandererImage  :
-        ob.type === "spring"    ? springImage    : null;
+    ob.type === "balloon"   ? balloonImage   :
+    ob.type === "heal"      ? healImage      :
+    ob.type === "breakable" ? breakableImage :
+    ob.type === "zigzag"    ? zigzagImage    :
+    ob.type === "normal"    ? normalImage    :
+    ob.type === "chaser"    ? chaserImage    :
+    ob.type === "chaser2"   ? chaser2Image   :
+    ob.type === "wiggle"    ? wiggleImage    :
+    ob.type === "bouncer"   ? bouncerImage   :
+    ob.type === "ninjya"    ? ninjyaImage    :
+    ob.type === "pendulum"  ? pendulumImage  :
+    ob.type === "wanderer"  ? wandererImage  :
+    ob.type === "spring"    ? springImage    :
+    ob.type === "block"     ? blockImage     : null;
 
     // 忍者の透明度を反映
     ctx.save();
@@ -1428,7 +1536,8 @@ function draw(){
         ob.type === "ninjya"    ? "gray" :
         ob.type === "pendulum"  ? "purple" :
         ob.type === "wanderer"  ? "purple" :
-        ob.type === "spring"    ? "springImage" : "gray";
+        ob.type === "spring"    ? "purple" : 
+        ob.type === "block"    ? "purple" :"gray";
 
       ctx.beginPath();
       ctx.arc(ob.x + ob.width / 2, ob.y + ob.height / 2, Math.min(ob.width, ob.height) / 2, 0, Math.PI * 2);
