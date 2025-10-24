@@ -127,7 +127,8 @@ const springImage = new Image(); springImage.src = "characters/spring/spring1.pn
 const pendulumImage = new Image(); pendulumImage.src = "characters/pendulum/pendulum1.png";
 const wandererImage = new Image();wandererImage.src = "characters/wanderer/wanderer1.png";
 const blockImage = new Image();blockImage.src = "characters/block/block1.png";
-
+const platformBlockImage = new Image();platformBlockImage.src = "characters/platformBlock/platformBlock1.png";
+const bulletImage = new Image();bulletImage.src = "characters/bullet/bullet1.png"; // 適宜パスを変更
 // -------------------------
 // 森（オプション）
 // -------------------------
@@ -450,12 +451,13 @@ function spawnObstacle(){
     else if (r < 0.20) type = "spring";          
     else if (r < 0.25) type = "heal";
     else if (r < 0.30) type = "platform";
-    
     else if (r < 0.35) type = "bouncer";
     else if (r < 0.40) type = "wiggle";
+    else if (r < 0.42) type = "bullet";
     else if (r < 0.45) type = "fallingPlatform"; // 落下足場
     else if (r < 0.50) type = "risingPlatform";
-    else if (r < 0.65) type = "block"; // ← block を追加
+    else if (r < 0.55) type = "block"; // ← block を追加
+    else if (r < 0.60) type = "platformBlock";
      
 
 
@@ -507,6 +509,24 @@ function spawnObstacle(){
     scored: false
   });
   break;
+  case "bullet":
+  width = 26;
+  height = 26;
+  yPos = 100 + Math.random() * (GROUND_Y - 150); // ある程度の高さランダム
+  obstacles.push({
+    x: W-30 ,        // 右端から出現
+    y: yPos,
+    width, height,
+    type: "bullet",
+    vx: 0,                // 最初は静止
+    waitTimer: 120,        // 0.5秒（30フレーム）待機
+    speed: -14,           // 発射速度（左へ）
+    remove: false,
+    img: bulletImage,     // 事前に読み込み済み
+    scored: false
+  });
+  break;
+
   case "spring":
         // 地面に置くバネ（幅30、高さ10）。踏むとプレイヤーを上へ跳ね上げる
         width = 26; height = 26;
@@ -653,7 +673,20 @@ case "chaser2": {
     scored: false
   });
   break;
-
+  case "platformBlock":
+  // 固定プラットフォーム
+  width = 104;
+  height = 26;
+  yPos = 270; // 固定（落とし穴の上には出ない）
+  obstacles.push({
+    x: W + i * 100,  // 横位置（間隔は調整可能）
+    y: yPos-26,
+    width, height,
+    type: "platformBlock",
+    remove: false,
+    img: platformBlockImage // 既に宣言済みの Image オブジェクト
+  });
+  break;
 
       case "wiggle":
 {
@@ -910,6 +943,38 @@ function updateObstacles(){
   ctx.strokeStyle = "#543210";
   ctx.strokeRect(ob.x, ob.y, ob.width, ob.height);
 }
+if (ob.type === "platformBlock") {
+  // 横スクロール
+  ob.x -= worldSpeed;
+
+  // プレイヤー座標
+  const playerBottom = player.y + player.size;
+  const playerRight = player.x + player.size;
+  const obRight = ob.x + ob.width;
+  const tolerance = 4;
+
+  // 接触判定（上に乗せる）
+  const onTop =
+    playerBottom >= ob.y - tolerance &&
+    playerBottom - player.vy <= ob.y &&
+    playerRight > ob.x &&
+    player.x < obRight;
+
+  if (onTop) {
+    player.y = ob.y - player.size;
+    player.vy = -5;      // 軽く跳ねる
+    player.falling = false;
+    player.onGround = true;
+  }
+
+  // 描画
+  ctx.drawImage(ob.img, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue;
+}
 
 
     // 通常タイプ（横スクロール）
@@ -1016,7 +1081,86 @@ function updateObstacles(){
       }
       continue;
     }
+if (ob.type === "bullet") {
+  // 横スクロール
+  if (ob.waitTimer > 0) {
+    ob.waitTimer--; // 静止
+  } else {
+    ob.vx = -12;   // 弾丸速度に設定
+  }
 
+  ob.x += ob.vx;
+
+  // プレイヤーの下から踏めば倒せる
+  const playerBottom = player.y + player.size;
+  const playerRight = player.x + player.size;
+  const obRight = ob.x + ob.width;
+  const tolerance = 4;
+
+  const onTop =
+    player.vy >= 0 &&
+    playerBottom >= ob.y - tolerance &&
+    playerBottom - player.vy <= ob.y &&
+    playerRight > ob.x &&
+    player.x < obRight;
+
+  if (onTop) {
+    // 上から踏んだので倒す
+    obstacles.splice(obstacles.indexOf(ob), 1);
+    // エフェクトやスコア加算も可能
+    explosions.push({ x: ob.x + ob.width/2, y: ob.y + ob.height/2, radius: 0, maxRadius: 20 });
+    score += 10;
+    continue;
+  }
+
+  // 描画
+  ctx.drawImage(ob.img, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue;
+}
+if (ob.type === "bullet") {
+  // 横スクロール
+  if (ob.waitTimer > 0) {
+    ob.waitTimer--; // 静止
+  } else {
+    ob.vx = -12;   // 弾丸速度に設定
+  }
+
+  ob.x += ob.vx;
+
+  // プレイヤーの下から踏めば倒せる
+  const playerBottom = player.y + player.size;
+  const playerRight = player.x + player.size;
+  const obRight = ob.x + ob.width;
+  const tolerance = 4;
+
+  const onTop =
+    player.vy >= 0 &&
+    playerBottom >= ob.y - tolerance &&
+    playerBottom - player.vy <= ob.y &&
+    playerRight > ob.x &&
+    player.x < obRight;
+
+  if (onTop) {
+    // 上から踏んだので倒す
+    obstacles.splice(obstacles.indexOf(ob), 1);
+    // エフェクトやスコア加算も可能
+    explosions.push({ x: ob.x + ob.width/2, y: ob.y + ob.height/2, radius: 0, maxRadius: 20 });
+    score += 10;
+    continue;
+  }
+
+  // 描画
+  ctx.drawImage(ob.img, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue;
+}
     if (ob.type === "pendulum") {
   // 支点（baseX）もスクロールに追随させる（横スクロール感）
   ob.baseX -= worldSpeed;
@@ -1058,13 +1202,19 @@ if (ob.type === "block") {
   // 横スクロール
   ob.x -= worldSpeed;
 
-  // プレイヤー座標
+  // ブロックを上下に揺らす（幅大きめ、さらにゆっくり）
+  if (ob.baseY === undefined) ob.baseY = ob.y;          
+  if (ob.waveOffset === undefined) ob.waveOffset = Math.random() * Math.PI * 2; 
+  const amplitude = 10;  // 揺れ幅
+  const speed = 0.003;   // 揺れスピードをさらにゆっくり
+  ob.y = ob.baseY + Math.sin(Date.now() * speed + ob.waveOffset) * amplitude;
+
+  // プレイヤー判定
   const playerBottom = player.y + player.size;
   const playerRight = player.x + player.size;
   const obRight = ob.x + ob.width;
-
-  // 判定（少し余裕を持たせる）
   const tolerance = 4;
+
   const onTop =
     player.vy >= 0 &&
     playerBottom >= ob.y - tolerance &&
@@ -1081,10 +1231,10 @@ if (ob.type === "block") {
     player.falling = false;
     player.onGround = false;
 
-    // ★HPを1回復（上限4など制限をかけたい場合は Math.min にする）
+    // HPを1回復（上限4）
     hp = Math.min(hp + 1, 4);
 
-    // エフェクト（任意）
+    // エフェクト
     explosions.push({
       x: ob.x + ob.width / 2,
       y: ob.y,
@@ -1105,7 +1255,6 @@ if (ob.type === "block") {
 
   continue;
 }
-
 
 if (ob.type === "spring") {
   // クールダウン処理
@@ -1295,7 +1444,7 @@ if (ob.type === "wanderer" && dist < player.size / 2 + 16) {
 }
 
     // 敵（踏み/接触） -- pendulum を含める
-    if (["normal", "zigzag", "breakable", "chaser", "chaser2", "wiggle","bouncer","ninjya","pendulum"].includes(ob.type) &&
+    if (["normal", "zigzag", "breakable", "chaser", "chaser2", "wiggle","bouncer","ninjya","pendulum","bullet"].includes(ob.type) &&
         player.x < ob.x + ob.width && player.x + player.size > ob.x &&
         player.y < ob.y + ob.height && player.y + player.size > ob.y) {
 
@@ -1348,6 +1497,55 @@ if (ob.type === "wanderer" && dist < player.size / 2 + 16) {
 
   // 描画 blockImage（事前に読み込んでおく）
   ctx.drawImage(blockImage, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue; // 以降の処理はスキップ
+}
+if (ob.type === "platformBlock") {
+  // 横スクロール
+  ob.x -= worldSpeed;
+
+  const playerBottom = player.y + player.size;
+  const playerRight = player.x + player.size;
+  const obRight = ob.x + ob.width;
+  const tolerance = 4; // 少し余裕を持たせる
+
+  // ブロック上に乗っているか判定（落下中のみ）
+  const onTop =
+    player.vy >= 0 &&
+    playerBottom >= ob.y - tolerance &&
+    playerBottom - player.vy <= ob.y &&
+    playerRight > ob.x &&
+    player.x < obRight;
+
+  if (onTop) {
+    // 着地した瞬間にジャンプカウントをリセット
+    if (player.onPlatform !== ob) {
+      player.jumpCount = 0;       // ジャンプ回数リセット
+      player.parachute = false;
+      player.parachuteTimer = 0;
+      player.falling = false;
+    }
+
+    // プレイヤーをプラットフォームの上に強制固定
+    player.y = ob.y - player.size;
+    player.vy = 0;
+    player.onPlatform = ob;
+    player.onGround = true;
+
+    // HP回復やエフェクトを追加したい場合はここ
+    // hp = Math.min(hp + 1, 4);
+    // explosions.push({x: ob.x + ob.width/2, y: ob.y, radius: 0, maxRadius: 20});
+  } else if (player.onPlatform === ob) {
+    // プラットフォームから離れた場合
+    player.onPlatform = null;
+    player.onGround = false;
+  }
+
+  // 描画 platformBlockImage（事前に読み込んでおく）
+  ctx.drawImage(platformBlockImage, ob.x, ob.y, ob.width, ob.height);
 
   // 画面外で削除
   if (ob.x + ob.width < -50) ob.remove = true;
@@ -1510,7 +1708,9 @@ function draw(){
     ob.type === "pendulum"  ? pendulumImage  :
     ob.type === "wanderer"  ? wandererImage  :
     ob.type === "spring"    ? springImage    :
-    ob.type === "block"     ? blockImage     : null;
+    ob.type === "block"     ? blockImage     :
+    ob.type === "platformBlock"     ? platformBlockImage     : 
+    ob.type === "bullet"     ? bulletImage     :null;
 
     // 忍者の透明度を反映
     ctx.save();
@@ -1537,7 +1737,9 @@ function draw(){
         ob.type === "pendulum"  ? "purple" :
         ob.type === "wanderer"  ? "purple" :
         ob.type === "spring"    ? "purple" : 
-        ob.type === "block"    ? "purple" :"gray";
+        ob.type === "block"    ? "purple" :
+        ob.type === "platformBlock"    ? "purple":
+        ob.type === "bullet"    ? "purple" :"gray";
 
       ctx.beginPath();
       ctx.arc(ob.x + ob.width / 2, ob.y + ob.height / 2, Math.min(ob.width, ob.height) / 2, 0, Math.PI * 2);
