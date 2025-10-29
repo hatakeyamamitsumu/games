@@ -68,7 +68,7 @@ const GROUND_Y = 270;
 const OB_FALL_THRESHOLD = GROUND_Y - 40;
 const worldSpeedDefault = 2;
 let worldSpeed = worldSpeedDefault;
-const goalDistance = 1200;
+const goalDistance = 2000;
 const goalScore = 30;
 
 /* 上限（重要） */
@@ -117,6 +117,7 @@ const breakableImage = new Image(); breakableImage.src = "characters/breakable/b
 const healImage = new Image(); healImage.src = "characters/heal/heal.png";
 const chaserImage = new Image(); chaserImage.src = "characters/chaser/chaser.png";
 const chaser2Image = new Image(); chaser2Image.src = "characters/chaser2/chaser2.png";
+const chaser3Image = new Image(); chaser3Image.src = "characters/chaser3/chaser3.png";
 const wiggleImage = new Image(); wiggleImage.src = "characters/wiggle/wiggle1.png";
 const bouncerImage = new Image(); bouncerImage.src = "characters/bouncer/bouncer1.png";
 const ninjyaImage = new Image(); ninjyaImage.src = "characters/ninjya/ninjya.png";
@@ -445,6 +446,7 @@ function spawnObstacle(){
     
     if (i === 0 && r < 0.08) type = "chaser";
     else if (i === 0 && r < 0.10) type = "chaser2"; // 0.08〜0.10
+    else if (i === 0 && r < 0.11) type = "chaser3"; // 
     else if (r < 0.12) type = "wanderer"
     else if (r < 0.14) type = "ninjya";             // ← 忍者（少しだけの確率）
     else if (r < 0.16) type = "pendulum"; 
@@ -520,7 +522,7 @@ function spawnObstacle(){
     type: "bullet",
     vx: 0,                // 最初は静止
     waitTimer: 120,        // 0.5秒（30フレーム）待機
-    speed: -14,           // 発射速度（左へ）
+    speed: -10,           // 発射速度（左へ）
     remove: false,
     img: bulletImage,     // 事前に読み込み済み
     scored: false
@@ -577,7 +579,7 @@ function spawnObstacle(){
         yPos = (Math.random() < 0.5) ? GROUND_Y - 30 : 90 + Math.random()*60; width = 26; height = 26;
         obstacles.push({ x: W + i*30, y: yPos, width, height, type, angle:0, vy:0, falling:false, baseY: baseY, scored:false });
         break;
-        case "chaser": {
+  case "chaser": {
   yPos = (Math.random() < 0.5) ? GROUND_Y - 20 : 100 + Math.random() * 100;
   width = 26;
   height = 26;
@@ -636,6 +638,24 @@ case "chaser2": {
   });
   break;
 }
+case "chaser3":
+  width = 30;
+  height = 30;
+  yPos = 50 + Math.random() * (GROUND_Y - 100);
+  obstacles.push({
+    x: W + 50,           // 画面右端に登場
+    y: yPos,
+    width,
+    height,
+    type: "chaser3",
+    vx: 0,
+    vy: 0,
+    speed: 3.0,          // 追尾速度（大きいほど素早く追う）
+    img: chaser3Image,    // 事前に読み込み済み画像
+    remove: false,
+    scored: false
+  });
+  break;
 
       case "platform":
         width = 40 + Math.floor(Math.random()*80); height = 12;
@@ -853,6 +873,32 @@ function updateObstacles(){
       }
       continue;
     }
+    if (ob.type === "chaser") {
+  // プレイヤーの現在位置に向かって進む
+  const dx = player.x - ob.x;
+  const dy = player.y - ob.y;
+  const distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
+
+  if (distanceToPlayer > 1) {
+    // 向かう方向に速度を与える（正規化）
+    ob.vx = (dx / distanceToPlayer) * ob.speed;
+    ob.vy = (dy / distanceToPlayer) * ob.speed;
+  }
+
+  // 移動
+  ob.x += ob.vx;
+  ob.y += ob.vy;
+
+  // 描画
+  ctx.drawImage(ob.img, ob.x, ob.y, ob.width, ob.height);
+
+  // 左端を過ぎたら削除（完全に避けきった）
+  if (ob.x + ob.width < 0) {
+    ob.remove = true;
+  }
+
+  continue;
+}
     if (ob.type === "risingPlatform") {
   // ---------- 接触判定 ----------
   const playerBottom = player.y + player.size;
@@ -1121,22 +1167,56 @@ if (ob.type === "bullet") {
 
   continue;
 }
-if (ob.type === "bullet") {
-  // 横スクロール
-  if (ob.waitTimer > 0) {
-    ob.waitTimer--; // 静止
-  } else {
-    ob.vx = -12;   // 弾丸速度に設定
+
+if (ob.type === "chaser3") {
+  // ===== 初期設定 =====
+  if (ob.init === undefined) {
+    ob.init = true;
+    ob.passed = false;        // プレイヤーを通過したか
+    ob.speed = ob.speed || 3; // 速度（未指定なら3）
+    ob.vx = 0;
+    ob.vy = 0;
   }
 
-  ob.x += ob.vx;
+  // ===== プレイヤーとの距離と方向 =====
+  const dx = player.x - ob.x;
+  const dy = player.y - ob.y;
+  const dist = Math.hypot(dx, dy) || 1;
 
-  // プレイヤーの下から踏めば倒せる
+  // ===== 動き方の制御 =====
+  if (!ob.passed) {
+    // プレイヤーの少し手前までは追尾
+    if (ob.x > player.x + 20) {
+      const targetVx = (dx / dist) * ob.speed;
+      const targetVy = (dy / dist) * ob.speed;
+
+      // 慣性をつけてスムーズに追尾
+      ob.vx += (targetVx - ob.vx) * 0.08;
+      ob.vy += (targetVy - ob.vy) * 0.08;
+    } else {
+      // プレイヤーを追い越したら通過モードに切り替え
+      ob.passed = true;
+      ob.vx = -ob.speed * 1.5; // 左へ抜ける
+      ob.vy *= 0.5;             // 上下の揺れを減らす
+    }
+  } else {
+    // ===== 通過後の動き =====
+    ob.vx *= 0.99; // 少しずつ減速
+    ob.vy *= 0.95;
+  }
+
+  // ===== 座標更新 =====
+  ob.x += ob.vx;
+  ob.y += ob.vy;
+
+  // ===== 衝突判定 =====
   const playerBottom = player.y + player.size;
   const playerRight = player.x + player.size;
+  const obBottom = ob.y + ob.height;
   const obRight = ob.x + ob.width;
   const tolerance = 4;
 
+  // 上から踏んだ判定
   const onTop =
     player.vy >= 0 &&
     playerBottom >= ob.y - tolerance &&
@@ -1145,22 +1225,46 @@ if (ob.type === "bullet") {
     player.x < obRight;
 
   if (onTop) {
-    // 上から踏んだので倒す
-    obstacles.splice(obstacles.indexOf(ob), 1);
-    // エフェクトやスコア加算も可能
-    explosions.push({ x: ob.x + ob.width/2, y: ob.y + ob.height/2, radius: 0, maxRadius: 20 });
-    score += 10;
+    // 踏みつけで撃破
+    const idx = obstacles.indexOf(ob);
+    if (idx !== -1) obstacles.splice(idx, 1);
+
+    explosions.push({
+      x: ob.x + ob.width / 2,
+      y: ob.y + ob.height / 2,
+      radius: 0,
+      maxRadius: 20,
+    });
+    score += 15;
+    player.vy = -8;
     continue;
   }
 
-  // 描画
+  // 横や下から接触＝ダメージ
+  const collide =
+    player.x < obRight &&
+    playerRight > ob.x &&
+    playerBottom > ob.y &&
+    player.y < obBottom;
+
+  if (collide && !invincible) {
+    hp -= 1;
+    invincible = 30;
+    flash = 8;
+    playDamageSound();
+  }
+
+  // ===== 描画 =====
   ctx.drawImage(ob.img, ob.x, ob.y, ob.width, ob.height);
 
-  // 画面外で削除
+  // ===== 左端を過ぎたら削除 =====
   if (ob.x + ob.width < -50) ob.remove = true;
 
   continue;
 }
+
+
+
     if (ob.type === "pendulum") {
   // 支点（baseX）もスクロールに追随させる（横スクロール感）
   ob.baseX -= worldSpeed;
@@ -1702,6 +1806,7 @@ function draw(){
     ob.type === "normal"    ? normalImage    :
     ob.type === "chaser"    ? chaserImage    :
     ob.type === "chaser2"   ? chaser2Image   :
+    ob.type === "chaser3"   ? chaser3Image   :
     ob.type === "wiggle"    ? wiggleImage    :
     ob.type === "bouncer"   ? bouncerImage   :
     ob.type === "ninjya"    ? ninjyaImage    :
@@ -1731,6 +1836,7 @@ function draw(){
         ob.type === "normal"    ? "green"  :
         ob.type === "chaser"    ? "black"  :
         ob.type === "chaser2"   ? "darkblue" :
+        ob.type === "chaser3"   ? "darkblue" :
         ob.type === "wiggle"    ? "cyan" :
         ob.type === "bouncer"   ? "brown" :
         ob.type === "ninjya"    ? "gray" :
@@ -1864,18 +1970,20 @@ function loop(){
   // -------------------------
   // ゴール判定（ゴール通過時の処理は一度だけ行う）
   // -------------------------
-  if (!goalLine && distance >= goalDistance * 2.0 && score >= goalScore * 2.0){
-    const defaultW = 80, defaultH = 80;
-    let gw = defaultW, gh = defaultH;
-    if(goalImage.complete && goalImage.naturalWidth){
-      const scale = Math.min(1, 120 / goalImage.naturalWidth);
-      gw = Math.round(goalImage.naturalWidth * scale);
-      gh = Math.round(goalImage.naturalHeight * scale);
-    }
-    goalLine = { x: canvas.width + 100, width: gw, height: gh };
-    playGoalSound();
-    showMsg("ゴールライン出現！", 2000);
+  if (!goalLine && distance >= goalDistance * 5.0) {
+  const defaultW = 80, defaultH = 80;
+  let gw = defaultW, gh = defaultH;
+
+  if (goalImage.complete && goalImage.naturalWidth) {
+    const scale = Math.min(1, 120 / goalImage.naturalWidth);
+    gw = Math.round(goalImage.naturalWidth * scale);
+    gh = Math.round(goalImage.naturalHeight * scale);
   }
+
+  goalLine = { x: canvas.width + 100, width: gw, height: gh };
+  playGoalSound();
+  showMsg("ゴールライン出現！", 2000);
+}
 
   if (goalLine && !gameClear) {
     goalLine.x -= worldSpeed;
