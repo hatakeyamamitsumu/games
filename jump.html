@@ -68,7 +68,7 @@ const GROUND_Y = 270;
 const OB_FALL_THRESHOLD = GROUND_Y - 40;
 const worldSpeedDefault = 2;
 let worldSpeed = worldSpeedDefault;
-const goalDistance = 2000;
+const goalDistance = 6000;
 const goalScore = 30;
 
 /* 上限（重要） */
@@ -129,6 +129,7 @@ const pendulumImage = new Image(); pendulumImage.src = "characters/pendulum/pend
 const wandererImage = new Image();wandererImage.src = "characters/wanderer/wanderer1.png";
 const blockImage = new Image();blockImage.src = "characters/block/block1.png";
 const platformBlockImage = new Image();platformBlockImage.src = "characters/platformBlock/platformBlock1.png";
+const platformBlock2Image = new Image();platformBlock2Image.src = "characters/platformBlock2/platformBlock2.png";
 const bulletImage = new Image();bulletImage.src = "characters/bullet/bullet1.png"; // 適宜パスを変更
 // -------------------------
 // 森（オプション）
@@ -460,6 +461,7 @@ function spawnObstacle(){
     else if (r < 0.50) type = "risingPlatform";
     else if (r < 0.55) type = "block"; // ← block を追加
     else if (r < 0.60) type = "platformBlock";
+    else if (r < 0.65) type = "platformBlock2";
      
 
 
@@ -703,6 +705,20 @@ case "chaser3":
     y: yPos-26,
     width, height,
     type: "platformBlock",
+    remove: false,
+    img: platformBlockImage // 既に宣言済みの Image オブジェクト
+  });
+  break;
+  case "platformBlock2":
+  // 固定プラットフォーム
+  width = 104;
+  height = 52;
+  yPos = 270; // 固定（落とし穴の上には出ない）
+  obstacles.push({
+    x: W + i * 100,  // 横位置（間隔は調整可能）
+    y: yPos-52,
+    width, height,
+    type: "platformBlock2",
     remove: false,
     img: platformBlockImage // 既に宣言済みの Image オブジェクト
   });
@@ -1021,7 +1037,38 @@ if (ob.type === "platformBlock") {
 
   continue;
 }
+if (ob.type === "platformBlock2") {
+  // 横スクロール
+  ob.x -= worldSpeed;
 
+  // プレイヤー座標
+  const playerBottom = player.y + player.size;
+  const playerRight = player.x + player.size;
+  const obRight = ob.x + ob.width;
+  const tolerance = 4;
+
+  // 接触判定（上に乗せる）
+  const onTop =
+    playerBottom >= ob.y - tolerance &&
+    playerBottom - player.vy <= ob.y &&
+    playerRight > ob.x &&
+    player.x < obRight;
+
+  if (onTop) {
+    player.y = ob.y - player.size;
+    player.vy = -5;      // 軽く跳ねる
+    player.falling = false;
+    player.onGround = true;
+  }
+
+  // 描画
+  ctx.drawImage(ob.img, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue;
+}
 
     // 通常タイプ（横スクロール）
     const speed = (ob.type === "balloon" || ob.type === "heal") ? worldSpeed * 0.6 : worldSpeed;
@@ -1656,6 +1703,55 @@ if (ob.type === "platformBlock") {
 
   continue; // 以降の処理はスキップ
 }
+if (ob.type === "platformBlock2") {
+  // 横スクロール
+  ob.x -= worldSpeed;
+
+  const playerBottom = player.y + player.size;
+  const playerRight = player.x + player.size;
+  const obRight = ob.x + ob.width;
+  const tolerance = 4; // 少し余裕を持たせる
+
+  // ブロック上に乗っているか判定（落下中のみ）
+  const onTop =
+    player.vy >= 0 &&
+    playerBottom >= ob.y - tolerance &&
+    playerBottom - player.vy <= ob.y &&
+    playerRight > ob.x &&
+    player.x < obRight;
+
+  if (onTop) {
+    // 着地した瞬間にジャンプカウントをリセット
+    if (player.onPlatform !== ob) {
+      player.jumpCount = 0;       // ジャンプ回数リセット
+      player.parachute = false;
+      player.parachuteTimer = 0;
+      player.falling = false;
+    }
+
+    // プレイヤーをプラットフォームの上に強制固定
+    player.y = ob.y - player.size;
+    player.vy = 0;
+    player.onPlatform = ob;
+    player.onGround = true;
+
+    // HP回復やエフェクトを追加したい場合はここ
+    // hp = Math.min(hp + 1, 4);
+    // explosions.push({x: ob.x + ob.width/2, y: ob.y, radius: 0, maxRadius: 20});
+  } else if (player.onPlatform === ob) {
+    // プラットフォームから離れた場合
+    player.onPlatform = null;
+    player.onGround = false;
+  }
+
+  // 描画 platformBlockImage（事前に読み込んでおく）
+  ctx.drawImage(platformBlockImage, ob.x, ob.y, ob.width, ob.height);
+
+  // 画面外で削除
+  if (ob.x + ob.width < -50) ob.remove = true;
+
+  continue; // 以降の処理はスキップ
+}
     // spring（上から踏んだら跳ねる）
     if (ob.type === "spring" &&
         player.x < ob.x + ob.width && player.x + player.size > ob.x) {
@@ -1815,6 +1911,7 @@ function draw(){
     ob.type === "spring"    ? springImage    :
     ob.type === "block"     ? blockImage     :
     ob.type === "platformBlock"     ? platformBlockImage     : 
+    ob.type === "platformBlock2"     ? platformBlock2Image     :
     ob.type === "bullet"     ? bulletImage     :null;
 
     // 忍者の透明度を反映
@@ -1845,6 +1942,7 @@ function draw(){
         ob.type === "spring"    ? "purple" : 
         ob.type === "block"    ? "purple" :
         ob.type === "platformBlock"    ? "purple":
+        ob.type === "platformBlock2"    ? "purple":
         ob.type === "bullet"    ? "purple" :"gray";
 
       ctx.beginPath();
@@ -1970,7 +2068,7 @@ function loop(){
   // -------------------------
   // ゴール判定（ゴール通過時の処理は一度だけ行う）
   // -------------------------
-  if (!goalLine && distance >= goalDistance * 3.0) {
+  if (!goalLine && distance >= goalDistance * 1.0) {
   const defaultW = 80, defaultH = 80;
   let gw = defaultW, gh = defaultH;
 
