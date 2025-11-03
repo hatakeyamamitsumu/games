@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Side-Scroller v2 — Boss HP System (Fixed)</title>
+<style>
+  :root{--bg1:#9be7ff;--bg2:#7ec0ee;--ground:#8B5A2B;--sand:#d9b086}
+  html,body{height:100%;margin:0;background:linear-gradient(var(--bg1),var(--bg2));font-family:system-ui, -apple-system, 'Hiragino Kaku Gothic ProN', 'Segoe UI', Roboto, sans-serif}
+  #wrap{width:900px;margin:18px auto}
+  #game{display:block;width:900px;height:540px;background:transparent;border:6px solid #333;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .meta{color:#222;margin-bottom:8px}
+  .hint{font-size:13px;color:#333}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="meta"><strong>Side-Scroller v2 — Boss HP version</strong> — 矢印左右：移動 / スペース：ジャンプ / R：リスタート</div>
+  <canvas id="game" width="900" height="540"></canvas>
+  <div class="hint">ボス（紫）は3回踏むと倒せます。通常の敵は1回で倒せます。</div>
+</div>
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  let keys = {};
+  const GRAVITY = 0.9;
+  const FRICTION = 0.85;
+
+  const player = { x: 60, y: 360, w: 34, h: 48, vx:0, vy:0, onGround:false };
+  let camX = 0;
+  let currentLevel = 0;
+  let gameOver = false;
+  let gameWin = false;
+
+  function aabb(a,b){
+    return a.x < b.x + b.w && a.x + a.w > b.x &&
+           a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  // === LEVELS ===
+  const levels = [
+    {
+      width:1800,
+      objects:[
+        {type:'platform', x:0, y:420, w:1800, h:120},
+        {type:'platform', x:320, y:340, w:140, h:18},
+        {type:'enemy', x:520, y:306, w:30, h:30},
+        {type:'platform', x:620, y:300, w:120, h:18},
+        {type:'spike', x:820, y:406, w:60, h:14},
+        {type:'platform', x:920, y:360, w:160, h:18},
+        {type:'platform', x:1220, y:320, w:120, h:18},
+        {type:'goal', x:1650, y:320, w:40, h:80}
+      ]
+    },
+    {
+      width:2000,
+      objects:[
+        {type:'platform', x:0, y:420, w:2000, h:120},
+        {type:'platform', x:200, y:340, w:120, h:18},
+        {type:'enemy', x:420, y:306, w:30, h:30},
+        {type:'platform', x:540, y:300, w:140, h:18},
+        // ボス
+        {type:'boss', x:1300, y:260, w:120, h:120, hp:3},
+        {type:'goal', x:1850, y:320, w:40, h:80}
+      ]
+    }
+  ];
+
+  function resetLevel(i){
+    currentLevel = Math.max(0, Math.min(i, levels.length-1));
+    const lvl = levels[currentLevel];
+    player.x = 60; player.y = 300; player.vx = 0; player.vy = 0; player.onGround = false;
+    camX = 0; gameOver = false; gameWin = false;
+    lvl.objects = JSON.parse(JSON.stringify(lvl.objects));
+  }
+
+  resetLevel(0);
+
+  window.addEventListener('keydown', e => { 
+    keys[e.code] = true; 
+    if(e.code==='KeyR'){ resetLevel(currentLevel); } 
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  // === update ===
+  function update(dt){
+    if(gameOver || gameWin) return;
+    const lvl = levels[currentLevel];
+
+    if(keys['ArrowLeft']) player.vx -= 0.9;
+    if(keys['ArrowRight']) player.vx += 0.95;
+    if((keys['Space'] || keys['ArrowUp']) && player.onGround){ player.vy = -18; player.onGround = false; }
+
+    player.vy += GRAVITY;
+    player.vx *= FRICTION;
+    player.vx = Math.max(Math.min(player.vx, 10), -10);
+    player.vy = Math.max(Math.min(player.vy, 30), -30);
+    player.x += player.vx;
+    player.y += player.vy;
+
+    camX = player.x - W*0.35;
+    camX = Math.max(0, Math.min(camX, lvl.width - W));
+    player.onGround = false;
+
+    for(let i = lvl.objects.length - 1; i >= 0; i--){
+      const obj = lvl.objects[i];
+
+      // 通常地形との接触
+      if(obj.type === 'platform' || obj.type === 'goal'){
+        if(aabb(player, obj)){
+          const px = (player.x + player.w/2) - (obj.x + obj.w/2);
+          const py = (player.y + player.h/2) - (obj.y + obj.h/2);
+          const overlapX = (player.w + obj.w)/2 - Math.abs(px);
+          const overlapY = (player.h + obj.h)/2 - Math.abs(py);
+          if(overlapX > 0 && overlapY > 0){
+            if(overlapY < overlapX){
+              if(py > 0){ player.y += overlapY; player.vy = 0; }
+              else { player.y -= overlapY; player.vy = 0; player.onGround = true; }
+            } else {
+              if(px > 0){ player.x += overlapX; player.vx = 0; }
+              else { player.x -= overlapX; player.vx = 0; }
+            }
+          }
+        }
+      }
+
+      if(obj.type === 'spike' && aabb(player, obj)) gameOver = true;
+
+      // 敵
+      if(obj.type === 'enemy'){
+        if(aabb(player, obj)){
+          const playerBottom = player.y + player.h;
+          if(player.vy > 0 && playerBottom - obj.y < 15){
+            lvl.objects.splice(i,1);
+            player.vy = -12;
+          } else {
+            gameOver = true;
+          }
+        }
+      }
+
+      // === ボス ===
+if (obj.type === 'boss') {
+  if (aabb(player, obj)) {
+    // HPが未定義なら初期化
+    if (obj.hp === undefined) obj.hp = 3;
+
+    const playerBottom = player.y + player.h;
+    const bossTop = obj.y;
+
+    // 上から踏んだとみなす
+    const fromAbove =
+      player.vy > 0 &&                  // 落下中
+      playerBottom - bossTop < player.h / 2; // プレイヤーがボスの上に近い位置
+
+    if (fromAbove) {
+      // --- 踏んだ！ ---
+      obj.hp -= 1;
+      player.vy = -14; // 跳ね返り
+      console.log("Boss HP:", obj.hp);
+
+      if (obj.hp <= 0) {
+        // ボス撃破 → 足場に変える
+        lvl.objects[i] = {
+          type: 'platform',
+          x: obj.x,
+          y: obj.y + obj.h - 18,
+          w: obj.w,
+          h: 18
+        };
+        console.log("Boss defeated!");
+      }
+    } else if (obj.hp > 0) {
+      // 横または下から衝突 → 即死（ただしボスがまだ生きている場合のみ）
+      gameOver = true;
+      console.log("Player died!");
+    }
+  }
+}
+      // ゴール
+      if(obj.type === 'goal'){
+        if(aabb(player, {x:obj.x-10,y:obj.y-10,w:obj.w+20,h:obj.h+20})){
+          if(currentLevel < levels.length - 1) resetLevel(currentLevel + 1);
+          else gameWin = true;
+        }
+      }
+    }
+
+    if(player.y > H + 200) gameOver = true;
+  }
+
+  // === draw ===
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#9be7ff'); g.addColorStop(1,'#7ec0ee');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+    const lvl = levels[currentLevel];
+    for(const obj of lvl.objects){
+      const sx = Math.round(obj.x - camX);
+      const sy = Math.round(obj.y);
+      if(obj.type==='platform'){
+        ctx.fillStyle='#8B5A2B'; ctx.fillRect(sx, sy, obj.w, obj.h);
+        ctx.fillStyle='#d9b086'; ctx.fillRect(sx, sy, obj.w, 6);
+      } else if(obj.type==='spike'){
+        for(let s=0;s<Math.ceil(obj.w/20);s++){
+          const px = sx + s*20;
+          ctx.beginPath();
+          ctx.moveTo(px, sy+obj.h);
+          ctx.lineTo(px+10, sy);
+          ctx.lineTo(px+20, sy+obj.h);
+          ctx.closePath();
+          ctx.fillStyle='#b00'; ctx.fill();
+        }
+      } else if(obj.type==='enemy'){
+        ctx.fillStyle='#ff7b7b'; ctx.fillRect(sx, sy, obj.w, obj.h);
+      } else if(obj.type==='boss'){
+        ctx.fillStyle='#6b2c91'; ctx.fillRect(sx, sy, obj.w, obj.h);
+        ctx.fillStyle='#fff'; ctx.font='16px sans-serif';
+        ctx.fillText(`HP:${obj.hp??3}`, sx+obj.w/2-20, sy-8);
+      } else if(obj.type==='goal'){
+        ctx.fillStyle='#0a0'; ctx.fillRect(sx, sy, obj.w, obj.h);
+      }
+    }
+
+    const px = Math.round(player.x - camX);
+    ctx.fillStyle='#FF4D4D'; ctx.fillRect(px, Math.round(player.y), player.w, player.h);
+
+    if(gameOver){
+      ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(W/2-200,H/2-50,400,100);
+      ctx.fillStyle='#fff'; ctx.font='22px sans-serif';
+      ctx.fillText('Game Over — Rでリスタート', W/2-170, H/2);
+    }
+    if(gameWin){
+      ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(W/2-200,H/2-50,400,100);
+      ctx.fillStyle='#fff'; ctx.font='22px sans-serif';
+      ctx.fillText('You Win! リロードで再挑戦', W/2-140, H/2);
+    }
+  }
+
+  let last = performance.now();
+  function loop(ts){
+    const dt = ts - last; last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
