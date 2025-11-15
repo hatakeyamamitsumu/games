@@ -5,6 +5,7 @@ export const stages = [
     bgSrc: "./images/graphics/background1.png",
     bgmSrc: "./sounds/BGM/bgm1.mp3",
     enemySpawns: [
+      { x: 1200, type: "block",  y: 408 - 48 , spawned: false },
       { x: 1200, type: "boss",  y: 408 - 158 , spawned: false },
       { x: 1600, type: "type1", y: 408 - 48, spawned: false }, // 👈 例：地面に立つ
       { x: 2000, type: "type2", y: 408 - 48, spawned: false },
