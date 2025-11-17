@@ -1,5 +1,8 @@
 import { ctx, canvas, GROUND_Y, worldSpeed } from "./globals.js";
 
+
+
+
 // =======================
 // 画像読み込み
 // =======================
@@ -15,7 +18,7 @@ enemyImages.type1.src = "./images/characters/enemy1.png";
 enemyImages.type2.src = "./images/characters/enemy2.png";
 enemyImages.type3.src = "./images/characters/enemy3.png";
 enemyImages.boss.src  = "./images/characters/boss.png";
-enemyImages.block.src = "./images/characters/block1.png"; // ← block画像
+enemyImages.block.src = "./images/characters/block1.png"; 
 
 // =======================
 // 敵リスト
@@ -32,7 +35,12 @@ const ENEMY_TYPES = {
   boss:  { width: 128, height: 128, frames: 2, frameInterval: 20, speed: 0.4, hp: 20, score: 50, canBeStomped: false },
   block: { width: 48, height: 48, frames: 1, frameInterval: 0, speed: 0, canBeStomped: false }, // ← block設定
 };
-
+enemyImages.block.onload = () => {
+  console.log("block image loaded!");
+};
+enemyImages.block.onerror = () => {
+  console.log("block image NOT FOUND!");
+};
 
 // =======================
 // 敵生成
@@ -116,3 +124,4 @@ export function drawEnemies(playerX = 0) {
     );
   }
 }
+export { enemyImages };

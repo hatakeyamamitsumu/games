@@ -344,29 +344,19 @@ function checkBlockCollision(playerX) {
 // =========================
 // 固定ブロック描画
 // =========================
+import { enemyImages } from "./enemy.js";
+
 function drawBlocks(playerX) {
-  // block 画像: enemy.js 側で読み込まれている想定のキー名 "block"
-  // ここでは enemies 側の描画関数と併用するため、block 画像は enemy.js が管理していることを想定。
-  // もし main.js で画像を扱うなら別途 Image を作ってください。
-  // 安全に扱うため、存在チェックをしておく。
-  let blockImg = null;
-  try {
-    // enemy.js が export していない場合は undefined になるので try/catch で守る
-    // eslint-disable-next-line no-undef
-    blockImg = window.__enemyBlockImage__ || null;
-  } catch (e) {
-    blockImg = null;
-  }
+  const blockImg = enemyImages.block;
 
   for (const b of blocks) {
     const drawX = Math.round(b.x - playerX);
-    // 画面外は描かない
+
     if (drawX + b.w < 0 || drawX > canvas.width) continue;
 
-    if (blockImg && blockImg.complete) {
+    if (blockImg.complete) {
       ctx.drawImage(blockImg, drawX, b.y, b.w, b.h);
     } else {
-      // 代替描画（画像未読み込み時）
       ctx.fillStyle = "#7f5f3f";
       ctx.fillRect(drawX, b.y, b.w, b.h);
       ctx.strokeStyle = "#000";
@@ -374,6 +364,8 @@ function drawBlocks(playerX) {
     }
   }
 }
+
+
 
 // =========================
 // ゲームオーバー処理
