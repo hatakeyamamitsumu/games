@@ -11,3 +11,4 @@ export let worldSpeed = 2;
 export function setWorldSpeed(value) {
   worldSpeed = value;
 }
+export let isScrolling = false;

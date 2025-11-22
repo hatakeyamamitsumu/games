@@ -1,35 +1,44 @@
 // main.js
 import { player, playerImg } from "./player.js";
-import { enemies, spawnEnemy, updateEnemies, drawEnemies } from "./enemy.js";
+import { enemies, spawnEnemy, updateEnemies, drawEnemies, enemyImages } from "./enemy.js";
 import { stages } from "./stages.js";
 import { showMessage } from "./ui.js";
 import { GROUND_Y, GRAVITY } from "./constants.js";
 import { preloadStageAssets, switchStage, bgImg, bgm } from "./stage.js";
 
+// =========================
+// キャンバス
+// =========================
 export const canvas = document.getElementById("game");
 export const ctx = canvas.getContext("2d");
 
+// =========================
+// ゲーム状態
+// =========================
 let keys = {};
 let bgX = 0;
-let playerX = 0; // ワールド上の進行量（ステージスクロール量）
+let playerX = 0; // ワールド上の進行量
 let currentStageIndex = 0;
 let gameStarted = false;
 let playerControlLocked = false;
 let score = 0;
 
-// === フェード用 ===
+// フェード用
 let fadeOpacity = 0;
 let isFading = false;
 let fadeDirection = 1; // 1=暗転中, -1=明転中
 
-// === HPとゲームオーバー管理 ===
+// HP管理
 let playerHP = 20;
 const maxHP = 20;
 let isGameOver = false;
-let damageCooldown = 0; // ダメージ後の無敵時間（フレーム）
+let damageCooldown = 0;
 
-// === 固定ブロック専用配列（ワールド座標で持つ） ===
+// ブロック配列（ワールド座標）
 let blocks = [];
+
+// ブロックスクロール倍率（1=プレイヤーと同じ、0=固定）
+const BLOCK_SCROLL_FACTOR = 0.2;
 
 document.addEventListener("keydown", e => keys[e.code] = true);
 document.addEventListener("keyup", e => keys[e.code] = false);
@@ -43,7 +52,7 @@ function updatePlayer() {
     return;
   }
 
-  // --- 入力 ---
+  // 入力
   if (keys["ArrowLeft"]) player.vx = -4;
   else if (keys["ArrowRight"]) player.vx = 4;
   else player.vx = 0;
@@ -55,35 +64,29 @@ function updatePlayer() {
 
   player.vy += GRAVITY;
 
-  // ==== 可動範囲 ====
+  // 可動範囲
   const LEFT_LIMIT  = canvas.width * 0.3;
   const RIGHT_LIMIT = canvas.width * 0.7;
 
-  // -----------------------------
-  // ① とりあえずプレイヤーを動かす
-  // -----------------------------
+  // ① プレイヤー移動
   player.x += player.vx;
 
-  // -----------------------------
-  // ② 可動範囲を超えたら world（playerX）を動かす
-  // -----------------------------
+  // ② 可動範囲超過 → world スクロール
   if (player.x > RIGHT_LIMIT) {
     const over = player.x - RIGHT_LIMIT;
     player.x = RIGHT_LIMIT;
-    playerX += over;  // ← 背景を左へスクロール
+    playerX += over;
   }
 
   if (player.x < LEFT_LIMIT) {
     const over = player.x - LEFT_LIMIT;
     player.x = LEFT_LIMIT;
-    playerX += over;  // ← 背景を右へスクロール
+    playerX += over;
   }
 
-  // -----------------------------
-  // ③ 横方向の衝突判定（画面座標＝block.x - playerX）
-  // -----------------------------
+  // ③ 横方向ブロック衝突
   for (const b of blocks) {
-    const bx = b.x - playerX;
+    const bx = b.x - playerX * BLOCK_SCROLL_FACTOR;
 
     const isColliding =
       player.x < bx + b.w &&
@@ -92,21 +95,18 @@ function updatePlayer() {
       player.y + player.h > b.y;
 
     if (isColliding) {
-      if (player.vx > 0) player.x = bx - player.w; 
+      if (player.vx > 0) player.x = bx - player.w;
       else if (player.vx < 0) player.x = bx + b.w;
-
       player.vx = 0;
     }
   }
 
-  // -----------------------------
   // ④ 縦方向移動
-  // -----------------------------
   player.y += player.vy;
   let onGroundThisFrame = false;
 
   for (const b of blocks) {
-    const bx = b.x - playerX;
+    const bx = b.x - playerX * BLOCK_SCROLL_FACTOR;
 
     const isColliding =
       player.x < bx + b.w &&
@@ -115,7 +115,6 @@ function updatePlayer() {
       player.y + player.h > b.y;
 
     if (isColliding) {
-      // 上から着地
       if (player.vy > 0 && player.y + player.h - player.vy <= b.y) {
         player.y = b.y - player.h;
         player.vy = 0;
@@ -126,26 +125,70 @@ function updatePlayer() {
 
   // 地面着地
   player.onGround = onGroundThisFrame || player.y + player.h >= GROUND_Y;
-
   if (player.y + player.h >= GROUND_Y) {
     player.y = GROUND_Y - player.h;
     player.vy = 0;
   }
 
-  // --- アニメーション ---
+  // アニメーション
   player.frameTimer++;
   if (player.frameTimer > 10) {
     player.frame = (player.frame + 1) % player.frameMax;
     player.frameTimer = 0;
   }
 
-  // --- ダメージ無敵 ---
+  // ダメージ無敵
   if (damageCooldown > 0) damageCooldown--;
 }
 
 // =========================
-// スコア描画
+// ブロック衝突判定（縦横）
+function checkBlockCollision(playerX) {
+  for (const b of blocks) {
+    const drawX = b.x - playerX * BLOCK_SCROLL_FACTOR;
+
+    if (drawX + b.w < -50 || drawX > canvas.width + 50) continue;
+
+    const collide =
+      player.x < drawX + b.w &&
+      player.x + player.w > drawX &&
+      player.y < b.y + b.h &&
+      player.y + player.h > b.y;
+
+    if (!collide) continue;
+
+    const prevBottom = player.y + player.h - player.vy;
+    const prevTop    = player.y - player.vy;
+    const prevLeft   = player.x - player.vx;
+    const prevRight  = player.x + player.w - player.vx;
+
+    if (prevBottom <= b.y) {
+      player.y = b.y - player.h;
+      player.vy = 0;
+      player.onGround = true;
+      continue;
+    }
+
+    if (prevTop >= b.y + b.h) {
+      player.y = b.y + b.h;
+      player.vy = 0;
+      continue;
+    }
+
+    if (prevRight <= drawX) {
+      player.x = drawX - player.w;
+      continue;
+    }
+
+    if (prevLeft >= drawX + b.w) {
+      player.x = drawX + b.w;
+      continue;
+    }
+  }
+}
+
 // =========================
+// スコア描画
 function drawScore() {
   const fontSize = 28;
   ctx.font = `${fontSize}px Arial Black`;
@@ -173,56 +216,10 @@ function drawScore() {
 }
 
 // =========================
-// 背景描画
-// =========================
-function drawBackground() {
-  const bgWidth = bgImg.width || canvas.width;
-  // スクロール（ゆっくりにしたいなら *0.2 などをつける）
-  if (player.vx > 0) bgX -= player.vx * 0.2;
-  if (bgX <= -bgWidth) bgX = 0;
-
-  // 背景を繰り返して描く（元のサイズのまま）
-  ctx.drawImage(bgImg, bgX, 0);
-  ctx.drawImage(bgImg, bgX + bgWidth, 0);
-
-  // 地面
-  ctx.fillStyle = "#8B5A2B";
-  ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-}
-
-// =========================
-// プレイヤー描画
-// =========================
-function drawPlayer() {
-  const frameWidth = 34;
-  const frameHeight = 48;
-
-  // 通常描画
-  ctx.drawImage(
-    playerImg,
-    player.frame * frameWidth, 0, frameWidth, frameHeight,
-    player.x, player.y, frameWidth, frameHeight
-  );
-
-  // ダメージ時の赤丸（短く一瞬だけ）
-  if (damageCooldown > 0 && damageCooldown % 6 === 0) {
-    const centerX = player.x + player.w / 2;
-    const centerY = player.y + player.h / 2;
-    const radius = Math.min(player.w, player.h) * 0.5; // 小さめ
-
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,0,0,0.7)";
-    ctx.fill();
-  }
-}
-
-// =========================
 // HPバー描画
-// =========================
 function drawHPBar() {
-  const barWidth = 300;  // HPバーの最大幅
-  const barHeight = 32;  // 高さ
+  const barWidth = 300;
+  const barHeight = 32;
   const x = 20;
   const y = 20;
 
@@ -246,111 +243,54 @@ function drawHPBar() {
 }
 
 // =========================
-// 敵との当たり判定（踏み判定付き）
-// =========================
-function checkPlayerEnemyCollision() {
-  if (damageCooldown > 0 || isGameOver) return;
+// 背景描画
+function drawBackground() {
+  const bgWidth = bgImg.width || canvas.width;
 
-  enemies.forEach((enemy, index) => {
-    const collide =
-      player.x < enemy.x + enemy.w &&
-      player.x + player.w > enemy.x &&
-      player.y < enemy.y + enemy.h &&
-      player.y + player.h > enemy.y;
+  if (player.vx > 0) bgX -= player.vx * 0.2;
+  if (player.vx < 0) bgX -= player.vx * 0.2; // 左移動も少しスクロール
+  if (bgX <= -bgWidth) bgX = 0;
+  if (bgX >= bgWidth) bgX = 0;
 
-    if (!collide) return;
+  ctx.drawImage(bgImg, bgX, 0);
+  ctx.drawImage(bgImg, bgX + bgWidth, 0);
 
-    const playerBottom = player.y + player.h;
-    const enemyTop = enemy.y;
-
-    // === 上から踏んだ判定 ===
-    if (player.vy > 0 && playerBottom - enemyTop < 15) {
-      if (enemy.canBeStomped) {
-        // 踏んで倒せる敵
-        enemies.splice(index, 1);
-        player.vy = -8;
-        const points = enemy.scoreValue || 10;
-        score += points;
-      } else {
-        // 踏んでも倒せない敵 → ダメージ
-        playerHP--;
-        damageCooldown = 60;
-        if (playerHP <= 0) handleGameOver();
-      }
-    } else {
-      // 横または下から当たった → ダメージ
-      playerHP--;
-      damageCooldown = 60;
-      if (playerHP <= 0) handleGameOver();
-    }
-  });
+  // 地面
+  ctx.fillStyle = "#8B5A2B";
+  ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
 }
 
 // =========================
-// 固定ブロック（blocks）の衝突判定
-// blocks: ワールド座標で保存。描画/当たり判定では playerX を引く。
-// =========================
-function checkBlockCollision(playerX) {
-  for (const b of blocks) {
-    const drawX = b.x - playerX; // スクリーン座標
+// プレイヤー描画
+function drawPlayer() {
+  const frameWidth = 34;
+  const frameHeight = 48;
 
-    // 画面外なら無視（ちょっと早めに無視して効率化）
-    if (drawX + b.w < -50 || drawX > canvas.width + 50) continue;
+  ctx.drawImage(
+    playerImg,
+    player.frame * frameWidth, 0, frameWidth, frameHeight,
+    player.x, player.y, frameWidth, frameHeight
+  );
 
-    const collide =
-      player.x < drawX + b.w &&
-      player.x + player.w > drawX &&
-      player.y < b.y + b.h &&
-      player.y + player.h > b.y;
+  if (damageCooldown > 0 && damageCooldown % 6 === 0) {
+    const centerX = player.x + player.w / 2;
+    const centerY = player.y + player.h / 2;
+    const radius = Math.min(player.w, player.h) * 0.5;
 
-    if (!collide) continue;
-
-    // 衝突方向の判定（簡易：前フレームの位置を参照）
-    const prevBottom = player.y + player.h - player.vy;
-    const prevTop = player.y - player.vy;
-    const prevLeft = player.x - player.vx;
-    const prevRight = player.x + player.w - player.vx;
-
-    // 上から着地
-    if (prevBottom <= b.y) {
-      player.y = b.y - player.h;
-      player.vy = 0;
-      player.onGround = true;
-      // 当たったら処理を終える（同フレームに左右処理しない）
-      continue;
-    }
-
-    // 下からぶつかる（頭をぶつける）
-    if (prevTop >= b.y + b.h) {
-      player.y = b.y + b.h;
-      player.vy = 0;
-      continue;
-    }
-
-    // 左から衝突
-    if (prevRight <= b.x - playerX) {
-      player.x = drawX - player.w;
-      continue;
-    }
-
-    // 右から衝突
-    if (prevLeft >= b.x - playerX + b.w) {
-      player.x = drawX + b.w;
-      continue;
-    }
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,0,0,0.7)";
+    ctx.fill();
   }
 }
 
 // =========================
-// 固定ブロック描画
-// =========================
-import { enemyImages } from "./enemy.js";
-
-function drawBlocks(playerX) {
+// ブロック描画
+export function drawBlocks(playerX = 0) {
   const blockImg = enemyImages.block;
 
   for (const b of blocks) {
-    const drawX = Math.round(b.x - playerX);
+    const drawX = Math.round(b.x - playerX * BLOCK_SCROLL_FACTOR);
 
     if (drawX + b.w < 0 || drawX > canvas.width) continue;
 
@@ -365,23 +305,45 @@ function drawBlocks(playerX) {
   }
 }
 
-
-
 // =========================
-// ゲームオーバー処理
-// =========================
-function handleGameOver() {
-  isGameOver = true;
-  playerControlLocked = true;
-  showMessage("ゲームオーバー！", 2000);
-  setTimeout(() => {
-    location.reload(); // シンプルにリロードで再スタート
-  }, 2500);
+// 敵衝突判定（踏み判定含む）
+function checkPlayerEnemyCollision(playerX = 0, scrollFactor = 0.2) {
+  if (damageCooldown > 0 || isGameOver) return;
+
+  enemies.forEach((enemy, index) => {
+    const enemyScreenX = enemy.x - playerX * scrollFactor * 10; // 描画と同じ座標に補正
+
+    const collide =
+      player.x < enemyScreenX + enemy.w &&
+      player.x + player.w > enemyScreenX &&
+      player.y < enemy.y + enemy.h &&
+      player.y + player.h > enemy.y;
+
+    if (!collide) return;
+
+    const playerBottom = player.y + player.h;
+    const enemyTop = enemy.y;
+
+    if (player.vy > 0 && playerBottom - enemyTop < 15) {
+      if (enemy.canBeStomped) {
+        enemies.splice(index, 1);
+        player.vy = -8;
+        score += enemy.scoreValue || 10;
+      } else {
+        playerHP--;
+        damageCooldown = 60;
+        if (playerHP <= 0) handleGameOver();
+      }
+    } else {
+      playerHP--;
+      damageCooldown = 60;
+      if (playerHP <= 0) handleGameOver();
+    }
+  });
 }
 
 // =========================
-// 敵・ブロック出現処理（ステージの spawn を参照）
-// =========================
+// 敵・ブロック出現処理
 function handleEnemySpawns() {
   const stage = stages[currentStageIndex];
   stage.enemySpawns.forEach(spawn => {
@@ -389,7 +351,6 @@ function handleEnemySpawns() {
       const enemyY = spawn.y !== undefined ? spawn.y : null;
 
       if (spawn.type === "block") {
-        // blocks にワールド座標で追加。デフォルトサイズは 48x48（必要なら spawn に w/h を追加してください）
         blocks.push({
           x: spawn.x,
           y: enemyY !== null ? enemyY : (GROUND_Y - 48),
@@ -397,8 +358,6 @@ function handleEnemySpawns() {
           h: spawn.h || 48
         });
       } else {
-        // 通常の敵は spawnEnemy に任せる（spawnEnemy(type, customY, stageX) の第三引数を渡せる実装なら stageX を渡す）
-        // ここでは spawnEnemy(type, y, stageX) を想定していない場合でも動くように既存の API を使います。
         spawnEnemy(spawn.type, enemyY);
       }
 
@@ -408,23 +367,7 @@ function handleEnemySpawns() {
 }
 
 // =========================
-// ステージ状態リセット
-// =========================
-function resetStageState() {
-  player.x = window.innerWidth / 4;
-  player.y = 360;
-  player.vx = 0;
-  player.vy = 0;
-  player.onGround = true;
-  playerX = 0;
-  bgX = 0;
-  enemies.length = 0;
-  blocks.length = 0; // ← ブロックもリセット
-}
-
-// =========================
 // ステージクリア判定
-// =========================
 function checkStageClear() {
   const stage = stages[currentStageIndex];
   if (playerControlLocked || isFading || isGameOver) return;
@@ -437,8 +380,7 @@ function checkStageClear() {
 }
 
 // =========================
-// フェードとステージ切替処理
-// =========================
+// フェード処理
 function handleFade() {
   if (!isFading) return;
   fadeOpacity += 0.005 * fadeDirection;
@@ -471,27 +413,64 @@ function handleFade() {
 }
 
 // =========================
-// メインループ
+// ゲームオーバー
+function handleGameOver() {
+  isGameOver = true;
+  playerControlLocked = true;
+  showMessage("ゲームオーバー！", 2000);
+  setTimeout(() => location.reload(), 2500);
+}
+
 // =========================
+// ステージリセット
+function resetStageState() {
+  player.x = window.innerWidth / 4;
+  player.y = 360;
+  player.vx = 0;
+  player.vy = 0;
+  player.onGround = true;
+  playerX = 0;
+  bgX = 0;
+  enemies.length = 0;
+  blocks.length = 0;
+}
+
+// =========================
+// メインループ
+let lastPlayerX = 0;   // ループ外で宣言しておく
+let isScrolling = false;  // グローバル or export して使う
+
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // ============================
+  // ★ スクロール判定を追加
+  // ============================
+  if (playerX > lastPlayerX) {
+    isScrolling = true;   // → スクロール中！
+  } else {
+    isScrolling = false;  // → 停止中
+  }
+  lastPlayerX = playerX;
+  // ============================
+
   drawBackground();
   updatePlayer();
-  updateEnemies();
+  updateEnemies();         // ← isScrolling の結果に合わせて速度を変える
   handleEnemySpawns();
   checkPlayerEnemyCollision();
-  checkBlockCollision(playerX); // ← block 衝突（playerX 必要）
+  checkBlockCollision(playerX);
   checkStageClear();
   drawPlayer();
-  drawEnemies();           // 敵描画（enemy.js 側）
-  drawBlocks(playerX);     // block を描画（playerX を渡す）
+  drawEnemies();
+  drawBlocks(playerX);
   drawHPBar();
   drawScore();
   handleFade();
 
   requestAnimationFrame(loop);
 }
+
 
 // =========================
 // ゲーム開始
