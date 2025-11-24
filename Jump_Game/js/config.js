@@ -8,7 +8,7 @@ export const PLAYER_WIDTH = 34;
 export const PLAYER_HEIGHT = 50;
 
 export const PLAYER_SPEED = 3;
-export const PLAYER_JUMP = 10;
+export const PLAYER_JUMP = 15;
 
 export const ENEMY_SPEED = 1;
 export const BOSS_SPEED = 1.5;

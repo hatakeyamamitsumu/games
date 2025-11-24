@@ -38,18 +38,36 @@ export const LEVELS = [
     ],
     enemies: [],
     boss: {
-      x:1400, y:446, w:80, h:80,
+      x:1400, y:400, w:80, h:80,
       dir:-1, speed:BOSS_SPEED, hp:BOSS_HP
     }
   }
 ];
 
+// ▼ ここを強化するだけ！ ▼
 export function loadStage(s){
   stage = s;
   const data = LEVELS[s];
-  return {
-    blocks: structuredClone(data.blocks),
-    enemies: structuredClone(data.enemies),
-    boss: data.boss ? structuredClone(data.boss) : null
-  };
+
+  const blocks = structuredClone(data.blocks);
+
+  // ---- 敵を複製しつつアニメ用プロパティを追加 ----
+  const enemies = structuredClone(data.enemies).map(e => {
+    return {
+      ...e,
+      frame: 0,
+      _frameTimer: 0,
+      _frameInterval: 8   // アニメ速度（好みで変更）
+    };
+  });
+
+  // ---- ボスも必要なら複製 ----
+  const boss = data.boss ? {
+    ...structuredClone(data.boss),
+    frame: 0,
+    _frameTimer: 0,
+    _frameInterval: 8
+  } : null;
+
+  return { blocks, enemies, boss };
 }
