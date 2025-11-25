@@ -33,7 +33,7 @@ export function resetPlayer() {
   player.frameTimer = 0;
 }
 
-export function updatePlayer(blocks) {
+export function updatePlayer(blocks, stageWidth = 3000) {
 
   // --- 横移動 ---
   if (keys.left) player.vx = -PLAYER_SPEED;
@@ -49,14 +49,28 @@ export function updatePlayer(blocks) {
   player.vy += GRAVITY;
   if (player.vy > 15) player.vy = 15;
 
+  // --- 位置更新 ---
   player.x += player.vx;
   player.y += player.vy;
 
+  // --- ブロックとの当たり判定（既存） ---
   resolvePlayerBlock(blocks);
+
+  // ====================================
+  // ★ ワールド端の制限（戻れない問題の解決）
+  // ====================================
+  // 左端
+  if (player.x < 0) player.x = 0;
+
+  // 右端（ステージ幅以内に固定）
+  if (player.x + player.w > stageWidth) {
+    player.x = stageWidth - player.w;
+  }
 
   // ▼ アニメ更新 ▼
   updatePlayerAnimation();
 }
+
 
 function updatePlayerAnimation() {
 

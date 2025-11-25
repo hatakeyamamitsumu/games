@@ -1,4 +1,3 @@
-// ========== stage.js ==========
 import { BOSS_SPEED, BOSS_HP } from "./config.js";
 
 export let stage = 0;
@@ -7,11 +6,12 @@ export const LEVELS = [
   // --- Stage 1 ---
   {
     blocks: [
-      {x:0,y:480,w:2000,h:60},
-      {x:500,y:380,w:150,h:20}
+      {x:0, y:480, w:240, h:60, type:0},    // block1.png
+      {x:288, y:480, w:2400, h:60, type:0},
+      {x:500, y:380, w:136, h:20, type:1}    // block2.png
     ],
     enemies: [
-      {x:600,y:446,w:34,h:34,dir:-1,speed:1}
+      {x:600, y:446, w:34, h:34, dir:-1, speed:1}
     ],
     boss: null
   },
@@ -19,13 +19,13 @@ export const LEVELS = [
   // --- Stage 2 ---
   {
     blocks: [
-      {x:0,y:480,w:2000,h:60},
-      {x:380,y:400,w:150,h:20},
-      {x:900,y:300,w:150,h:20},
+      {x:0, y:480, w:2000, h:60, type:0},
+      {x:380, y:400, w:150, h:20, type:1},
+      {x:900, y:300, w:150, h:20, type:2}
     ],
     enemies: [
-      {x:400,y:366,w:34,h:34,dir:1,speed:1},
-      {x:950,y:266,w:34,h:34,dir:-1,speed:1}
+      {x:400, y:366, w:34, h:34, dir:1, speed:1},
+      {x:950, y:266, w:34, h:34, dir:-1, speed:1}
     ],
     boss: null
   },
@@ -33,8 +33,8 @@ export const LEVELS = [
   // --- Stage 3（ラスボス） ---
   {
     blocks: [
-      {x:0,y:480,w:2000,h:60},
-      {x:450,y:380,w:300,h:20}
+      {x:0, y:480, w:2000, h:60, type:0},
+      {x:450, y:380, w:300, h:20, type:1}
     ],
     enemies: [],
     boss: {
@@ -44,24 +44,19 @@ export const LEVELS = [
   }
 ];
 
-// ▼ ここを強化するだけ！ ▼
 export function loadStage(s){
   stage = s;
   const data = LEVELS[s];
 
   const blocks = structuredClone(data.blocks);
 
-  // ---- 敵を複製しつつアニメ用プロパティを追加 ----
-  const enemies = structuredClone(data.enemies).map(e => {
-    return {
-      ...e,
-      frame: 0,
-      _frameTimer: 0,
-      _frameInterval: 8   // アニメ速度（好みで変更）
-    };
-  });
+  const enemies = structuredClone(data.enemies).map(e => ({
+    ...e,
+    frame: 0,
+    _frameTimer: 0,
+    _frameInterval: 8
+  }));
 
-  // ---- ボスも必要なら複製 ----
   const boss = data.boss ? {
     ...structuredClone(data.boss),
     frame: 0,

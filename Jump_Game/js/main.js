@@ -10,7 +10,6 @@ import { render } from "./render.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const HUD = document.getElementById("hud");
 
 // ===== グローバル変数 =====
 let blocks = [];
@@ -20,6 +19,10 @@ let boss = null;
 let score = 0;
 let lives = 3;
 let cameraX = 0;
+
+// 無敵時間フラグ
+let invincible = false;
+let invincibleTimer = 0;
 
 // ===== ステージクリア関連 =====
 let isStageCleared = false;
@@ -38,7 +41,6 @@ clearBGM.volume = 0.7;
 function playBGM(stageNumber) {
   const url = `./sounds/BGM/bgm${stageNumber + 1}.mp3`;
   bgm.src = url;
-
   bgm.pause();
   bgm.currentTime = 0;
   bgm.play().catch(_ => console.log("BGM再生待ち（タップ必要）"));
@@ -48,7 +50,6 @@ function playBGM(stageNumber) {
 function playClearBGM(stageNumber) {
   const url = `./sounds/BGM/clear_bgm${stageNumber + 1}.mp3`;
   clearBGM.src = url;
-
   clearBGM.pause();
   clearBGM.currentTime = 0;
   clearBGM.play().catch(_ => console.log("クリアBGM再生待ち（タップ必要）"));
@@ -83,20 +84,26 @@ function startStage(s) {
 
   // 背景画像読み込み
   loadBackground(s);
+
+  // 無敵解除
+  invincible = false;
 }
 
 startStage(0);
 
 // ===== メインループ =====
 function loop() {
+  // 描画用HUDオブジェクト
+  const hudData = {
+    stage: stage + 1,
+    score: score,
+    lives: lives,
+    invincible: invincible
+  };
 
   // ★★ ステージクリア演出中 ★★
   if (isStageCleared) {
-
-    HUD.textContent = `ステージ ${stage + 1} クリア！`;
-
-    // 描画（クリア画面を表示）
-    render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStageCleared, bgImage);
+    render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
 
     // 5秒後に次ステージへ
     if (performance.now() - clearTimer > 5000) {
@@ -109,8 +116,7 @@ function loop() {
 
   // ===== ゲームオーバー =====
   if (lives <= 0) {
-    HUD.textContent = "GAME OVER (Rで再開)";
-    render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStageCleared, bgImage);
+    render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
     requestAnimationFrame(loop);
     return;
   }
@@ -120,20 +126,35 @@ function loop() {
   updateEnemies(enemies, blocks);
   updateBoss(boss, blocks);
 
-  // ===== 当たり判定 =====
-  if (checkEnemyHit(enemies) === "hit") {
-    lives--;
+  // ===== 無敵時間の更新 =====
+  if (invincible && performance.now() - invincibleTimer > 1500) {
+    invincible = false;
   }
 
-  const bossState = checkBossHit(boss);
-  if (bossState === "hit") lives--;
-  if (bossState === "dead") {
-    score += 1000;
-    bgm.pause();
-    playClearBGM(stage);
+  // ===== 当たり判定（無敵中は無効） =====
+  if (!invincible) {
 
-    isStageCleared = true;
-    clearTimer = performance.now();
+    if (checkEnemyHit(enemies) === "hit") {
+      lives--;
+      invincible = true;
+      invincibleTimer = performance.now();
+    }
+
+    const bossState = checkBossHit(boss);
+    if (bossState === "hit") {
+      lives--;
+      invincible = true;
+      invincibleTimer = performance.now();
+    }
+
+    if (bossState === "dead") {
+      score += 1000;
+      bgm.pause();
+      playClearBGM(stage);
+
+      isStageCleared = true;
+      clearTimer = performance.now();
+    }
   }
 
   // ===== ゴール判定 =====
@@ -150,13 +171,8 @@ function loop() {
   cameraX = player.x - 200;
   if (cameraX < 0) cameraX = 0;
 
-  // ===== HUD更新 =====
-  HUD.stage = stage + 1;
-  HUD.score = score;
-  HUD.lives = lives;
-
   // ===== 描画 =====
-  render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStageCleared, bgImage);
+  render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
 
   requestAnimationFrame(loop);
 }
