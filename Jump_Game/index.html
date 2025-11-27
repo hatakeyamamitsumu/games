@@ -1,48 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>3ステージ マリオ型ゲーム</title>
+<style>
+  body { 
+    margin:0; 
+    background:#87CEEB; 
+    font-family:sans-serif; 
+    overflow:hidden; 
+  }
+
+  canvas { 
+    display:block; 
+    margin:0 auto; 
+    background:#87CEEB; 
+    touch-action:none; 
+    width:100vw;           /* 画面幅に合わせる */
+    height:auto;           /* 高さは自動（16:9比率維持） */
+    max-height:100vh;      /* 高さが画面を超えない */
+  }
+
+  /* HUD */
+  #hud { 
+    position:fixed; top:10px; left:10px; padding:6px 10px;
+    background:#fff8; border-radius:6px; font-family:sans-serif;
+    z-index:1000;
+  }
+
+  /* 操作ボタン */
+  .btn {
+    position:fixed; width:60px; height:60px;
+    background:#fff8; border-radius:50%; font-size:24px; 
+    text-align:center; line-height:60px; user-select:none;
+    z-index:1000;
+    touch-action: none;
+  }
+
+  /* 左右ボタンを画面比率で配置 */
+  #left { left:5%; bottom:10%; }
+  #right { left:20%; bottom:10%; }
+  #jump { right:5%; bottom:10%; }
+
+  /* タッチで押しているとき少し暗く */
+  .btn:active { background:#fff4; }
+</style>
+</head>
+<body>
+
 <canvas id="game" width="960" height="540"></canvas>
-<div id="hud"></div>
 
-<!-- 左右ボタン -->
-<div id="left-right-buttons">
-  <button id="left">◀</button>
-  <button id="right">▶</button>
-</div>
+<!-- HUD -->
+<div id="hud">ステージ: 1<br>スコア: 0<br>HP: 3</div>
 
-<!-- ジャンプボタン -->
-<div id="jump-button">
-  <button id="jump">▲</button>
-</div>
+<!-- 移動ボタン -->
+<div id="left" class="btn">◀</div>
+<div id="right" class="btn">▶</div>
+<div id="jump" class="btn">▲</div>
 
 <!-- ★ ES Modules として main.js だけを読み込む -->
 <script type="module" src="js/main.js"></script>
 
-<style>
-/* 左右ボタン */
-#left-right-buttons {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  display: flex;
-  gap: 10px;
-  z-index: 1000;
-}
-
-#left-right-buttons button,
-#jump-button button {
-  width: 60px;
-  height: 60px;
-  font-size: 24px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0,0,0,0.5);
-  color: white;
-  touch-action: none; /* ダブルタップズーム防止 */
-}
-
-/* ジャンプボタン */
-#jump-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-</style>
+</body>
+</html>
