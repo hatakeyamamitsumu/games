@@ -1,4 +1,5 @@
 // ========== main.js ==========
+
 import { SCREEN_W, SCREEN_H } from "./config.js";
 import { player, updatePlayer, resetPlayer } from "./player.js";
 import {
@@ -10,6 +11,21 @@ import { render } from "./render.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+
+// ===== スマホ操作フラグ =====
+let leftPressed = false;
+let rightPressed = false;
+let jumpPressed = false;
+
+// ===== ボタンイベント設定 =====
+document.getElementById('left').addEventListener('touchstart', e => { e.preventDefault(); leftPressed = true; });
+document.getElementById('left').addEventListener('touchend', e => { e.preventDefault(); leftPressed = false; });
+
+document.getElementById('right').addEventListener('touchstart', e => { e.preventDefault(); rightPressed = true; });
+document.getElementById('right').addEventListener('touchend', e => { e.preventDefault(); rightPressed = false; });
+
+document.getElementById('jump').addEventListener('touchstart', e => { e.preventDefault(); jumpPressed = true; });
+document.getElementById('jump').addEventListener('touchend', e => { e.preventDefault(); jumpPressed = false; });
 
 // ===== グローバル変数 =====
 let blocks = [];
@@ -44,7 +60,6 @@ let clearBGM = new Audio();
 clearBGM.loop = false;
 clearBGM.volume = 0.7;
 
-// ▼ 通常BGM
 function playBGM(stageNumber) {
   const url = `./sounds/BGM/bgm${stageNumber + 1}.mp3`;
   bgm.src = url;
@@ -53,7 +68,6 @@ function playBGM(stageNumber) {
   bgm.play().catch(_ => console.log("BGM再生待ち（タップ必要）"));
 }
 
-// ▼ クリアBGM
 function playClearBGM(stageNumber) {
   const url = `./sounds/BGM/clear_bgm${stageNumber + 1}.mp3`;
   clearBGM.src = url;
@@ -61,7 +75,7 @@ function playClearBGM(stageNumber) {
   clearBGM.currentTime = 0;
   clearBGM.play().catch(_ => console.log("クリアBGM再生待ち（タップ必要）"));
 }
-// ▼ ゲームオーバーBGM
+
 let gameoverBGM = new Audio();
 gameoverBGM.loop = false;
 gameoverBGM.volume = 0.7;
@@ -73,7 +87,7 @@ function playGameoverBGM() {
   gameoverBGM.currentTime = 0;
   gameoverBGM.play().catch(_ => console.log("GAME OVER BGM再生待ち"));
 }
-// ===== BGMフェードアウト =====
+
 function fadeOutAudio(audio, duration = 1000) {
   const fadeSteps = 20;
   const fadeInterval = duration / fadeSteps;
@@ -108,18 +122,14 @@ function startStage(s) {
   resetPlayer();
   player.hp = player.maxHp;
 
-  // クリア状態解除
   isStageCleared = false;
 
-  // BGMリセット
   clearBGM.pause();
   clearBGM.currentTime = 0;
   playBGM(s);
 
-  // 背景読み込み
   loadBackground(s);
 
-  // 無敵解除
   invincible = false;
 }
 
@@ -140,40 +150,35 @@ function killPlayer() {
   lives--;
 
   if (lives > 0) {
-
-    // ★ まずBGMをフェードアウト（1秒）
     fadeOutAudio(bgm, 1000);
 
-    // 残機がある場合、3秒フリーズ
-    isPaused = true;          // 更新停止
-    invincible = true;        // 無敵状態
-    player.hp = player.maxHp; // HPリセット
+    isPaused = true;
+    invincible = true;
+    player.hp = player.maxHp;
 
     setTimeout(() => {
-      startStage(stage);         // 3秒後にステージ再スタート
-      bgm.volume = 0.5;          // ★ 音量をリセット
-      invincible = false;        // 無敵解除
-      isPaused = false;          // 更新再開
+      startStage(stage);
+      bgm.volume = 0.5;
+      invincible = false;
+      isPaused = false;
     }, 3000);
 
   } else {
     console.log("GAME OVER");
 
-    fadeOutAudio(bgm, 1000);   // ★ゲームオーバー時もフェードアウト
+    fadeOutAudio(bgm, 1000);
     clearBGM.pause();
 
     setTimeout(() => {
-      playGameoverBGM();       // ★フェードアウト後にゲームオーバーBGM
+      playGameoverBGM();
     }, 1000);
   }
 }
-
 
 startStage(0);
 
 // ===== メインループ =====
 function loop() {
-  // HUDデータ
   const hudData = {
     stage: stage + 1,
     score: score,
@@ -183,49 +188,47 @@ function loop() {
     invincible: invincible
   };
 
-  // ★ ステージクリア中
   if (isStageCleared) {
     render(ctx, cameraX, blocks, enemies, boss, player, hudData, true, bgImage);
-
-    if (performance.now() - clearTimer > 5000) {
-      startStage(stage + 1);
-    }
+    if (performance.now() - clearTimer > 5000) startStage(stage + 1);
     requestAnimationFrame(loop);
     return;
   }
 
-  // ★ ゲームオーバー
   if (lives <= 0) {
     render(ctx, cameraX, blocks, enemies, boss, player, hudData, false, bgImage);
     requestAnimationFrame(loop);
     return;
   }
 
-  // ★ フリーズ中は更新停止（描画のみ）
   if (isPaused) {
     render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
     requestAnimationFrame(loop);
     return;
   }
 
-  // ===== 更新 =====
+  // ===== ★ スマホ操作反映 ★
+  if(leftPressed) player.vx = -player.speed;
+  else if(rightPressed) player.vx = player.speed;
+  else player.vx = 0;
+
+  if(jumpPressed && player.onGround) {
+    player.vy = -player.jumpPower;
+    player.onGround = false;
+  }
+
   updatePlayer(blocks);
   updateEnemies(enemies, blocks);
   updateBoss(boss, blocks);
 
-  // ===== 無敵時間更新 =====
-  if (invincible && performance.now() - invincibleTimer > 1500) {
-    invincible = false;
-  }
+  if (invincible && performance.now() - invincibleTimer > 1500) invincible = false;
 
-  // ★★★★★ 穴に落ちた判定 ★★★★★
   if (player.y > SCREEN_H) {
     killPlayer();
     requestAnimationFrame(loop);
     return;
   }
 
-  // ===== 当たり判定（無敵中は無効） =====
   if (!invincible) {
     if (checkEnemyHit(enemies) === "hit") takeDamage(1);
 
@@ -242,7 +245,6 @@ function loop() {
     }
   }
 
-  // ===== ゴール =====
   if (player.x > 1800) {
     score += 500;
     bgm.pause();
@@ -252,11 +254,9 @@ function loop() {
     clearTimer = performance.now();
   }
 
-  // ===== カメラ =====
   cameraX = player.x - 200;
   if (cameraX < 0) cameraX = 0;
 
-  // ===== 描画 =====
   render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
 
   requestAnimationFrame(loop);
