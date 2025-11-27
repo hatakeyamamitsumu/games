@@ -16,7 +16,11 @@ export const player = {
   onGround: false,
   frame: 0,
   frameTimer: 0,
-  frameInterval: 100
+  frameInterval: 100,
+
+  // ★★★★★ HPを追加（絶対に必要）★★★★★
+  hp: 5,
+  maxHp: 5
 };
 
 export function resetPlayer() {
@@ -26,6 +30,9 @@ export function resetPlayer() {
   player.vy = 0;
   player.frame = 0;
   player.frameTimer = 0;
+
+  // ★ HPをリセット
+  player.hp = player.maxHp;
 }
 
 export function updatePlayer(blocks, stageWidth = 3000) {
@@ -47,14 +54,14 @@ export function updatePlayer(blocks, stageWidth = 3000) {
   player.x += player.vx;
   player.y += player.vy;
 
-  // ブロックとの衝突
+  // 衝突
   resolvePlayerBlock(blocks);
 
-  // ワールド端制限
+  // 端制限
   if(player.x < 0) player.x = 0;
   if(player.x + player.w > stageWidth) player.x = stageWidth - player.w;
 
-  // アニメ更新
+  // アニメ
   updatePlayerAnimation();
 }
 
