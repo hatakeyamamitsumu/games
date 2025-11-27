@@ -1,42 +1,129 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ジャンプゲーム — パラシュート実装版（修正版）</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>ジャンプゲーム — パラシュート実装版</title>
+
 <style>
-  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif; background:#f8f8f8; display:flex; flex-direction:column; align-items:center; }
-  h2 { margin:12px 0; }
+  body {
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",sans-serif;
+    background:#f8f8f8;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    touch-action:manipulation;  /* ← iPhone ダブルタップズーム防止（全体） */
+  }
+
+  h2 { margin:12px 0; font-size:28px; }
+
   #canvasWrap { margin:0 auto; }
-  canvas { border:1px solid #222; background:lightblue; image-rendering:pixelated; display:block; }
-  #buttonArea { margin:12px 0; display:flex; gap:12px; width:420px; justify-content:center; }
-  button { font-size:20px; padding:14px 22px; border-radius:10px; border:none; background:orange; color:white; cursor:pointer; }
+
+  canvas {
+    border:1px solid #222;
+    background:lightblue;
+    image-rendering:pixelated;
+    display:block;
+  }
+
+  /* ▼ ボタンレイアウト（ゲーム幅 = 400px に合わせる） ▼ */
+  #buttonArea {
+    margin:16px 0;
+    display:flex;
+    gap:12px;
+    width:400px;
+    justify-content:space-between;
+  }
+
+  .btnWrap {
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+    button {
+        width:100%;
+        padding:45px 0;            /* ← ★ 高さアップ（ここを大きくすればさらに上がる） */
+        font-size:24px;
+        border-radius:14px;
+        border:none;
+        background:orange;
+        color:white;
+        cursor:pointer;
+        touch-action:manipulation;
+    }
+
   button:active { background:darkorange; }
-  #rules { max-width:720px; text-align:left; padding:10px; font-size:14px; color:#222; }
-  #msg { position:fixed; top:6px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.6); color:white; padding:6px 12px; border-radius:8px; font-size:13px; display:none; z-index:999; }
+
+  .label {
+    margin-top:8px;
+    font-size:20px;           /* ← ラベル文字サイズUP */
+    font-weight:bold;
+  }
+
+  /* ▼ 説明文 ▼ */
+  #rules {
+    max-width:720px;
+    text-align:left;
+    padding:10px;
+    font-size:18px;           /* ← 説明文の文字を大きく */
+    color:#222;
+  }
+
+  #msg {
+    position:fixed;
+    top:6px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,0.6);
+    color:white;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:18px;            /* ← 表示メッセージも大きく */
+    display:none;
+    z-index:999;
+  }
 </style>
 </head>
+
 <body>
-<h2>ジャンプゲーム 🎈（パラシュート実装 + 忍者 + 振り子）</h2>
-<div id="canvasWrap"><canvas id="game" width="400" height="300"></canvas></div>
+
+<h2>ジャンプゲーム 🎈</h2>
+
+<div id="canvasWrap">
+  <canvas id="game" width="400" height="300"></canvas>
+</div>
 
 <div id="buttonArea">
-  <button id="restartBtn">リスタート</button>
-  <button id="jumpBtn">ジャンプ（Space）</button>
+  <div class="btnWrap">
+    <button id="restartBtn"></button>
+    <div class="label">リスタート</div>
+  </div>
+
+  <div class="btnWrap">
+    <button id="jumpBtn"></button>
+    <div class="label">ジャンプ（Space）</div>
+  </div>
 </div>
 
 <div id="rules">
   <h3>ルール</h3>
   <ul>
-    <li>スペースキーかジャンプボタン:ジャンプ。2回目で空中ジャンプ。3回目でパラシュート落下。</li>
-    <li>オレンジ、：上から踏んだら倒せる</li>
-    <li>緑、ボール、ヤカン、火の玉：倒せない</li>
-    <li>風船：どこから当たっても倒せる</li>
+    <li>ジャンプボタン or Space：ジャンプ → 空中ジャンプ → パラシュート</li>
+    <li>風船：触れると倒せる</li>
     <li>ハート：体力回復</li>
   </ul>
 </div>
 
 <div id="msg"></div>
+
+</body>
+</html>
+
 
 <script>
 /* ---------- BGMPlayer（そのまま） ---------- */

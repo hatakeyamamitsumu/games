@@ -8,7 +8,7 @@ export const LEVELS = [
     blocks: [
       {x:0, y:480, w:240, h:60, type:0},    // block1.png
       {x:288, y:480, w:2400, h:60, type:0},
-      {x:500, y:380, w:136, h:20, type:1}    // block2.png
+      {x:500, y:380, w:192, h:20, type:1}    // block2.png
     ],
     enemies: [
       {x:600, y:446, w:34, h:34, dir:-1, speed:1}
@@ -19,9 +19,10 @@ export const LEVELS = [
   // --- Stage 2 ---
   {
     blocks: [
-      {x:0, y:480, w:2000, h:60, type:0},
-      {x:380, y:400, w:150, h:20, type:1},
-      {x:900, y:300, w:150, h:20, type:2}
+      {x:0, y:480, w:2400, h:60, type:0},
+      {x:380, y:400, w:192, h:20, type:1},
+      {x:500, y:352, w:192, h:20, type:1},
+      {x:900, y:300, w:192, h:20, type:2}
     ],
     enemies: [
       {x:400, y:366, w:34, h:34, dir:1, speed:1},
@@ -33,8 +34,8 @@ export const LEVELS = [
   // --- Stage 3（ラスボス） ---
   {
     blocks: [
-      {x:0, y:480, w:2000, h:60, type:0},
-      {x:450, y:380, w:300, h:20, type:1}
+      {x:0, y:480, w:2400, h:60, type:0},
+      {x:450, y:380, w:240, h:20, type:1}
     ],
     enemies: [],
     boss: {
