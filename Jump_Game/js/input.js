@@ -1,33 +1,44 @@
 // ========== input.js ==========
 export const keys = { left:false, right:false, jump:false };
 
-// --- キーボード ---
-document.addEventListener("keydown", e=>{
-  if(e.key==="ArrowLeft") keys.left = true;
-  if(e.key==="ArrowRight") keys.right = true;
-  if(e.key==="ArrowUp" || e.key===" ") keys.jump = true;
+// ===== キーボード =====
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") keys.left = true;
+  if (e.key === "ArrowRight") keys.right = true;
+  if (e.key === "ArrowUp" || e.key === " ") keys.jump = true;
 });
-document.addEventListener("keyup", e=>{
-  if(e.key==="ArrowLeft") keys.left = false;
-  if(e.key==="ArrowRight") keys.right = false;
-  if(e.key==="ArrowUp" || e.key===" ") keys.jump = false;
+document.addEventListener("keyup", e => {
+  if (e.key === "ArrowLeft") keys.left = false;
+  if (e.key === "ArrowRight") keys.right = false;
+  if (e.key === "ArrowUp" || e.key === " ") keys.jump = false;
 });
 
-// --- マウス / タッチボタン対応 ---
-function setupButton(btnId, keyName){
-  const btn = document.getElementById(btnId);
-  if(!btn) return;
+// ===== マウス / タッチ =====
+const btnIds = ["left", "right", "jump"];
+btnIds.forEach(id => {
+  const btn = document.getElementById(id);
 
-  // マウスクリック
-  btn.addEventListener("mousedown",   ()=>keys[keyName]=true);
-  btn.addEventListener("mouseup",     ()=>keys[keyName]=false);
-  btn.addEventListener("mouseleave",  ()=>keys[keyName]=false);
+  // PCマウス用
+  btn.addEventListener("mousedown", () => keys[id] = true);
+  btn.addEventListener("mouseup", () => keys[id] = false);
+  btn.addEventListener("mouseleave", () => keys[id] = false);
 
-  // タッチ
-  btn.addEventListener("touchstart",  e=>{ keys[keyName]=true; e.preventDefault(); });
-  btn.addEventListener("touchend",    e=>{ keys[keyName]=false; e.preventDefault(); });
-}
+  // スマホタッチ用
+  btn.addEventListener("touchstart", e => {
+    e.preventDefault(); // 画面スクロールやズームを防ぐ
+    keys[id] = true;
+  }, { passive: false });
 
-setupButton("left", "left");
-setupButton("right", "right");
-setupButton("jump", "jump");
+  btn.addEventListener("touchend", e => {
+    e.preventDefault();
+    keys[id] = false;
+  });
+
+  btn.addEventListener("touchcancel", e => {
+    e.preventDefault();
+    keys[id] = false;
+  });
+});
+
+// ===== 押しっぱなし対応確認 =====
+// updatePlayer で keys.left / keys.right / keys.jump が true の間ずっと移動・ジャンプする
