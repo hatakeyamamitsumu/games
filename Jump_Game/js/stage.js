@@ -6,12 +6,13 @@ export const LEVELS = [
   // --- Stage 1 ---
   {
     blocks: [
-      {x:0, y:480, w:240, h:60, type:0},    // block1.png
+      {x:0, y:480, w:240, h:60, type:0},
       {x:288, y:480, w:2400, h:60, type:0},
-      {x:500, y:380, w:192, h:20, type:1}    // block2.png
+      {x:500, y:380, w:192, h:20, type:1}
     ],
     enemies: [
-      {x:600, y:446, w:34, h:34, dir:-1, speed:1}
+      {x:600, y:446, w:34, h:48, dir:1, speed:1},         // 元の敵。enemy1はデフォルトなのでtypeはない
+      {x:800, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"}  // 新しい敵
     ],
     boss: null
   },
@@ -25,8 +26,9 @@ export const LEVELS = [
       {x:900, y:300, w:192, h:20, type:2}
     ],
     enemies: [
-      {x:400, y:366, w:34, h:34, dir:1, speed:1},
-      {x:950, y:266, w:34, h:34, dir:-1, speed:1}
+      {x:400, y:366, w:34, h:48, dir:-1, speed:1},
+      {x:950, y:266, w:34, h:48, dir:-1, speed:1},
+      {x:1000, y:252, w:34, h:48, dir:1, speed:1, type:"needle"} // 新しい敵
     ],
     boss: null
   },

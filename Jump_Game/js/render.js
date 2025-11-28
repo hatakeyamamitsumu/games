@@ -5,7 +5,8 @@ const playerSprite = new Image();
 playerSprite.src = "./images/characters/player.png";
 
 // ▼ 敵・ボス画像
-import { enemySprite, bossSprite } from "./enemy.js";
+import { enemySprite, bossSprite, needleSprite } from "./enemy.js";
+
 
 // ▼ ブロック画像（3種類）
 const blockImages = [];
@@ -53,34 +54,50 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   }
 
   // ============================
-  // 敵描画
-  // ============================
-  for (const e of enemies) {
-    if (enemySprite.complete) {
-      ctx.save();
-      if (e.dir === 1) {
-        ctx.translate(e.x + e.w, e.y);
-        ctx.scale(-1, 1);
-        ctx.drawImage(
-          enemySprite,
-          e.frame * ENEMY_FRAME_W, 0,
-          ENEMY_FRAME_W, ENEMY_FRAME_H,
-          0, 0, e.w, e.h
-        );
-      } else {
-        ctx.drawImage(
-          enemySprite,
-          e.frame * ENEMY_FRAME_W, 0,
-          ENEMY_FRAME_W, ENEMY_FRAME_H,
-          e.x, e.y, e.w, e.h
-        );
-      }
-      ctx.restore();
-    } else {
-      ctx.fillStyle = "red";
-      ctx.fillRect(e.x, e.y, e.w, e.h);
-    }
+// 敵描画
+// ============================
+for (const e of enemies) {
+  let sprite, frameW, frameH;
+  let frameCount = 4; // デフォルト
+
+  if (e.type === 'needle') {
+    sprite = needleSprite;
+    frameW = 34;   // スプライトシート幅 / フレーム数
+    frameH = 48;
+    frameCount = 4;
+  } else {
+    sprite = enemySprite;
+    frameW = 34;
+    frameH = 48;
+    frameCount = 4;
   }
+
+  if (sprite.complete) {
+    ctx.save();
+    if (e.dir === 1) {
+      ctx.translate(e.x + e.w, e.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        sprite,
+        e.frame * frameW, 0,
+        frameW, frameH,
+        0, 0, e.w, e.h
+      );
+    } else {
+      ctx.drawImage(
+        sprite,
+        e.frame * frameW, 0,
+        frameW, frameH,
+        e.x, e.y, e.w, e.h
+      );
+    }
+    ctx.restore();
+  } else {
+    ctx.fillStyle = "red";
+    ctx.fillRect(e.x, e.y, e.w, e.h);
+  }
+}
+
 
   // ============================
   // ボス描画

@@ -1,69 +1,65 @@
 // ========== enemy.js ==========
-import { ENEMY_SPEED, BOSS_SPEED, BOSS_HP } from "./config.js";
+import { BOSS_SPEED, BOSS_HP } from "./config.js";
 import { aabb } from "./physics.js";
 import { player } from "./player.js";
 
-// ▼ 敵スプライト
+// ▼ スプライト
 export const enemySprite = new Image();
 enemySprite.src = "./images/characters/enemy1.png";
 
-// ▼ ボススプライト
+export const needleSprite = new Image();
+needleSprite.src = "./images/characters/needle.png";
+
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
 
-// 敵スプライト定数
-const ENEMY_FRAME_W = 34;
-const ENEMY_FRAME_H = 48;
+// ===== フレーム定数 =====
 const ENEMY_FRAME_COUNT = 4;
-
-// ボススプライト定数
-const BOSS_FRAME_W = 128;  // 256/2
-const BOSS_FRAME_H = 128;
 const BOSS_FRAME_COUNT = 2;
 
-const GRAVITY = 0.5; // 敵用の重力
-const MAX_FALL_SPEED = 10;
-
+// ===== 敵更新 =====
 export function updateEnemies(enemies, blocks){
   for(let i = enemies.length - 1; i >= 0; i--){
     const e = enemies[i];
 
-    // --- 横移動 ---
-    e.x += e.dir * e.speed;
+    // needle は固定キャラ
+    if(e.type !== "needle"){
+      e.x += e.dir * e.speed;
 
-    // --- 横方向のブロック衝突で反転 ---
-    for(const b of blocks){
-      if(aabb(e, b)){
-        e.dir *= -1;
-        e.x += e.dir * 4;
+      // 横衝突で反転
+      for(const b of blocks){
+        if(aabb(e, b)){
+          e.dir *= -1;
+          e.x += e.dir * 4;
+        }
       }
+
+      // 重力
+      e.vy = e.vy ?? 0;
+      e.vy += 0.5;
+      if(e.vy > 10) e.vy = 10;
+      e.y += e.vy;
+
+      // 足場判定
+      let onGround = false;
+      for(const b of blocks){
+        if(e.x + e.w > b.x && e.x < b.x + b.w &&
+           e.y + e.h > b.y && e.y + e.h <= b.y + b.h){
+          e.y = b.y - e.h;
+          e.vy = 0;
+          onGround = true;
+        }
+      }
+      e.onGround = onGround;
     }
 
-    // --- 重力適用 ---
-    e.vy = e.vy ?? 0;
-    e.vy += GRAVITY;
-    if(e.vy > MAX_FALL_SPEED) e.vy = MAX_FALL_SPEED;
-    e.y += e.vy;
-
-    // --- 足場判定 ---
-    let onGround = false;
-    for(const b of blocks){
-      if(e.x + e.w > b.x && e.x < b.x + b.w &&
-         e.y + e.h > b.y && e.y + e.h <= b.y + b.h){
-        e.y = b.y - e.h;
-        e.vy = 0;
-        onGround = true;
-      }
-    }
-    e.onGround = onGround;
-
-    // --- 画面外に落ちたら削除 ---
-    if(e.y > 600){ // 画面高さより下（適宜変更）
+    // 画面外削除（needle は落ちない）
+    if(e.type !== "needle" && e.y > 600){
       enemies.splice(i, 1);
       continue;
     }
 
-    // --- アニメ更新 ---
+    // アニメ更新
     e._frameTimer = (e._frameTimer ?? 0) + 1;
     const interval = e._frameInterval ?? 8;
     if(e._frameTimer >= interval){
@@ -73,16 +69,17 @@ export function updateEnemies(enemies, blocks){
   }
 }
 
-
 // ===== 敵踏み判定 =====
 export function checkEnemyHit(enemies){
-  for(let i=enemies.length-1;i>=0;i--){
+  for(let i = enemies.length - 1; i >= 0; i--){
     const e = enemies[i];
     if(aabb(player, e)){
-      if(player.vy > 0){
+      if(player.vy > 0 && e.type !== "needle"){
+        // 通常敵を踏んだ
         enemies.splice(i,1);
         player.vy = -8;
       } else {
+        // needle または横から衝突 → ダメージ
         return "hit";
       }
     }
@@ -106,16 +103,16 @@ export function updateBoss(boss, blocks){
     }
   }
 
-  // アニメ更新（ボス用）
+  // アニメ更新
   boss._frameTimer = (boss._frameTimer ?? 0) + 1;
-  const interval = boss._frameInterval ?? 12; // 遅め
+  const interval = boss._frameInterval ?? 12;
   if(boss._frameTimer >= interval){
     boss._frameTimer = 0;
     boss._frame = ((boss._frame ?? 0) + 1) % BOSS_FRAME_COUNT;
   }
 }
 
-// ===== ボス判定 =====
+// ===== ボス当たり判定 =====
 export function checkBossHit(boss){
   if(!boss) return null;
 
