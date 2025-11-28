@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>3ステージ マリオ型ゲーム</title>
+
 <style>
   body { 
     margin:0; 
@@ -12,6 +13,7 @@
     overflow:hidden; 
   }
 
+  /* ゲーム画面 */
   canvas { 
     display:block; 
     margin:0 auto; 
@@ -19,39 +21,55 @@
     touch-action:none; 
     width:100vw;
     height:auto;
-    max-height:100vh;
+    max-height: calc(100vh - 180px); /* ← ボタン分の高さを確保 */
   }
 
   /* HUD */
-#hud {
-  display: none;  /* 完全に消える */
-}
+  #hud {
+    display: none;
+  }
 
-  /* 操作ボタン */
+  /* === 操作ボタン全体 === */
+  #controller {
+    width: 100vw;
+    height: 180px;
+    background: #0002;
+    position: fixed;
+    bottom: 80;
+    left: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 2000;
+  }
+
+  /* ボタンデザイン */
   .btn {
-    position:fixed; width:60px; height:60px;
-    background:#fff8; border-radius:50%; font-size:24px; 
-    text-align:center; line-height:60px; user-select:none;
-    z-index:1000;
+    width: 90px;
+    height: 90px;
+    background:#fff8;
+    border-radius:50%;
+    font-size:36px;
+    text-align:center;
+    line-height:90px;
+    user-select:none;
     touch-action: none;
   }
 
-  #left { left:5%; bottom:10%; }
-  #right { left:20%; bottom:10%; }
-  #jump { right:5%; bottom:10%; }
   .btn:active { background:#fff4; }
 
   /* タイトル画面 */
   #titleScreen {
     position:fixed; top:0; left:0; width:100%; height:100%;
     background:#0008; display:flex; align-items:center; justify-content:center;
-    z-index:2000; color:#fff; font-size:2em; flex-direction:column;
+    z-index:3000; color:#fff; font-size:2em; flex-direction:column;
   }
   #startButton {
     margin-top:20px; padding:10px 30px; font-size:1em; cursor:pointer;
   }
 </style>
 </head>
+
 <body>
 
 <!-- タイトル画面 -->
@@ -60,15 +78,18 @@
   <button id="startButton">スタート</button>
 </div>
 
+<!-- ゲーム画面 -->
 <canvas id="game" width="960" height="540"></canvas>
 
-<!-- ★ これが足りていなかった！  -->
+<!-- HUD（使わないので非表示） -->
 <div id="hud"></div>
 
-<!-- 移動ボタン -->
-<div id="left" class="btn">◀</div>
-<div id="right" class="btn">▶</div>
-<div id="jump" class="btn">▲</div>
+<!-- 操作ボタン（横並び） -->
+<div id="controller">
+  <div id="left" class="btn">◀</div>
+  <div id="right" class="btn">▶</div>
+  <div id="jump" class="btn">▲</div>
+</div>
 
 <script type="module" src="js/main.js"></script>
 
