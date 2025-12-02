@@ -139,47 +139,44 @@ function killPlayer(){
 const startButton = document.getElementById("startButton");
 const titleScreen = document.getElementById("titleScreen");
 
-// ===== エンディング画面作成（派手仕様） =====
+// ===== エンディング画面（もっとシンプル版） =====
 const endingScreen = document.createElement("div");
 endingScreen.id = "endingScreen";
-endingScreen.style.cssText = `
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
-  background-size: 400% 400%;
-  display:flex; align-items:center; justify-content:center;
-  z-index:3000; color:#fff; font-size:3em; flex-direction:column;
-  text-align:center; display:none;
-`;
 endingScreen.innerHTML = `
-  <div style="
-    text-shadow: 0 0 5px #fff, 0 0 10px #ff0, 0 0 20px #f0f, 0 0 40px #0ff;
-    animation: glow 1.5s ease-in-out infinite alternate, pop 1s ease infinite;
-  ">Congratulations!</div>
+  <div class="endingText">Congratulations!</div>
 `;
 document.body.appendChild(endingScreen);
 
-// CSSアニメ追加
-const style = document.createElement('style');
+// ===== CSS（超シンプル） =====
+const style = document.createElement("style");
 style.textContent = `
-@keyframes gradientAnimation {
-  0% { background-position:0% 50%; }
-  50% { background-position:100% 50%; }
-  100% { background-position:0% 50%; }
-}
-@keyframes glow {
-  0% { text-shadow: 0 0 5px #fff, 0 0 10px #ff0, 0 0 20px #f0f, 0 0 40px #0ff; }
-  100% { text-shadow: 0 0 20px #fff, 0 0 30px #ff0, 0 0 40px #f0f, 0 0 60px #0ff; }
-}
-@keyframes pop {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
 #endingScreen {
-  animation: gradientAnimation 10s ease infinite;
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: linear-gradient(45deg, #ff66aa, #ffaa44);
+  color: white;
+  font-size: 3em;
+  z-index: 3000;
+  text-align: center;
+}
+
+/* 軽い発光だけ残す */
+.endingText {
+  animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  0%   { text-shadow: 0 0 4px #fff; }
+  100% { text-shadow: 0 0 20px #fff; }
 }
 `;
 document.head.appendChild(style);
+
+
 
 // ===== タイトル画面ボタン =====
 startButton.addEventListener("click", ()=>{

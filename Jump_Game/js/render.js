@@ -5,7 +5,13 @@ const playerSprite = new Image();
 playerSprite.src = "./images/characters/player.png";
 
 // ▼ 敵・ボス画像
-import { enemySprite, bossSprite, needleSprite, jumpEnemySprite } from "./enemy.js"; // ← jumpEnemySprite追加
+import { 
+  enemySprite, 
+  bossSprite, 
+  needleSprite, 
+  jumpEnemySprite, 
+  flyEnemySprite   // ← 新しい敵追加
+} from "./enemy.js";
 
 // ▼ ブロック画像（3種類）
 const blockImages = [];
@@ -56,24 +62,21 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   // 敵描画
   // ============================
   for (const e of enemies) {
-    let sprite, frameW, frameH;
-    let frameCount = ENEMY_FRAME_COUNT; // デフォルト
+    let sprite, frameW = 34, frameH = 48;
+    let frameCount = ENEMY_FRAME_COUNT;
 
-    if (e.type === 'needle') {
-      sprite = needleSprite;
-      frameW = 34;
-      frameH = 48;
-      frameCount = 4;
-    } else if (e.type === 'jump') {
-      sprite = jumpEnemySprite;  // ← 新しい敵用スプライト
-      frameW = 34;
-      frameH = 48;
-      frameCount = 4;
-    } else {
-      sprite = enemySprite;
-      frameW = 34;
-      frameH = 48;
-      frameCount = 4;
+    switch (e.type) {
+      case 'needle':
+        sprite = needleSprite;
+        break;
+      case 'jump':
+        sprite = jumpEnemySprite;
+        break;
+      case 'fly':           // ← 空中ふらふら敵
+        sprite = flyEnemySprite;
+        break;
+      default:
+        sprite = enemySprite;
     }
 
     if (sprite.complete) {
