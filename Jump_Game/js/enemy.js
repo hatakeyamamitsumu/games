@@ -13,8 +13,11 @@ needleSprite.src = "./images/characters/needle.png";
 export const jumpEnemySprite = new Image();
 jumpEnemySprite.src = "./images/characters/enemy2.png";
 
-export const flyEnemySprite = new Image();        // ← 空中ふわふわ敵
+export const flyEnemySprite = new Image();        // 空中ふわふわ敵
 flyEnemySprite.src = "./images/characters/enemy3.png";
+
+export const rushEnemySprite = new Image();       // 新しいrush敵
+rushEnemySprite.src = "./images/characters/enemy4.png";
 
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
@@ -28,51 +31,39 @@ export function updateEnemies(enemies, blocks) {
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
 
-// ------------------------------------------------
-// 空中をふらふら飛ぶ敵（fly）
-// ------------------------------------------------
-if (e.type === "fly") {
-  // ▼ 横移動（右から左）
-  e.dir = -1;
-  e.x += e.dir * e.speed;
+    // ------------------------------------------------
+    // 空中をふらふら飛ぶ敵（fly）
+    // ------------------------------------------------
+    if (e.type === "fly") {
+      e.dir = -1;
+      e.x += e.dir * e.speed;
 
-  // ▼ 画面左右で消滅
-  if (e.x + e.w < 0 || e.x > 2400) { // 画面幅 0～2400 を想定
-    enemies.splice(i, 1);
-    continue;
-  }
+      // 画面外で削除
+      if (e.x + e.w < 0 || e.x > 2400) {
+        enemies.splice(i, 1);
+        continue;
+      }
 
-  // ▼ 上下ふわふわ
-  e.vy = e.vy ?? 1;
-  e.y += e.vy;
+      e.vy = e.vy ?? 1;
+      e.y += e.vy;
 
-  // ▼ ブロックとの上下衝突
-  for (const b of blocks) {
-    if (!aabb(e, b)) continue;
+      for (const b of blocks) {
+        if (!aabb(e, b)) continue;
+        const overlapTop = (e.y + e.h) - b.y;
+        const overlapBottom = (b.y + b.h) - e.y;
 
-    const overlapTop = (e.y + e.h) - b.y;
-    const overlapBottom = (b.y + b.h) - e.y;
+        if (overlapTop < overlapBottom && e.vy > 0) {
+          e.y = b.y - e.h;
+          e.vy *= -1;
+        } else if (overlapBottom <= overlapTop && e.vy < 0) {
+          e.y = b.y + b.h;
+          e.vy *= -1;
+        }
+      }
 
-    if (overlapTop < overlapBottom && e.vy > 0) {
-      // 下にぶつかったら上方向へ
-      e.y = b.y - e.h;
-      e.vy *= -1;
-    } else if (overlapBottom <= overlapTop && e.vy < 0) {
-      // 上にぶつかったら下方向へ
-      e.y = b.y + b.h;
-      e.vy *= -1;
+      if (e.y < 0) { e.y = 0; e.vy *= -1; }
+      else if (e.y + e.h > 480) { e.y = 480 - e.h; e.vy *= -1; }
     }
-  }
-
-  // ▼ 画面上下端で反転
-  if (e.y < 0) {
-    e.y = 0;
-    e.vy *= -1;
-  } else if (e.y + e.h > 480) { // 仮に画面下端 480px
-    e.y = 480 - e.h;
-    e.vy *= -1;
-  }
-}
 
     // ------------------------------------------------
     // 跳ねる敵（jump）
@@ -95,27 +86,40 @@ if (e.type === "fly") {
 
         const min = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
 
-        if (min === overlapTop) {
-          e.y = b.y - e.h;
-          e.vy = -8;
-        } else if (min === overlapBottom) {
-          e.y = b.y + b.h;
-          if (e.vy < 0) e.vy = 0;
-        } else if (min === overlapLeft) {
-          e.x = b.x - e.w;
-          e.dir *= -1;
-        } else if (min === overlapRight) {
-          e.x = b.x + b.w;
-          e.dir *= -1;
-        }
+        if (min === overlapTop) { e.y = b.y - e.h; e.vy = -8; }
+        else if (min === overlapBottom) { e.y = b.y + b.h; if (e.vy < 0) e.vy = 0; }
+        else if (min === overlapLeft) { e.x = b.x - e.w; e.dir *= -1; }
+        else if (min === overlapRight) { e.x = b.x + b.w; e.dir *= -1; }
       }
     }
+
     // ------------------------------------------------
     // 針（needle）＝固定
     // ------------------------------------------------
     else if (e.type === "needle") {
-      // 動かないので物理処理なし
+      // 動かない
     }
+
+    // ------------------------------------------------
+    // 新しいrush敵
+    // ------------------------------------------------
+    else if (e.type === "rush") {
+      // 初回出現で停止
+      e.wait = e.wait ?? 120; // 60フレーム=1秒
+      if (e.wait > 0) {
+        e.wait--;
+      } else {
+        // 左に高速移動
+        e.x -= e.speed;
+      }
+
+      // 画面外で削除
+      if (e.x + e.w < 0) {
+        enemies.splice(i, 1);
+        continue;
+      }
+    }
+
     // ------------------------------------------------
     // 通常の歩く敵
     // ------------------------------------------------
@@ -168,15 +172,12 @@ export function checkEnemyHit(enemies) {
     const e = enemies[i];
 
     if (aabb(player, e)) {
-
       if (player.vy > 0) {
         if (e.type === "needle") return "hit";
-
         enemies.splice(i, 1);
         player.vy = -10;
         continue;
       }
-
       return "hit";
     }
   }

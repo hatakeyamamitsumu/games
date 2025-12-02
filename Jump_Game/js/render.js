@@ -10,7 +10,8 @@ import {
   bossSprite, 
   needleSprite, 
   jumpEnemySprite, 
-  flyEnemySprite   // ← 新しい敵追加
+  flyEnemySprite,
+  rushEnemySprite   // ← 新しいrush敵追加
 } from "./enemy.js";
 
 // ▼ ブロック画像（3種類）
@@ -61,25 +62,40 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   // ============================
   // 敵描画
   // ============================
-  for (const e of enemies) {
-    let sprite, frameW = 34, frameH = 48;
-    let frameCount = ENEMY_FRAME_COUNT;
+  // ============================
+// 敵描画
+// ============================
+for (const e of enemies) {
+  let sprite, frameW = 34, frameH = 48;
+  let frameCount = ENEMY_FRAME_COUNT;
 
-    switch (e.type) {
-      case 'needle':
-        sprite = needleSprite;
-        break;
-      case 'jump':
-        sprite = jumpEnemySprite;
-        break;
-      case 'fly':           // ← 空中ふらふら敵
-        sprite = flyEnemySprite;
-        break;
-      default:
-        sprite = enemySprite;
-    }
+  switch (e.type) {
+    case 'needle':
+      sprite = needleSprite;
+      break;
+    case 'jump':
+      sprite = jumpEnemySprite;
+      break;
+    case 'fly':
+      sprite = flyEnemySprite;
+      break;
+    case 'rush':
+      sprite = rushEnemySprite;  // ← rushは反転させない
+      break;
+    default:
+      sprite = enemySprite;
+  }
 
-    if (sprite.complete) {
+  if (sprite.complete) {
+    if (e.type === "rush") {
+      // rushは常に左向きなのでscale不要
+      ctx.drawImage(
+        sprite,
+        (e.frame ?? 0) * frameW, 0,
+        frameW, frameH,
+        e.x, e.y, e.w, e.h
+      );
+    } else {
       ctx.save();
       if (e.dir === 1) {
         ctx.translate(e.x + e.w, e.y);
@@ -99,11 +115,12 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
         );
       }
       ctx.restore();
-    } else {
-      ctx.fillStyle = "red";
-      ctx.fillRect(e.x, e.y, e.w, e.h);
     }
+  } else {
+    ctx.fillStyle = "red";
+    ctx.fillRect(e.x, e.y, e.w, e.h);
   }
+}
 
   // ============================
   // ボス描画

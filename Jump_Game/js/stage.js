@@ -16,7 +16,8 @@ export const LEVELS = [
       {x:600, y:446, w:34, h:48, dir:1, speed:1},                    // 通常敵
       {x:800, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"},    // 針
       {x:1000, y:432, w:34, h:48, dir:-1, speed:1, type:"jump"},     // 跳ねる敵
-      {x:1200, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1}  // ← 新しい空中敵
+      {x:1200, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1}, // 空中敵
+      {x:1600, y:432, w:34, h:48, dir:1, speed:2, type:"rush"}       // ← 新規 rush 敵
     ],
     boss: null
   },
@@ -34,7 +35,8 @@ export const LEVELS = [
       {x:950, y:266, w:34, h:48, dir:-1, speed:1},
       {x:1000, y:252, w:34, h:48, dir:1, speed:1, type:"needle"},
       {x:1200, y:252, w:34, h:48, dir:-1, speed:1, type:"jump"},    // 跳ねる敵
-      {x:1400, y:200, w:34, h:48, dir:1, speed:1, type:"fly", vy:1}  // ← 空中敵
+      {x:1400, y:200, w:34, h:48, dir:1, speed:1, type:"fly", vy:1}, // 空中敵
+      {x:1600, y:366, w:34, h:48, dir:1, speed:3, type:"rush"}       // ← rush 敵追加
     ],
     boss: null
   },
@@ -47,7 +49,8 @@ export const LEVELS = [
     ],
     enemies: [
       {x:600, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1},  // 空中敵
-      {x:800, y:250, w:34, h:48, dir:-1, speed:1, type:"fly", vy:1}  // 空中敵
+      {x:800, y:250, w:34, h:48, dir:-1, speed:1, type:"fly", vy:1}, // 空中敵
+      {x:1000, y:432, w:34, h:48, dir:1, speed:3, type:"rush"}       // ← rush 敵追加
     ],
     boss: {
       x:1400, y:400, w:80, h:80,
