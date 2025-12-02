@@ -5,8 +5,7 @@ const playerSprite = new Image();
 playerSprite.src = "./images/characters/player.png";
 
 // ▼ 敵・ボス画像
-import { enemySprite, bossSprite, needleSprite } from "./enemy.js";
-
+import { enemySprite, bossSprite, needleSprite, jumpEnemySprite } from "./enemy.js"; // ← jumpEnemySprite追加
 
 // ▼ ブロック画像（3種類）
 const blockImages = [];
@@ -54,50 +53,54 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   }
 
   // ============================
-// 敵描画
-// ============================
-for (const e of enemies) {
-  let sprite, frameW, frameH;
-  let frameCount = 4; // デフォルト
+  // 敵描画
+  // ============================
+  for (const e of enemies) {
+    let sprite, frameW, frameH;
+    let frameCount = ENEMY_FRAME_COUNT; // デフォルト
 
-  if (e.type === 'needle') {
-    sprite = needleSprite;
-    frameW = 34;   // スプライトシート幅 / フレーム数
-    frameH = 48;
-    frameCount = 4;
-  } else {
-    sprite = enemySprite;
-    frameW = 34;
-    frameH = 48;
-    frameCount = 4;
-  }
-
-  if (sprite.complete) {
-    ctx.save();
-    if (e.dir === 1) {
-      ctx.translate(e.x + e.w, e.y);
-      ctx.scale(-1, 1);
-      ctx.drawImage(
-        sprite,
-        e.frame * frameW, 0,
-        frameW, frameH,
-        0, 0, e.w, e.h
-      );
+    if (e.type === 'needle') {
+      sprite = needleSprite;
+      frameW = 34;
+      frameH = 48;
+      frameCount = 4;
+    } else if (e.type === 'jump') {
+      sprite = jumpEnemySprite;  // ← 新しい敵用スプライト
+      frameW = 34;
+      frameH = 48;
+      frameCount = 4;
     } else {
-      ctx.drawImage(
-        sprite,
-        e.frame * frameW, 0,
-        frameW, frameH,
-        e.x, e.y, e.w, e.h
-      );
+      sprite = enemySprite;
+      frameW = 34;
+      frameH = 48;
+      frameCount = 4;
     }
-    ctx.restore();
-  } else {
-    ctx.fillStyle = "red";
-    ctx.fillRect(e.x, e.y, e.w, e.h);
-  }
-}
 
+    if (sprite.complete) {
+      ctx.save();
+      if (e.dir === 1) {
+        ctx.translate(e.x + e.w, e.y);
+        ctx.scale(-1, 1);
+        ctx.drawImage(
+          sprite,
+          (e.frame ?? 0) * frameW, 0,
+          frameW, frameH,
+          0, 0, e.w, e.h
+        );
+      } else {
+        ctx.drawImage(
+          sprite,
+          (e.frame ?? 0) * frameW, 0,
+          frameW, frameH,
+          e.x, e.y, e.w, e.h
+        );
+      }
+      ctx.restore();
+    } else {
+      ctx.fillStyle = "red";
+      ctx.fillRect(e.x, e.y, e.w, e.h);
+    }
+  }
 
   // ============================
   // ボス描画
@@ -230,35 +233,32 @@ function drawHUD(ctx, HUD) {
   ctx.strokeText(hudText, 10, 10);
   ctx.fillText(hudText, 10, 10);
 
-// ===== HP（右上 横一列） =====
-if (HUD.hp !== undefined && HUD.maxHp !== undefined) {
-  const barWidth = 20;
-  const barHeight = 20;
-  const spacing = 5;
+  // ===== HP（右上 横一列） =====
+  if (HUD.hp !== undefined && HUD.maxHp !== undefined) {
+    const barWidth = 20;
+    const barHeight = 20;
+    const spacing = 5;
 
-  ctx.font = "18px 'Press Start 2P', sans-serif";
+    ctx.font = "18px 'Press Start 2P', sans-serif";
 
-  // HPの合計幅 (バー + スペース + "HP" ラベル)
-  const barsWidth = HUD.maxHp * (barWidth + spacing);
-  const labelWidth = 40;  // HPラベルぶん
-  const totalWidth = barsWidth + labelWidth;
+    const barsWidth = HUD.maxHp * (barWidth + spacing);
+    const labelWidth = 40;
+    const totalWidth = barsWidth + labelWidth;
 
-  // 右端から10px空ける
-  let x = ctx.canvas.width - totalWidth - 10;
-  const y = 70;  // LIVES の下に置くなら 70px が自然
+    let x = ctx.canvas.width - totalWidth - 10;
+    const y = 70;
 
-  ctx.fillStyle = "#00FF00";
-  ctx.fillText("HP", x, y); // ラベル
-  x += labelWidth;
+    ctx.fillStyle = "#00FF00";
+    ctx.fillText("HP", x, y);
+    x += labelWidth;
 
-  for (let i = 0; i < HUD.maxHp; i++) {
-    ctx.fillStyle = i < HUD.hp ? "#00FF00" : "#555555";
-    ctx.fillRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
-    ctx.strokeStyle = "#000000";
-    ctx.strokeRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
+    for (let i = 0; i < HUD.maxHp; i++) {
+      ctx.fillStyle = i < HUD.hp ? "#00FF00" : "#555555";
+      ctx.fillRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
+      ctx.strokeStyle = "#000000";
+      ctx.strokeRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
+    }
   }
-}
-
 
   // ===== Lives（右上 横一列） =====
   if (HUD.lives !== undefined) {
@@ -266,12 +266,12 @@ if (HUD.hp !== undefined && HUD.maxHp !== undefined) {
     const barHeight = 20;
     const spacing = 5;
     ctx.font = "18px 'Press Start 2P', sans-serif";
-    const totalWidth = HUD.lives * (barWidth + spacing) + 50; // ラベル分も含める
+    const totalWidth = HUD.lives * (barWidth + spacing) + 50;
     let x = ctx.canvas.width - totalWidth - 10;
     const y = 40;
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("LIVES", x, y); // ラベル
-    x += 60; // ラベルからバー開始
+    ctx.fillText("LIVES", x, y);
+    x += 60;
 
     for (let i = 0; i < HUD.lives; i++) {
       ctx.fillStyle = "#FF0000";
@@ -283,4 +283,3 @@ if (HUD.hp !== undefined && HUD.maxHp !== undefined) {
 
   ctx.restore();
 }
-

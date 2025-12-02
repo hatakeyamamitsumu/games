@@ -1,3 +1,4 @@
+// ========== stage.js ==========
 import { BOSS_SPEED, BOSS_HP } from "./config.js";
 
 export let stage = 0;
@@ -6,13 +7,15 @@ export const LEVELS = [
   // --- Stage 1 ---
   {
     blocks: [
-      {x:0, y:480, w:240, h:60, type:0},
+      {x:0, y:480, w:192, h:60, type:0},
+      {x:288, y:432, w:48, h:60, type:0},
       {x:288, y:480, w:2400, h:60, type:0},
       {x:500, y:380, w:192, h:20, type:1}
     ],
     enemies: [
-      {x:600, y:446, w:34, h:48, dir:1, speed:1},         // 元の敵。enemy1はデフォルトなのでtypeはない
-      {x:800, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"}  // 新しい敵
+      {x:600, y:446, w:34, h:48, dir:1, speed:1},                   // 通常敵
+      {x:800, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"},   // 針
+      {x:1000, y:432, w:34, h:48, dir:-1, speed:1, type:"jump"}     // ← 新しい跳ねる敵
     ],
     boss: null
   },
@@ -28,7 +31,8 @@ export const LEVELS = [
     enemies: [
       {x:400, y:366, w:34, h:48, dir:-1, speed:1},
       {x:950, y:266, w:34, h:48, dir:-1, speed:1},
-      {x:1000, y:252, w:34, h:48, dir:1, speed:1, type:"needle"} // 新しい敵
+      {x:1000, y:252, w:34, h:48, dir:1, speed:1, type:"needle"},
+      {x:1200, y:252, w:34, h:48, dir:-1, speed:1, type:"jump"}     // ← 新しい跳ねる敵
     ],
     boss: null
   },
@@ -47,12 +51,15 @@ export const LEVELS = [
   }
 ];
 
+// ===== ステージ読込 =====
 export function loadStage(s){
   stage = s;
   const data = LEVELS[s];
 
+  // ブロックはそのまま
   const blocks = structuredClone(data.blocks);
 
+  // 敵を複製してフレームデータ付与
   const enemies = structuredClone(data.enemies).map(e => ({
     ...e,
     frame: 0,
@@ -60,6 +67,7 @@ export function loadStage(s){
     _frameInterval: 8
   }));
 
+  // ボスも同様に複製
   const boss = data.boss ? {
     ...structuredClone(data.boss),
     frame: 0,
