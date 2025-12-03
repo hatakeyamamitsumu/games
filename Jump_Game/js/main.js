@@ -185,40 +185,57 @@ function showEndingScreen(){
   clearBGM.pause();
 }
 
-// ===== AABB 衝突判定 =====
-function handleBlockCollision(e, b){
+// ===== AABB 衝突判定（動く床押し出し対応） =====
+function handleBlockCollision(e, b) {
   const ex1 = e.x, ex2 = e.x + e.w;
   const ey1 = e.y, ey2 = e.y + e.h;
   const bx1 = b.x, bx2 = b.x + b.w;
   const by1 = b.y, by2 = b.y + b.h;
 
-  if(ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
+  if (ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
 
   const overlapX = Math.min(ex2 - bx1, bx2 - ex1);
   const overlapY = Math.min(ey2 - by1, by2 - ey1);
 
-  if(overlapY < overlapX){
-    if(ey2 - by1 < by2 - ey1){
+  if (overlapY < overlapX) {
+    // Y方向の衝突
+    if (ey2 - by1 < by2 - ey1) {
       // 上から
       e.y = by1 - e.h;
       e.vy = 0;
       e.onGround = true;
 
-      if(b.type===4) e.x += b.dir*b.speed;
+      // 動く床なら横方向に押される
+      if (b.type === 4) {
+        e.x += b.dir * b.speed;
+      }
     } else {
       // 下から
       e.y = by2;
       e.vy = 0;
+
+      // 動く床なら上方向に押される（底面接触時）
+      if (b.type === 4) {
+        e.x += b.dir * b.speed;
+      }
     }
   } else {
-    if(ex2 - bx1 < bx2 - ex1){
+    // X方向の衝突
+    if (ex2 - bx1 < bx2 - ex1) {
+      // 左から
       e.x = bx1 - e.w;
+      // 動く床なら押し出し
+      if (b.type === 4) e.x += b.dir * b.speed;
     } else {
+      // 右から
       e.x = bx2;
+      if (b.type === 4) e.x += b.dir * b.speed;
     }
     e.vx = 0;
   }
 }
+
+
 
 // ===== メインループ =====
 function loop(){
