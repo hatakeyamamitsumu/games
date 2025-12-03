@@ -11,16 +11,18 @@ import {
   needleSprite, 
   jumpEnemySprite, 
   flyEnemySprite,
-  rushEnemySprite   // ← 新しいrush敵追加
+  rushEnemySprite,
+  enemyJumperSprite,
 } from "./enemy.js";
 
-// ▼ ブロック画像（3種類）
+// ▼ ブロック画像（4種類）
 const blockImages = [];
-for (let i = 1; i <= 3; i++) {
+for (let i = 1; i <= 4; i++) {  // 4まで拡張
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);
 }
+
 
 // ===== スプライト情報 =====
 const PLAYER_FRAME_W = 34, PLAYER_FRAME_H = 48, PLAYER_FRAME_COUNT = 4;
@@ -48,20 +50,43 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   ctx.save();
   ctx.translate(-cameraX, 0);
 
-  // ============================
-  // ブロック描画
-  // ============================
-  for (const b of blocks) {
-    const tileCount = Math.ceil(b.w / 48);
-    const img = blockImages[b.type ?? 0];
-    for (let i = 0; i < tileCount; i++) {
-      ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
+// ============================
+// ブロック描画＆更新（動く床対応）
+// ============================
+for (const b of blocks) {
+  // ▼ 動く床
+  if (b.type === 4) {
+    b.x += b.dir * b.speed;
+    if (b.x > b.startX + b.range || b.x < b.startX) b.dir *= -1;
+
+    if (player.y + player.h >= b.y - 1 && player.y + player.h <= b.y + 1 &&
+        player.x + player.w > b.x && player.x < b.x + b.w) {
+      player.x += b.dir * b.speed;
     }
   }
 
-  // ============================
-  // 敵描画
-  // ============================
+// ▼ タイル描画
+const tileCount = Math.ceil(b.w / 48);
+let img;
+if (b.type >= 1 && b.type <= 4) {
+  img = blockImages[b.type - 1];  // 配列は0始まりなので -1
+} else {
+  img = blockImages[0];           // デフォルト
+}
+
+if (img && img.complete) {
+  for (let i = 0; i < tileCount; i++) {
+    ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
+  }
+} else {
+  ctx.fillStyle = "red";
+  ctx.fillRect(b.x, b.y, b.w, b.h);
+}
+
+}
+
+
+
   // ============================
 // 敵描画
 // ============================
@@ -82,6 +107,10 @@ for (const e of enemies) {
     case 'rush':
       sprite = rushEnemySprite;  // ← rushは反転させない
       break;
+    case 'jumper':
+      sprite = enemyJumperSprite;
+      break;
+
     default:
       sprite = enemySprite;
   }

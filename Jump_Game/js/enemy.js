@@ -19,6 +19,10 @@ flyEnemySprite.src = "./images/characters/enemy3.png";
 export const rushEnemySprite = new Image();       // 新しいrush敵
 rushEnemySprite.src = "./images/characters/enemy4.png";
 
+export const enemyJumperSprite = new Image();
+enemyJumperSprite.src = "./images/characters/enemy5.png";
+
+
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
 
@@ -119,6 +123,44 @@ export function updateEnemies(enemies, blocks) {
         continue;
       }
     }
+        // ------------------------------------------------
+    // その場でジャンプを繰り返す敵（jumper）
+    // ------------------------------------------------
+    else if (e.type === "jumper") {
+
+      // 初期値
+      e.vy = e.vy ?? 0;
+      e.baseY = e.baseY ?? e.y;  // 最初のY位置を基準に
+
+      // 重力
+      e.vy += 0.5;
+      if (e.vy > 10) e.vy = 10;
+
+      // 移動
+      e.y += e.vy;
+
+      // 床に着いたらジャンプ
+      if (e.y >= e.baseY) {
+        e.y = e.baseY;
+        e.vy = -10;   // ジャンプ力
+      }
+
+      // 画面外に落ちたら削除
+      if (e.y > 600) {
+        enemies.splice(i, 1);
+        continue;
+      }
+
+      // アニメ更新だけして終了
+      e._frameTimer = (e._frameTimer ?? 0) + 1;
+      const interval = e._frameInterval ?? 8;
+      if (e._frameTimer >= interval) {
+        e._frameTimer = 0;
+        e.frame = ((e.frame ?? 0) + 1) % ENEMY_FRAME_COUNT;
+      }
+
+      continue; // これが重要！
+    }
 
     // ------------------------------------------------
     // 通常の歩く敵
@@ -174,6 +216,14 @@ export function checkEnemyHit(enemies) {
     if (aabb(player, e)) {
       if (player.vy > 0) {
         if (e.type === "needle") return "hit";
+
+        // jumper は踏んでも倒さない
+        if (e.type === "jumper") {
+          player.vy = -10; // 跳ね返るだけ
+          continue;        // 敵は消さない
+        }
+
+        // 通常の敵は倒す
         enemies.splice(i, 1);
         player.vy = -10;
         continue;
@@ -183,6 +233,7 @@ export function checkEnemyHit(enemies) {
   }
   return null;
 }
+
 
 // ===== ボス更新 =====
 export function updateBoss(boss, blocks) {
