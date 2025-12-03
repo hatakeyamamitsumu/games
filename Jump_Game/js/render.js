@@ -17,12 +17,11 @@ import {
 
 // ▼ ブロック画像（4種類）
 const blockImages = [];
-for (let i = 1; i <= 4; i++) {  // 4まで拡張
+for (let i = 1; i <= 4; i++) {  
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);
 }
-
 
 // ===== スプライト情報 =====
 const PLAYER_FRAME_W = 34, PLAYER_FRAME_H = 48, PLAYER_FRAME_COUNT = 4;
@@ -50,106 +49,63 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   ctx.save();
   ctx.translate(-cameraX, 0);
 
-// ============================
-// ブロック描画＆更新（動く床対応）
-// ============================
-for (const b of blocks) {
-  // ▼ 動く床
-  if (b.type === 4) {
-    b.x += b.dir * b.speed;
-    if (b.x > b.startX + b.range || b.x < b.startX) b.dir *= -1;
+  // ============================
+  // ブロック描画（動く床も含む）
+  // ============================
+  for (const b of blocks) {
+    const tileCount = Math.ceil(b.w / 48);
+    let img;
+    if (b.type >= 1 && b.type <= 4) {
+      img = blockImages[b.type - 1];  // 配列は0始まり
+    } else {
+      img = blockImages[0];           // デフォルト
+    }
 
-    if (player.y + player.h >= b.y - 1 && player.y + player.h <= b.y + 1 &&
-        player.x + player.w > b.x && player.x < b.x + b.w) {
-      player.x += b.dir * b.speed;
+    if (img && img.complete) {
+      for (let i = 0; i < tileCount; i++) {
+        ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
+      }
+    } else {
+      ctx.fillStyle = "red";
+      ctx.fillRect(b.x, b.y, b.w, b.h);
     }
   }
-
-// ▼ タイル描画
-const tileCount = Math.ceil(b.w / 48);
-let img;
-if (b.type >= 1 && b.type <= 4) {
-  img = blockImages[b.type - 1];  // 配列は0始まりなので -1
-} else {
-  img = blockImages[0];           // デフォルト
-}
-
-if (img && img.complete) {
-  for (let i = 0; i < tileCount; i++) {
-    ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
-  }
-} else {
-  ctx.fillStyle = "red";
-  ctx.fillRect(b.x, b.y, b.w, b.h);
-}
-
-}
-
-
 
   // ============================
-// 敵描画
-// ============================
-for (const e of enemies) {
-  let sprite, frameW = 34, frameH = 48;
-  let frameCount = ENEMY_FRAME_COUNT;
+  // 敵描画
+  // ============================
+  for (const e of enemies) {
+    let sprite, frameW = 34, frameH = 48;
+    let frameCount = ENEMY_FRAME_COUNT;
 
-  switch (e.type) {
-    case 'needle':
-      sprite = needleSprite;
-      break;
-    case 'jump':
-      sprite = jumpEnemySprite;
-      break;
-    case 'fly':
-      sprite = flyEnemySprite;
-      break;
-    case 'rush':
-      sprite = rushEnemySprite;  // ← rushは反転させない
-      break;
-    case 'jumper':
-      sprite = enemyJumperSprite;
-      break;
-
-    default:
-      sprite = enemySprite;
-  }
-
-  if (sprite.complete) {
-    if (e.type === "rush") {
-      // rushは常に左向きなのでscale不要
-      ctx.drawImage(
-        sprite,
-        (e.frame ?? 0) * frameW, 0,
-        frameW, frameH,
-        e.x, e.y, e.w, e.h
-      );
-    } else {
-      ctx.save();
-      if (e.dir === 1) {
-        ctx.translate(e.x + e.w, e.y);
-        ctx.scale(-1, 1);
-        ctx.drawImage(
-          sprite,
-          (e.frame ?? 0) * frameW, 0,
-          frameW, frameH,
-          0, 0, e.w, e.h
-        );
-      } else {
-        ctx.drawImage(
-          sprite,
-          (e.frame ?? 0) * frameW, 0,
-          frameW, frameH,
-          e.x, e.y, e.w, e.h
-        );
-      }
-      ctx.restore();
+    switch (e.type) {
+      case 'needle': sprite = needleSprite; break;
+      case 'jump': sprite = jumpEnemySprite; break;
+      case 'fly': sprite = flyEnemySprite; break;
+      case 'rush': sprite = rushEnemySprite; break;
+      case 'jumper': sprite = enemyJumperSprite; break;
+      default: sprite = enemySprite;
     }
-  } else {
-    ctx.fillStyle = "red";
-    ctx.fillRect(e.x, e.y, e.w, e.h);
+
+    if (sprite.complete) {
+      if (e.type === "rush") {
+        ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
+      } else {
+        ctx.save();
+        if (e.dir === 1) {
+          ctx.translate(e.x + e.w, e.y);
+          ctx.scale(-1, 1);
+          ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, 0, 0, e.w, e.h);
+        } else {
+          ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
+        }
+        ctx.restore();
+      }
+    } else {
+      ctx.fillStyle = "red";
+      ctx.fillRect(e.x, e.y, e.w, e.h);
+    }
   }
-}
 
   // ============================
   // ボス描画
@@ -160,19 +116,9 @@ for (const e of enemies) {
       if (boss.dir === 1) {
         ctx.translate(boss.x + boss.w, boss.y);
         ctx.scale(-1, 1);
-        ctx.drawImage(
-          bossSprite,
-          boss.frame * BOSS_FRAME_W, 0,
-          BOSS_FRAME_W, BOSS_FRAME_H,
-          0, 0, boss.w, boss.h
-        );
+        ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, 0, 0, boss.w, boss.h);
       } else {
-        ctx.drawImage(
-          bossSprite,
-          boss.frame * BOSS_FRAME_W, 0,
-          BOSS_FRAME_W, BOSS_FRAME_H,
-          boss.x, boss.y, boss.w, boss.h
-        );
+        ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, boss.x, boss.y, boss.w, boss.h);
       }
       ctx.restore();
     } else {
@@ -206,22 +152,10 @@ for (const e of enemies) {
     if (player.vx < 0) {
       ctx.save();
       ctx.scale(-1, 1);
-      ctx.drawImage(
-        playerSprite,
-        PLAYER_FRAME_W * playerFrameIndex, 0,
-        PLAYER_FRAME_W, PLAYER_FRAME_H,
-        -(player.x + player.w), player.y,
-        player.w, player.h
-      );
+      ctx.drawImage(playerSprite, PLAYER_FRAME_W * playerFrameIndex, 0, PLAYER_FRAME_W, PLAYER_FRAME_H, -(player.x + player.w), player.y, player.w, player.h);
       ctx.restore();
     } else {
-      ctx.drawImage(
-        playerSprite,
-        PLAYER_FRAME_W * playerFrameIndex, 0,
-        PLAYER_FRAME_W, PLAYER_FRAME_H,
-        player.x, player.y,
-        player.w, player.h
-      );
+      ctx.drawImage(playerSprite, PLAYER_FRAME_W * playerFrameIndex, 0, PLAYER_FRAME_W, PLAYER_FRAME_H, player.x, player.y, player.w, player.h);
     }
   }
 

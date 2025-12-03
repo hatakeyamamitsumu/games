@@ -36,7 +36,8 @@ export const LEVELS = [
       {x:380, y:400, w:192, h:20, type:1},
       {x:500, y:352, w:192, h:20, type:1},
       {x:900, y:300, w:192, h:20, type:2},
-      {x:1000, y:150, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200}
+      {x:1000, y:250, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
+      {x:1000, y:350, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200}
     ],
     enemies: [
       {x:400, y:366, w:34, h:48, dir:-1, speed:1},

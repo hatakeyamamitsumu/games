@@ -1,6 +1,6 @@
 // ========== main.js ==========
 import { SCREEN_H } from "./config.js";
-import { player, updatePlayer, resetPlayer } from "./player.js";
+import { player, resetPlayer } from "./player.js";
 import { updateEnemies, checkEnemyHit, updateBoss, checkBossHit } from "./enemy.js";
 import { loadStage, stage, LEVELS } from "./stage.js";
 import { render } from "./render.js";
@@ -86,7 +86,6 @@ function loadBackground(stageNumber){ bgImage.src = `./images/graphics/backgroun
 // ===== ステージ開始 =====
 function startStage(s){
   if(s >= totalStages){
-    // 最終ステージクリア
     showEndingScreen();
     return;
   }
@@ -139,15 +138,11 @@ function killPlayer(){
 const startButton = document.getElementById("startButton");
 const titleScreen = document.getElementById("titleScreen");
 
-// ===== エンディング画面（もっとシンプル版） =====
 const endingScreen = document.createElement("div");
 endingScreen.id = "endingScreen";
-endingScreen.innerHTML = `
-  <div class="endingText">Congratulations!</div>
-`;
+endingScreen.innerHTML = `<div class="endingText">Congratulations!</div>`;
 document.body.appendChild(endingScreen);
 
-// ===== CSS（超シンプル） =====
 const style = document.createElement("style");
 style.textContent = `
 #endingScreen {
@@ -163,12 +158,9 @@ style.textContent = `
   z-index: 3000;
   text-align: center;
 }
-
-/* 軽い発光だけ残す */
 .endingText {
   animation: glow 1.5s ease-in-out infinite alternate;
 }
-
 @keyframes glow {
   0%   { text-shadow: 0 0 4px #fff; }
   100% { text-shadow: 0 0 20px #fff; }
@@ -176,9 +168,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-
-
-// ===== タイトル画面ボタン =====
 startButton.addEventListener("click", ()=>{
   titleScreen.style.display = "none";
   document.getElementById("hud").style.display = "block";
@@ -189,7 +178,6 @@ startButton.addEventListener("click", ()=>{
   loop();
 });
 
-// ===== エンディング表示 =====
 function showEndingScreen(){
   isGameEnding = true;
   endingScreen.style.display = "flex";
@@ -197,18 +185,45 @@ function showEndingScreen(){
   clearBGM.pause();
 }
 
+// ===== AABB 衝突判定 =====
+function handleBlockCollision(e, b){
+  const ex1 = e.x, ex2 = e.x + e.w;
+  const ey1 = e.y, ey2 = e.y + e.h;
+  const bx1 = b.x, bx2 = b.x + b.w;
+  const by1 = b.y, by2 = b.y + b.h;
+
+  if(ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
+
+  const overlapX = Math.min(ex2 - bx1, bx2 - ex1);
+  const overlapY = Math.min(ey2 - by1, by2 - ey1);
+
+  if(overlapY < overlapX){
+    if(ey2 - by1 < by2 - ey1){
+      // 上から
+      e.y = by1 - e.h;
+      e.vy = 0;
+      e.onGround = true;
+
+      if(b.type===4) e.x += b.dir*b.speed;
+    } else {
+      // 下から
+      e.y = by2;
+      e.vy = 0;
+    }
+  } else {
+    if(ex2 - bx1 < bx2 - ex1){
+      e.x = bx1 - e.w;
+    } else {
+      e.x = bx2;
+    }
+    e.vx = 0;
+  }
+}
+
 // ===== メインループ =====
 function loop(){
-  const hudData = {
-    stage: stage+1,
-    score,
-    lives,
-    hp: player.hp,
-    maxHp: player.maxHp,
-    invincible
-  };
+  const hudData = { stage: stage+1, score, lives, hp: player.hp, maxHp: player.maxHp, invincible };
 
-  // 状態別描画
   if(isStageCleared || lives<=0 || isPaused || isGameEnding){
     render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
     if(isStageCleared && performance.now()-clearTimer>5000) startStage(stage+1);
@@ -219,8 +234,32 @@ function loop(){
   // 入力
   player.keys = keys;
 
-  // 更新
-  updatePlayer(blocks);
+  // ===== プレイヤー更新 =====
+  player.vy += 0.5;
+  if(player.vy > 10) player.vy = 10;
+
+  if(keys.left) player.vx = -3;
+  else if(keys.right) player.vx = 3;
+  else player.vx = 0;
+
+  player.x += player.vx;
+  player.y += player.vy;
+  player.onGround = false;
+
+  for(const b of blocks){
+    if(b.type===4){
+      b.x += b.dir*b.speed;
+      if(b.x > b.startX + b.range || b.x < b.startX) b.dir*=-1;
+    }
+    handleBlockCollision(player, b);
+  }
+
+  if(keys.jump && player.onGround){
+    player.vy = -12;
+    player.onGround = false;
+  }
+
+  // ===== 敵更新 =====
   updateEnemies(enemies, blocks);
   updateBoss(boss, blocks);
 
