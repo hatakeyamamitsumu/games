@@ -17,20 +17,22 @@ export const LEVELS = [
       {x:1000, y:300, w:192, h:20, type:5},
 
       // ★ 跳ねる床
-      {x:1300, y:340, w:192, h:20, type:6},
+      {x:1200, y:340, w:192, h:20, type:6},
 
       // ★ 追加：上下に動く床（type:7）
-      {x:1600, y:360, w:192, h:20, type:7, startY:360, dir:1, speed:1, range:80}
+      {x:1700, y:360, w:192, h:20, type:7, startY:360, dir:1, speed:1, range:80}
     ],
     enemies: [
       {x:600, y:446, w:34, h:48, dir:1, speed:1},
       {x:800, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"},
       {x:1000, y:432, w:34, h:48, dir:-1, speed:1, type:"jump"},
       {x:1200, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1},
-      {x:1500, y:332, w:34, h:48, type:"jumper"},
+      {x:1400, y:432, w:34, h:48, type:"jumper"},
       {x:1500, y:432, w:34, h:48, type:"jumper"},
-      {x:1500, y:532, w:34, h:48, type:"jumper"},
-      {x:1600, y:432, w:34, h:48, dir:1, speed:2, type:"rush"}
+      
+      {x:1600, y:332, w:34, h:48, type:"jumper"},
+      {x:1600, y:432, w:34, h:48, dir:1, speed:2, type:"rush"},
+      {x:1800, y:382, w:34, h:48, type:"jumper"},
     ],
     boss: null
   },
