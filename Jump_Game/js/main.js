@@ -372,7 +372,7 @@ for (const b of blocks) {
       if (onPlayer) {
         b.wait++;
 
-        if (b.wait >= 120) {   // 待ち時間
+        if (b.wait >= 180) {   // 待ち時間
           b.fall = true;
           b.wait = 0;
         }

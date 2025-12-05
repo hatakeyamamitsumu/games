@@ -13,6 +13,8 @@ import {
   flyEnemySprite,
   rushEnemySprite,
   enemyJumperSprite,
+  wanderEnemySprite,
+  seekerEnemySprite
 } from "./enemy.js";
 
 // ▼ ブロック画像（1〜7）
@@ -72,40 +74,48 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   }
 
   // ============================
-  // 敵描画
-  // ============================
-  for (const e of enemies) {
-    let sprite, frameW = 34, frameH = 48;
-    let frameCount = ENEMY_FRAME_COUNT;
+// 敵描画
+// ============================
+for (const e of enemies) {
+  let sprite, frameW = 34, frameH = 48;
+  let frameCount = ENEMY_FRAME_COUNT;
 
-    switch (e.type) {
-      case 'needle': sprite = needleSprite; break;
-      case 'jump': sprite = jumpEnemySprite; break;
-      case 'fly': sprite = flyEnemySprite; break;
-      case 'rush': sprite = rushEnemySprite; break;
-      case 'jumper': sprite = enemyJumperSprite; break;
-      default: sprite = enemySprite;
-    }
+  switch (e.type) {
+    case 'needle': sprite = needleSprite; break;
+    case 'jump': sprite = jumpEnemySprite; break;
+    case 'fly': sprite = flyEnemySprite; break;
+    case 'rush': sprite = rushEnemySprite; break;
+    case 'jumper': sprite = enemyJumperSprite; break;
+    case 'wander': sprite = wanderEnemySprite; break;
+    case 'seeker': sprite = seekerEnemySprite; break;
 
-    if (sprite.complete) {
-      if (e.type === "rush") {
-        ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
-      } else {
-        ctx.save();
-        if (e.dir === 1) {
-          ctx.translate(e.x + e.w, e.y);
-          ctx.scale(-1, 1);
-          ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, 0, 0, e.w, e.h);
-        } else {
-          ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
-        }
-        ctx.restore();
-      }
-    } else {
-      ctx.fillStyle = "red";
-      ctx.fillRect(e.x, e.y, e.w, e.h);
-    }
+    default: sprite = enemySprite;
   }
+
+  if (sprite.complete) {
+    if (e.type === "rush") {
+      // rush は左右反転しない
+      ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
+    } else {
+      ctx.save();
+
+      // dir=1 のとき反転（通常敵のルール）
+      if (e.dir === 1) {
+        ctx.translate(e.x + e.w, e.y);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, 0, 0, e.w, e.h);
+      } else {
+        ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
+      }
+
+      ctx.restore();
+    }
+  } else {
+    ctx.fillStyle = "red";
+    ctx.fillRect(e.x, e.y, e.w, e.h);
+  }
+}
+
 
   // ============================
   // ボス描画
