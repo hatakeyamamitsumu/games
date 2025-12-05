@@ -15,9 +15,9 @@ import {
   enemyJumperSprite,
 } from "./enemy.js";
 
-// ▼ ブロック画像（4種類）
+// ▼ ブロック画像（6種類に拡張）
 const blockImages = [];
-for (let i = 1; i <= 4; i++) {  
+for (let i = 1; i <= 6; i++) {  
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);
@@ -50,15 +50,23 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   ctx.translate(-cameraX, 0);
 
   // ============================
-  // ブロック描画（動く床も含む）
+  // ブロック描画（動く床・落ちる床含む）
   // ============================
   for (const b of blocks) {
+
+    // ▼ 落ちる床（type:5）は落下中は半透明にする
+    if (b.type === 5 && b.fall) {
+      ctx.globalAlpha = 0.6;
+    }
+
     const tileCount = Math.ceil(b.w / 48);
     let img;
-    if (b.type >= 1 && b.type <= 4) {
-      img = blockImages[b.type - 1];  // 配列は0始まり
+
+    // ▼ 1〜5 のブロック画像を使用
+    if (b.type >= 1 && b.type <= 6) {
+      img = blockImages[b.type - 1];
     } else {
-      img = blockImages[0];           // デフォルト
+      img = blockImages[0];
     }
 
     if (img && img.complete) {
@@ -69,6 +77,8 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
       ctx.fillStyle = "red";
       ctx.fillRect(b.x, b.y, b.w, b.h);
     }
+
+    ctx.globalAlpha = 1.0;
   }
 
   // ============================
@@ -76,7 +86,6 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   // ============================
   for (const e of enemies) {
     let sprite, frameW = 34, frameH = 48;
-    let frameCount = ENEMY_FRAME_COUNT;
 
     switch (e.type) {
       case 'needle': sprite = needleSprite; break;
@@ -128,21 +137,11 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   }
 
   // ============================
-  // プレイヤー描画（無敵点滅対応）
+  // プレイヤー描画（無敵点滅）
   // ============================
   const isInvincible = HUD.invincible === true;
-
-  if (player.vx !== 0) {
-    playerFrameTimer++;
-    if (playerFrameTimer > PLAYER_FRAME_INTERVAL) {
-      playerFrameTimer = 0;
-      playerFrameIndex = (playerFrameIndex + 1) % PLAYER_FRAME_COUNT;
-    }
-  } else {
-    playerFrameIndex = 0;
-  }
-
   let skipDraw = false;
+
   if (isInvincible) {
     const now = performance.now();
     if (Math.floor(now / 100) % 2 === 1) skipDraw = true;
@@ -167,7 +166,7 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   drawHUD(ctx, HUD);
 
   // ============================
-  // ステージクリア表示
+  // ステージクリア
   // ============================
   if (isStageCleared) {
     ctx.save();
@@ -183,7 +182,7 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   }
 
   // ============================
-  // ゲームオーバー表示
+  // ゲームオーバー
   // ============================
   if (HUD.lives <= 0) {
     ctx.save();
