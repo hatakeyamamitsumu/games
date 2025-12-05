@@ -296,17 +296,59 @@ function loop() {
   // ===== 入力 =====
   player.keys = keys;
 
-  // ===== ブロック更新 =====
+ // ===== ブロック更新 =====
 for (const b of blocks) {
 
-  // ---------- 動く床 ----------
+  // ---------- 横に動く床 (type:4) ----------
   if (b.type === 4) {
     b.x += (b.dir ?? 1) * (b.speed ?? 2);
     if (b.x > (b.startX ?? b.x) + (b.range ?? 200)) b.dir = -1;
     if (b.x < (b.startX ?? b.x)) b.dir = 1;
   }
 
-  // ---------- 落ちる床 ----------
+  // ======================================================
+  //  ★ 新しい上下に動く床 (type:7)
+  // ======================================================
+  if (b.type === 7) {
+
+    // 初期化
+    b.startY = b.startY ?? b.y;   // 上下運動の中心
+    b.dir = b.dir ?? 1;           // 1=下, -1=上
+    b.speed = b.speed ?? 2;       // 移動速度
+    b.range = b.range ?? 150;     // 動く距離
+
+    // 上下移動
+    b.y += b.dir * b.speed;
+
+    if (b.y > b.startY + b.range) b.dir = -1;
+    if (b.y < b.startY) b.dir = 1;
+
+    // ★ プレイヤーが乗っているとき、一緒に動かす
+    const onPlayer =
+      player.x + player.w > b.x &&
+      player.x < b.x + b.w &&
+      player.y + player.h >= b.y - 4 &&
+      player.y + player.h <= b.y + 20;
+
+    if (onPlayer) {
+      player.y += b.dir * b.speed;
+    }
+
+    // ★ 敵も乗っていたら一緒に動かす
+    for (const e of enemies) {
+      const onE =
+        e.x + e.w > b.x &&
+        e.x < b.x + b.w &&
+        e.y + e.h >= b.y - 4 &&
+        e.y + e.h <= b.y + 20;
+
+      if (onE) {
+        e.y += b.dir * b.speed;
+      }
+    }
+  }
+
+  // ---------- 落ちる床 (type:5) ----------
   if (b.type === 5) {
 
     // 初期化
@@ -315,10 +357,10 @@ for (const b of blocks) {
     b.fall = b.fall ?? false;
     b.vy = b.vy ?? 0;
     b.timer = b.timer ?? 0;
-    b.wait = b.wait ?? 0;         // ★ 落下前の待機タイマー追加
+    b.wait = b.wait ?? 0;
     b.resetDelay = b.resetDelay ?? 180;
 
-    // ★ 落下していないとき（プレイヤーが乗っているかチェック）
+    // 落下前（プレイヤーが乗ったらタイマー開始）
     if (!b.fall) {
 
       const onPlayer =
@@ -328,28 +370,26 @@ for (const b of blocks) {
         player.y + player.h <= b.y + 20;
 
       if (onPlayer) {
-        b.wait++; // 乗っている間カウント
+        b.wait++;
 
-        // ▼ 落下待機時間（ここを延ばせばOK）
-        if (b.wait >= 120) {   // ← 120 = 約2秒
+        if (b.wait >= 120) {   // 待ち時間
           b.fall = true;
           b.wait = 0;
         }
       } else {
-        // プレイヤーが離れたらリセット
         b.wait = 0;
       }
 
       continue;
     }
 
-    // ★ 落下中の処理 ----------
+    // 落下中の処理
     b.vy += 0.5;
     if (b.vy > 12) b.vy = 12;
     b.y += b.vy;
     b.timer++;
 
-    // プレイヤーを一緒に落とす
+    // プレイヤーも落とす
     const onPlayer2 =
       player.x + player.w > b.x &&
       player.x < b.x + b.w &&
@@ -358,17 +398,18 @@ for (const b of blocks) {
 
     if (onPlayer2) player.y += b.vy;
 
-    // 敵も一緒に落とす
+    // 敵も落とす
     for (const e of enemies) {
       const onE =
         e.x + e.w > b.x &&
         e.x < b.x + b.w &&
         e.y + e.h >= b.y - 4 &&
         e.y + e.h <= b.y + 20;
+
       if (onE) e.y += b.vy;
     }
 
-    // ★ 元の位置へ戻す
+    // 元の位置に戻す
     if (b.timer >= b.resetDelay) {
       b.y = b.initY;
       b.vy = 0;

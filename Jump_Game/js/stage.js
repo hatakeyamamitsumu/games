@@ -16,8 +16,11 @@ export const LEVELS = [
       // ★ 落ちる床
       {x:1000, y:300, w:192, h:20, type:5},
 
-      // ★ 追加：跳ねる床（type:6）
-      {x:1300, y:340, w:192, h:20, type:6}
+      // ★ 跳ねる床
+      {x:1300, y:340, w:192, h:20, type:6},
+
+      // ★ 追加：上下に動く床（type:7）
+      {x:1600, y:360, w:192, h:20, type:7, startY:360, dir:1, speed:1, range:80}
     ],
     enemies: [
       {x:600, y:446, w:34, h:48, dir:1, speed:1},
@@ -43,8 +46,11 @@ export const LEVELS = [
       {x:900, y:150, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1000, y:250, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
 
-      // ★ 追加：跳ねる床（type:6）
-      {x:1200, y:200, w:192, h:20, type:6}
+      // ★ 跳ねる床
+      {x:1200, y:200, w:192, h:20, type:6},
+
+      // ★ 上下に動く床（type:7）
+      {x:1400, y:250, w:192, h:20, type:7, startY:250, dir:1, speed:1, range:120}
     ],
     enemies: [
       {x:400, y:366, w:34, h:48, dir:-1, speed:1},
@@ -67,8 +73,11 @@ export const LEVELS = [
       // 落ちる床
       {x:700, y:260, w:192, h:20, type:5},
 
-      // ★ 追加：跳ねる床
-      {x:900, y:230, w:192, h:20, type:6}
+      // 跳ねる床
+      {x:900, y:230, w:192, h:20, type:6},
+
+      // ★ ラスボス前に上下に動く床
+      {x:1100, y:260, w:192, h:20, type:7, startY:260, dir:1, speed:1, range:100}
     ],
     enemies: [
       {x:500, y:332, w:34, h:48, type:"jumper"},
@@ -83,6 +92,7 @@ export const LEVELS = [
     }
   }
 ];
+
 
 // ===== ステージ読込 =====
 export function loadStage(s){
