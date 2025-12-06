@@ -64,7 +64,6 @@ function playAudio(audio, src){
   audio.currentTime = 0;
   audio.play().catch(()=>{});
 }
-
 function playBGM(stageNumber){ playAudio(bgm, `./sounds/BGM/bgm${stageNumber+1}.mp3`); }
 function playClearBGM(stageNumber){ playAudio(clearBGM, `./sounds/BGM/clear_bgm${stageNumber+1}.mp3`); }
 function playGameoverBGM(){ playAudio(gameoverBGM, "./sounds/BGM/gameover_bgm1.mp3"); }
@@ -95,21 +94,38 @@ function startStage(s){
   enemies = data.enemies;
   boss = data.boss;
 
-  // 初期化：落ちる床(type:5) の初期位置等をセットしておく
+  // 初期化
   for (const b of blocks) {
+    // 落ちる床
     if (b.type === 5) {
       b.initX = b.initX ?? b.x;
       b.initY = b.initY ?? b.y;
       b.fall = false;
       b.vy = 0;
       b.timer = 0;
-      b.resetDelay = b.resetDelay ?? 180; // フレーム数（180 ≒ 3秒）
+      b.wait = 0;
+      b.resetDelay = b.resetDelay ?? 180;
     }
-    if (b.type === 4) { // 動く床の初期化
+
+    // 横に動く床
+    if (b.type === 4) {
       b.startX = b.startX ?? b.x;
       b.dir = b.dir ?? 1;
       b.speed = b.speed ?? 2;
       b.range = b.range ?? 200;
+    }
+
+    // 上下に動く床
+    if (b.type === 7) {
+      b.startY = b.startY ?? b.y;
+      b.dir = b.dir ?? 1;
+      b.speed = b.speed ?? 2;
+      b.range = b.range ?? 150;
+    }
+
+    // 滑る床
+    if (b.type === 8) {
+      b.slippery = true; // 識別用フラグ
     }
   }
 
@@ -203,75 +219,73 @@ function showEndingScreen(){
   clearBGM.pause();
 }
 
-// ===== AABB 衝突判定（ブロックとオブジェクト e の衝突を解決） =====
-function handleBlockCollision(e, b) {
-  // e: オブジェクト（player または enemy）
-  // b: ブロック（type フラグを持つ）
+// ===== AABB 衝突判定（player / enemy） =====
+function handleBlockCollision(e, b){
   const ex1 = e.x, ex2 = e.x + e.w;
   const ey1 = e.y, ey2 = e.y + e.h;
   const bx1 = b.x, bx2 = b.x + b.w;
   const by1 = b.y, by2 = b.y + b.h;
 
-  // 衝突していなければ何もしない
-  if (ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
+  if(ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
 
   const overlapX = Math.min(ex2 - bx1, bx2 - ex1);
   const overlapY = Math.min(ey2 - by1, by2 - ey1);
 
-  if (overlapY < overlapX) {
-    // ===== Y方向の衝突 =====
-
-    // --- 上から衝突（e がブロックの上にいる） ---
-    if (ey2 - by1 <= by2 - ey1) {
-
-      // ===== 通常の床処理 =====
+  if(overlapY < overlapX){
+    // Y方向衝突
+    if(ey2 - by1 <= by2 - ey1){
+      // 上から
       e.y = by1 - e.h;
       e.vy = 0;
       e.onGround = true;
 
-      // 動く床(type 4)なら横へ押し出す
-      if (b.type === 4) {
-        e.x += b.dir * b.speed;
-      }
+      // 横に動く床
+      if(b.type === 4) e.x += b.dir * b.speed;
 
-      // ===== 落ちる床 (type:5) の落下開始 =====
-      if (b.type === 5 && !b.fall) {
+      // 上下に動く床
+      if(b.type === 7) e.y += b.dir * b.speed;
+
+      // 落ちる床
+      if(b.type === 5 && !b.fall){
         b.fall = true;
         b.vy = 0;
         b.timer = 0;
       }
 
-      // ===== 跳ねる床 (type:6) =====
-      if (b.type === 6 && e === player) {
-        e.vy = -20;  // ★ ジャンプ力
+      // 跳ねる床
+      if(b.type === 6 && e === player){
+        e.vy = -20;
         e.onGround = false;
       }
 
-    } else {
-      // --- 下からぶつかった（頭をぶつけた） ---
-      e.y = by2;
-      if (e.vy < 0) e.vy = 0;
-    }
-
-  } else {
-    // ===== X方向の衝突（左右） =====
-    if (ex2 - bx1 < bx2 - ex1) {
-      // 左から衝突
-      e.x = bx1 - e.w;
-      if (b.type === 4) e.x += b.dir * b.speed;
-    } else {
-      // 右から衝突
-      e.x = bx2;
-      if (b.type === 4) e.x += b.dir * b.speed;
-    }
-
-    e.vx = 0; // 水平速度を止める
-  }
+if (b.type === 8 && e === player) {
+  e.friction = 0.00;
+  player.onSlippery = true;        // ← 追加！
+} else {
+  e.friction = 0.1;
+  player.onSlippery = false;       // ← 追加！
 }
 
 
+    } else {
+      // 下からぶつかった
+      e.y = by2;
+      if(e.vy < 0) e.vy = 0;
+    }
+
+  } else {
+    // X方向衝突
+    if(ex2 - bx1 < bx2 - ex1) e.x = bx1 - e.w;
+    else e.x = bx2;
+
+    if(b.type === 4) e.x += b.dir * b.speed;
+    e.vx = 0;
+  }
+}
+
 // ===== メインループ =====
-function loop() {
+function loop(){
+
   const hudData = {
     stage: stage + 1,
     score,
@@ -281,163 +295,111 @@ function loop() {
     invincible
   };
 
-  // ====== 先に描画する（HUD が必ず表示される）======
   render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
 
-  // 停止中は描画だけ続ける
-  if (isStageCleared || lives <= 0 || isPaused || isGameEnding) {
-    if (isStageCleared && performance.now() - clearTimer > 5000) {
+  if(isStageCleared || lives <= 0 || isPaused || isGameEnding){
+    if(isStageCleared && performance.now() - clearTimer > 5000){
       startStage(stage + 1);
     }
     requestAnimationFrame(loop);
     return;
   }
 
-  // ===== 入力 =====
   player.keys = keys;
 
- // ===== ブロック更新 =====
-for (const b of blocks) {
+  // ===== ブロック更新 =====
+  for(const b of blocks){
 
-  // ---------- 横に動く床 (type:4) ----------
-  if (b.type === 4) {
-    b.x += (b.dir ?? 1) * (b.speed ?? 2);
-    if (b.x > (b.startX ?? b.x) + (b.range ?? 200)) b.dir = -1;
-    if (b.x < (b.startX ?? b.x)) b.dir = 1;
-  }
-
-  // ======================================================
-  //  ★ 新しい上下に動く床 (type:7)
-  // ======================================================
-  if (b.type === 7) {
-
-    // 初期化
-    b.startY = b.startY ?? b.y;   // 上下運動の中心
-    b.dir = b.dir ?? 1;           // 1=下, -1=上
-    b.speed = b.speed ?? 2;       // 移動速度
-    b.range = b.range ?? 150;     // 動く距離
-
-    // 上下移動
-    b.y += b.dir * b.speed;
-
-    if (b.y > b.startY + b.range) b.dir = -1;
-    if (b.y < b.startY) b.dir = 1;
-
-    // ★ プレイヤーが乗っているとき、一緒に動かす
-    const onPlayer =
-      player.x + player.w > b.x &&
-      player.x < b.x + b.w &&
-      player.y + player.h >= b.y - 4 &&
-      player.y + player.h <= b.y + 20;
-
-    if (onPlayer) {
-      player.y += b.dir * b.speed;
+    // 横に動く床
+    if(b.type === 4){
+      b.x += (b.dir ?? 1) * (b.speed ?? 2);
+      if(b.x > (b.startX ?? b.x) + (b.range ?? 200)) b.dir = -1;
+      if(b.x < (b.startX ?? b.x)) b.dir = 1;
     }
 
-    // ★ 敵も乗っていたら一緒に動かす
-    for (const e of enemies) {
-      const onE =
-        e.x + e.w > b.x &&
-        e.x < b.x + b.w &&
-        e.y + e.h >= b.y - 4 &&
-        e.y + e.h <= b.y + 20;
+    // 上下に動く床
+    if(b.type === 7){
+      b.y += (b.dir ?? 1) * (b.speed ?? 2);
+      if(b.y > (b.startY ?? b.y) + (b.range ?? 150)) b.dir = -1;
+      if(b.y < (b.startY ?? b.y)) b.dir = 1;
 
-      if (onE) {
-        e.y += b.dir * b.speed;
+      const onPlayer = player.x + player.w > b.x && player.x < b.x + b.w &&
+                       player.y + player.h >= b.y - 4 && player.y + player.h <= b.y + 20;
+      if(onPlayer) player.y += b.dir * b.speed;
+
+      for(const e of enemies){
+        const onE = e.x + e.w > b.x && e.x < b.x + b.w &&
+                    e.y + e.h >= b.y - 4 && e.y + e.h <= b.y + 20;
+        if(onE) e.y += b.dir * b.speed;
       }
     }
-  }
 
-  // ---------- 落ちる床 (type:5) ----------
-  if (b.type === 5) {
+    // 落ちる床
+    if(b.type === 5){
+      if(!b.fall){
+        const onPlayer = player.x + player.w > b.x && player.x < b.x + b.w &&
+                         player.y + player.h >= b.y - 4 && player.y + player.h <= b.y + 20;
+        if(onPlayer) b.wait++;
+        else b.wait = 0;
 
-    // 初期化
-    b.initX = b.initX ?? b.x;
-    b.initY = b.initY ?? b.y;
-    b.fall = b.fall ?? false;
-    b.vy = b.vy ?? 0;
-    b.timer = b.timer ?? 0;
-    b.wait = b.wait ?? 0;
-    b.resetDelay = b.resetDelay ?? 180;
-
-    // 落下前（プレイヤーが乗ったらタイマー開始）
-    if (!b.fall) {
-
-      const onPlayer =
-        player.x + player.w > b.x &&
-        player.x < b.x + b.w &&
-        player.y + player.h >= b.y - 4 &&
-        player.y + player.h <= b.y + 20;
-
-      if (onPlayer) {
-        b.wait++;
-
-        if (b.wait >= 180) {   // 待ち時間
+        if(b.wait >= 180){
           b.fall = true;
           b.wait = 0;
         }
-      } else {
-        b.wait = 0;
+        continue;
       }
 
-      continue;
-    }
+      b.vy += 0.5;
+      if(b.vy > 12) b.vy = 12;
+      b.y += b.vy;
+      b.timer++;
 
-    // 落下中の処理
-    b.vy += 0.5;
-    if (b.vy > 12) b.vy = 12;
-    b.y += b.vy;
-    b.timer++;
+      const onPlayer2 = player.x + player.w > b.x && player.x < b.x + b.w &&
+                        player.y + player.h >= b.y - 4 && player.y + player.h <= b.y + 20;
+      if(onPlayer2) player.y += b.vy;
 
-    // プレイヤーも落とす
-    const onPlayer2 =
-      player.x + player.w > b.x &&
-      player.x < b.x + b.w &&
-      player.y + player.h >= b.y - 4 &&
-      player.y + player.h <= b.y + 20;
+      for(const e of enemies){
+        const onE = e.x + e.w > b.x && e.x < b.x + b.w &&
+                    e.y + e.h >= b.y - 4 && e.y + e.h <= b.y + 20;
+        if(onE) e.y += b.vy;
+      }
 
-    if (onPlayer2) player.y += b.vy;
-
-    // 敵も落とす
-    for (const e of enemies) {
-      const onE =
-        e.x + e.w > b.x &&
-        e.x < b.x + b.w &&
-        e.y + e.h >= b.y - 4 &&
-        e.y + e.h <= b.y + 20;
-
-      if (onE) e.y += b.vy;
-    }
-
-    // 元の位置に戻す
-    if (b.timer >= b.resetDelay) {
-      b.y = b.initY;
-      b.vy = 0;
-      b.fall = false;
-      b.timer = 0;
-      b.wait = 0;
+      if(b.timer >= b.resetDelay){
+        b.y = b.initY;
+        b.vy = 0;
+        b.fall = false;
+        b.timer = 0;
+        b.wait = 0;
+      }
     }
   }
-}
-
 
   // ===== プレイヤー更新 =====
   player.vy += 0.5;
-  if (player.vy > 10) player.vy = 10;
+  if(player.vy > 10) player.vy = 10;
 
-  if (keys.left) player.vx = -3;
-  else if (keys.right) player.vx = 3;
-  else player.vx = 0;
+  // 摩擦処理
+  let friction = 0.1;
+  for(const b of blocks){
+    if(b.type===8 && player.x + player.w > b.x && player.x < b.x + b.w &&
+       player.y + player.h >= b.y - 4 && player.y + player.h <= b.y + 20){
+      friction = 0.02; break;
+    }
+  }
+
+  if(keys.left) player.vx = -3;
+  else if(keys.right) player.vx = 3;
+  else player.vx *= 1 - friction;
 
   player.x += player.vx;
   player.y += player.vy;
   player.onGround = false;
 
-  for (const b of blocks) {
+  for(const b of blocks){
     handleBlockCollision(player, b);
   }
 
-  if (keys.jump && player.onGround) {
+  if(keys.jump && player.onGround){
     player.vy = -12;
     player.onGround = false;
   }
@@ -446,32 +408,30 @@ for (const b of blocks) {
   updateEnemies(enemies, blocks);
   updateBoss(boss, blocks);
 
-  for (const e of enemies) {
-    if (e.type === "rush") continue;
-    for (const b of blocks) {
+  for(const e of enemies){
+    if(e.type === "rush") continue;
+    for(const b of blocks){
       handleBlockCollision(e, b);
     }
   }
 
   // 無敵解除
-  if (invincible && performance.now() - invincibleTimer > 1500) {
-    invincible = false;
-  }
+  if(invincible && performance.now() - invincibleTimer > 1500) invincible = false;
 
   // 穴に落ちた
-  if (player.y > SCREEN_H) {
+  if(player.y > SCREEN_H){
     killPlayer();
     requestAnimationFrame(loop);
     return;
   }
 
   // 敵ダメージ判定
-  if (!invincible) {
-    if (checkEnemyHit(enemies) === "hit") takeDamage(1);
+  if(!invincible){
+    if(checkEnemyHit(enemies) === "hit") takeDamage(1);
 
     const bossState = checkBossHit(boss);
-    if (bossState === "hit") takeDamage(1);
-    else if (bossState === "dead") {
+    if(bossState === "hit") takeDamage(1);
+    else if(bossState === "dead"){
       score += 1000;
       bgm.pause();
       playClearBGM(stage);
@@ -481,7 +441,7 @@ for (const b of blocks) {
   }
 
   // ゴール
-  if (player.x > 1800) {
+  if(player.x > 1800){
     score += 500;
     bgm.pause();
     playClearBGM(stage);
@@ -492,6 +452,5 @@ for (const b of blocks) {
   // カメラ
   cameraX = Math.max(player.x - 200, 0);
 
-  // 次フレームへ
   requestAnimationFrame(loop);
 }

@@ -14,11 +14,11 @@ export const player = {
   x: 80, y: 0, w: PLAYER_WIDTH, h: PLAYER_HEIGHT,
   vx: 0, vy: 0,
   onGround: false,
+  onSlippery: false,     // ← 追加（滑る床のフラグ）
   frame: 0,
   frameTimer: 0,
   frameInterval: 100,
 
-  // ★★★★★ HPを追加（絶対に必要）★★★★★
   hp: 5,
   maxHp: 5
 };
@@ -31,37 +31,57 @@ export function resetPlayer() {
   player.frame = 0;
   player.frameTimer = 0;
 
-  // ★ HPをリセット
   player.hp = player.maxHp;
 }
 
 export function updatePlayer(blocks, stageWidth = 3000) {
-  // 横移動
-  if(keys.left)  player.vx = -PLAYER_SPEED;
-  if(keys.right) player.vx = PLAYER_SPEED;
-  if(!keys.left && !keys.right) player.vx *= 0.8;
 
-  // ジャンプ
+  // ---------- 横移動（滑る床対応版） ----------
+  if (player.onSlippery) {
+    // 加速の大きさ
+    const accel = 1.8;        // ← 好きに調整（1.0〜1.5で超高速化）
+
+    if(keys.left)  player.vx -= accel;
+    if(keys.right) player.vx += accel;
+
+    // 摩擦なし → 自然減速しない
+    if(!keys.left && !keys.right){
+      player.vx *= 0.99;      // ← 完全に止まらないように少しだけ減衰
+    }
+
+    // 最大速度（高速化）
+    const maxSpeed = PLAYER_SPEED * 2.5;
+    if(player.vx >  maxSpeed) player.vx =  maxSpeed;
+    if(player.vx < -maxSpeed) player.vx = -maxSpeed;
+
+  } else {
+    // ----- 通常床 -----
+    if(keys.left)  player.vx = -PLAYER_SPEED;
+    if(keys.right) player.vx = PLAYER_SPEED;
+    if(!keys.left && !keys.right) player.vx *= 0.8;
+  }
+
+  // ---------- ジャンプ ----------
   if(keys.jump && player.onGround) {
     player.vy = -PLAYER_JUMP;
   }
 
-  // 重力
+  // ---------- 重力 ----------
   player.vy += GRAVITY;
   if(player.vy > 15) player.vy = 15;
 
-  // 位置更新
+  // ---------- 移動 ----------
   player.x += player.vx;
   player.y += player.vy;
 
-  // 衝突
+  // ---------- 衝突処理 ----------
   resolvePlayerBlock(blocks);
 
-  // 端制限
+  // ---------- 端制限 ----------
   if(player.x < 0) player.x = 0;
   if(player.x + player.w > stageWidth) player.x = stageWidth - player.w;
 
-  // アニメ
+  // ---------- アニメーション ----------
   updatePlayerAnimation();
 }
 
