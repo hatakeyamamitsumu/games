@@ -8,15 +8,17 @@ export const LEVELS = [
   {
     blocks: [
       {x:0, y:480, w:192, h:60, type:0},
-      {x:200, y:380, w:192, h:20, type:8}, // 滑る床追加
+      {x:200, y:380, w:192, h:20, type:8},
       {x:288, y:432, w:48, h:60, type:0},
       {x:288, y:480, w:2400, h:60, type:0},
       {x:500, y:380, w:192, h:20, type:1},
-      {x:800, y:380, w:192, h:4, type:8}, // 新規滑る床
+      {x:800, y:380, w:192, h:4, type:8},
       {x:800, y:380, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1000, y:300, w:192, h:20, type:5},
       {x:1200, y:340, w:192, h:20, type:6},
-      {x:1700, y:360, w:192, h:20, type:7, startY:360, dir:1, speed:1, range:80}
+      {x:1700, y:360, w:192, h:20, type:7, startY:360, dir:1, speed:1, range:80},
+      // ★追加：見えたり消えたりする床
+      {x:160, y:250, w:192, h:20, type:9}
     ],
     enemies: [
       {x:600, y:446, w:34, h:48, dir:1, speed:1},
@@ -46,7 +48,9 @@ export const LEVELS = [
       {x:1000, y:250, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1200, y:200, w:192, h:20, type:6},
       {x:1400, y:250, w:192, h:20, type:7, startY:250, dir:1, speed:1, range:120},
-      {x:600, y:320, w:192, h:20, type:8} // 新規滑る床
+      {x:600, y:320, w:192, h:20, type:8},
+      // ★追加：見えたり消えたりする床
+      {x:300, y:250, w:192, h:20, type:9}
     ],
     enemies: [
       {x:400, y:366, w:34, h:48, dir:-1, speed:1},
@@ -70,7 +74,9 @@ export const LEVELS = [
       {x:700, y:260, w:192, h:20, type:5},
       {x:900, y:230, w:192, h:20, type:6},
       {x:1100, y:260, w:192, h:20, type:7, startY:260, dir:1, speed:1, range:100},
-      {x:450, y:330, w:192, h:20, type:8} // 新規滑る床
+      {x:450, y:330, w:192, h:20, type:8},
+      // ★追加：見えたり消えたりする床
+      {x:300, y:250, w:192, h:20, type:9}
     ],
     enemies: [
       {x:500, y:332, w:34, h:48, type:"jumper"},
@@ -87,6 +93,7 @@ export const LEVELS = [
     }
   }
 ];
+
 
 
 
