@@ -226,7 +226,28 @@ function handleBlockCollision(e, b){
   const bx1 = b.x, bx2 = b.x + b.w;
   const by1 = b.y, by2 = b.y + b.h;
 
+  // 衝突なし
   if(ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
+
+  // ======== 片方向床（type:10）を先に処理 ========
+  if (b.type === 10) {
+    // プレイヤー・敵が下から侵入している場合 → すり抜け
+    // （頭が床の底より下にある）
+    if (ey1 > by2 - 5) {
+      return; // ← すり抜け
+    }
+
+    // 上から落ちてきた場合だけ着地させる
+    if (e.vy >= 0 && ey2 > by1) {
+      e.y = by1 - e.h;
+      e.vy = 0;
+      e.onGround = true;
+    }
+
+    return; // type:10 の処理はここで終了
+  }
+  // ======== ここまで type:10 ========
+
 
   const overlapX = Math.min(ex2 - bx1, bx2 - ex1);
   const overlapY = Math.min(ey2 - by1, by2 - ey1);
@@ -258,14 +279,14 @@ function handleBlockCollision(e, b){
         e.onGround = false;
       }
 
-if (b.type === 8 && e === player) {
-  e.friction = 0.00;
-  player.onSlippery = true;        // ← 追加！
-} else {
-  e.friction = 0.1;
-  player.onSlippery = false;       // ← 追加！
-}
-
+      // 滑る床
+      if (b.type === 8 && e === player) {
+        e.friction = 0.00;
+        player.onSlippery = true;
+      } else {
+        e.friction = 0.1;
+        player.onSlippery = false;
+      }
 
     } else {
       // 下からぶつかった
@@ -282,6 +303,7 @@ if (b.type === 8 && e === player) {
     e.vx = 0;
   }
 }
+
 
 // ===== メインループ =====
 function loop(){

@@ -19,7 +19,7 @@ import {
 
 // ▼ ブロック画像（1〜7）
 const blockImages = [];
-for (let i = 1; i <= 9; i++) {
+for (let i = 1; i <= 10; i++) {
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);
@@ -57,7 +57,7 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   for (const b of blocks) {
     const tileCount = Math.ceil(b.w / 48);
     let img;
-    if (b.type >= 1 && b.type <= 9) {
+    if (b.type >= 1 && b.type <= 10) {
       img = blockImages[b.type - 1];  // 配列は0始まり
     } else {
       img = blockImages[0];           // デフォルト

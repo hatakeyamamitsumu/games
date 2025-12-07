@@ -9,6 +9,7 @@ export const LEVELS = [
     blocks: [
       {x:0, y:480, w:192, h:60, type:0},
       {x:200, y:380, w:192, h:20, type:8},
+      {x:200, y:150, w:192, h:20, type:10},
       {x:288, y:432, w:48, h:60, type:0},
       {x:288, y:480, w:2400, h:60, type:0},
       {x:500, y:380, w:192, h:20, type:1},
