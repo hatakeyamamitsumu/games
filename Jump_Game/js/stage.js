@@ -62,10 +62,10 @@ export const LEVELS = [
       {x:600, y:320, w:192, h:20, type:8},
       {x:300, y:250, w:192, h:20, type:9},
 
-      // ★ 円運動ブロック
+
       // ★円運動ブロック
       {
-        x:750, y:180, w:96, h:20,
+        x:650, y:180, w:96, h:20,
         type:11,
         centerX:600,
         centerY:250,
@@ -95,13 +95,13 @@ export const LEVELS = [
       {x:450, y:380, w:240, h:20, type:1},
       {x:700, y:260, w:192, h:20, type:5},
       {x:900, y:230, w:192, h:20, type:6},
-      {x:1100, y:260, w:192, h:20, type:7, startY:260, dir:1, speed:1, range:100},
-      {x:450, y:330, w:192, h:20, type:8},
+      {x:1300, y:260, w:192, h:20, type:7, startY:260, dir:1, speed:1, range:100},
+      {x:450, y:200, w:192, h:20, type:8},
       {x:300, y:250, w:192, h:20, type:9},
 
       // ★円運動ブロック
       {
-        x:950, y:180, w:96, h:20,
+        x:1100, y:180, w:96, h:20,
         type:11,
         centerX:600,
         centerY:250,
