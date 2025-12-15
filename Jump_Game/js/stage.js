@@ -18,8 +18,18 @@ export const LEVELS = [
       {x:1000, y:300, w:192, h:20, type:5},
       {x:1200, y:340, w:192, h:20, type:6},
       {x:1700, y:360, w:192, h:20, type:7, startY:360, dir:1, speed:1, range:80},
-      // ★追加：見えたり消えたりする床
-      {x:160, y:250, w:192, h:20, type:9}
+      {x:160, y:250, w:192, h:20, type:9},
+
+      // ★円運動ブロック
+      {
+        x:600, y:250, w:96, h:20,
+        type:11,
+        centerX:600,
+        centerY:250,
+        radius:80,
+        angle:0,
+        angularSpeed:0.03
+      }
     ],
     enemies: [
       {x:600, y:446, w:34, h:48, dir:1, speed:1},
@@ -50,8 +60,19 @@ export const LEVELS = [
       {x:1200, y:200, w:192, h:20, type:6},
       {x:1400, y:250, w:192, h:20, type:7, startY:250, dir:1, speed:1, range:120},
       {x:600, y:320, w:192, h:20, type:8},
-      // ★追加：見えたり消えたりする床
-      {x:300, y:250, w:192, h:20, type:9}
+      {x:300, y:250, w:192, h:20, type:9},
+
+      // ★ 円運動ブロック
+      // ★円運動ブロック
+      {
+        x:750, y:180, w:96, h:20,
+        type:11,
+        centerX:600,
+        centerY:250,
+        radius:80,
+        angle:0,
+        angularSpeed:0.03
+      }
     ],
     enemies: [
       {x:400, y:366, w:34, h:48, dir:-1, speed:1},
@@ -76,8 +97,18 @@ export const LEVELS = [
       {x:900, y:230, w:192, h:20, type:6},
       {x:1100, y:260, w:192, h:20, type:7, startY:260, dir:1, speed:1, range:100},
       {x:450, y:330, w:192, h:20, type:8},
-      // ★追加：見えたり消えたりする床
-      {x:300, y:250, w:192, h:20, type:9}
+      {x:300, y:250, w:192, h:20, type:9},
+
+      // ★円運動ブロック
+      {
+        x:950, y:180, w:96, h:20,
+        type:11,
+        centerX:600,
+        centerY:250,
+        radius:80,
+        angle:0,
+        angularSpeed:0.03
+      }
     ],
     enemies: [
       {x:500, y:332, w:34, h:48, type:"jumper"},
@@ -95,11 +126,6 @@ export const LEVELS = [
   }
 ];
 
-
-
-
-
-
 // ===== ステージ読込 =====
 export function loadStage(s){
   stage = s;
@@ -107,7 +133,6 @@ export function loadStage(s){
 
   const blocks = structuredClone(data.blocks);
 
-  // 敵にアニメーション用データ付与
   const enemies = structuredClone(data.enemies).map(e => ({
     ...e,
     frame: 0,
@@ -115,7 +140,6 @@ export function loadStage(s){
     _frameInterval: 8
   }));
 
-  // ボスにも同処理
   const boss = data.boss ? {
     ...structuredClone(data.boss),
     frame: 0,

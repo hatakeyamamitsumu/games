@@ -229,23 +229,41 @@ function handleBlockCollision(e, b){
   // 衝突なし
   if(ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
 
-  // ======== 片方向床（type:10）を先に処理 ========
-  if (b.type === 10) {
-    // プレイヤー・敵が下から侵入している場合 → すり抜け
-    // （頭が床の底より下にある）
-    if (ey1 > by2 - 5) {
-      return; // ← すり抜け
-    }
+// ======== 条件付きすり抜け床（type:10） ========
+if (b.type === 10) {
 
-    // 上から落ちてきた場合だけ着地させる
-    if (e.vy >= 0 && ey2 > by1) {
-      e.y = by1 - e.h;
-      e.vy = 0;
-      e.onGround = true;
-    }
+  // 下から来た場合は常にすり抜け
+  if (ey1 > by2 - 5) return;
 
-    return; // type:10 の処理はここで終了
+  // 上から落ちてきた場合
+  const fromAbove = (e.vy >= 0 && ey2 > by1);
+
+  if (!fromAbove) return;
+
+  // ===== ここが核心 =====
+  // プレイヤーが「動いているか？」
+  let moving = true;
+
+  if (e === player) {
+    moving =
+      keys.left ||
+      keys.right ||
+      keys.jump;
   }
+
+  // 動いていなければ床として成立しない → 落ちる
+  if (!moving) {
+    return;
+  }
+
+  // 着地させる
+  e.y = by1 - e.h;
+  e.vy = 0;
+  e.onGround = true;
+
+  return;
+}
+
   // ======== ここまで type:10 ========
 
 
