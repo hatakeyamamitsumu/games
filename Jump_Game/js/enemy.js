@@ -28,6 +28,9 @@ wanderEnemySprite.src = "./images/characters/enemy6.png";
 export const seekerEnemySprite = new Image();
 seekerEnemySprite.src = "./images/characters/enemy7.png";
 
+export const chaserEnemySprite = new Image();
+chaserEnemySprite.src = "./images/characters/enemy8.png";
+
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
 
@@ -246,6 +249,57 @@ export function updateEnemies(enemies, blocks) {
 
       continue;
     }
+// ------------------------------------------------
+// ★ 新敵：chaser（飛行・全方向追尾）
+// ------------------------------------------------
+else if (e.type === "chaser") {
+
+  // 初期化
+  e.speed = e.speed ?? 1.3;
+  e.frame = e.frame ?? 0;
+
+  // アニメ
+  e._frameTimer = (e._frameTimer ?? 0) + 1;
+  if (e._frameTimer >= 8) {
+    e._frameTimer = 0;
+    e.frame = (e.frame + 1) % ENEMY_FRAME_COUNT;
+  }
+
+  // プレイヤー中心
+  const px = player.x + player.w / 2;
+  const py = player.y + player.h / 2;
+
+  // 自分の中心
+  const ex = e.x + e.w / 2;
+  const ey = e.y + e.h / 2;
+
+  // 追尾ベクトル
+  const dx = px - ex;
+  const dy = py - ey;
+  const dist = Math.hypot(dx, dy) || 1;
+
+  // 正規化して移動
+  e.x += (dx / dist) * e.speed;
+  e.y += (dy / dist) * e.speed;
+
+  // 向き
+  e.dir = dx >= 0 ? 1 : -1;
+
+  // ふわふわ補正
+  e.floatOffset = e.floatOffset ?? Math.random() * 1000;
+  e.y += Math.sin(e.floatOffset) * 0.8;
+  e.floatOffset += 0.05;
+
+  // 画面外削除
+  if (
+    e.x < -100 || e.x > 2600 ||
+    e.y < -100 || e.y > 600
+  ) {
+    enemies.splice(i, 1);
+  }
+
+  continue;
+}
 
     // ------------------------------------------------
     // 通常敵

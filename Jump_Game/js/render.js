@@ -15,7 +15,8 @@ import {
   rushEnemySprite,
   enemyJumperSprite,
   wanderEnemySprite,
-  seekerEnemySprite
+  seekerEnemySprite,
+  chaserEnemySprite
 } from "./enemy.js";
 
 // ▼ ブロック画像（1〜7）
@@ -89,6 +90,7 @@ for (const e of enemies) {
     case 'jumper': sprite = enemyJumperSprite; break;
     case 'wander': sprite = wanderEnemySprite; break;
     case 'seeker': sprite = seekerEnemySprite; break;
+    case 'chaser': sprite = chaserEnemySprite; break;
 
     default: sprite = enemySprite;
   }

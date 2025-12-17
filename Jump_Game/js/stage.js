@@ -14,7 +14,7 @@ export const LEVELS = [
       {x:288, y:480, w:2400, h:60, type:0},
       {x:500, y:380, w:192, h:20, type:1},
       {x:800, y:380, w:192, h:4, type:8},
-      {x:800, y:380, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
+      {x:800, y:180, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1000, y:300, w:192, h:20, type:5},
       {x:1200, y:340, w:192, h:20, type:6},
       {x:1700, y:360, w:192, h:20, type:7, startY:360, dir:1, speed:1, range:80},
@@ -42,7 +42,9 @@ export const LEVELS = [
       {x:1600, y:432, w:34, h:48, dir:1, speed:6, type:"rush"},
       {x:1800, y:382, w:34, h:48, type:"jumper"},
       {x:288, y:332, w:34, h:48, dir:1, speed:1, type:"wander"},
-      {x:500, y:400, w:34, h:48, speed:1, type:"seeker"}
+      {x:500, y:400, w:34, h:48, speed:1, type:"seeker"},
+      { x:900, y:180, w:48, h:48, type:"chaser", speed:1.3 }
+
     ],
     boss: null
   },
@@ -53,14 +55,15 @@ export const LEVELS = [
       {x:0, y:480, w:2400, h:60, type:0},
       {x:380, y:400, w:192, h:20, type:1},
       {x:500, y:352, w:192, h:20, type:1},
-      {x:700, y:400, w:192, h:20, type:5},
+      {x:600, y:100, w:192, h:20, type:5},
       {x:900, y:300, w:192, h:20, type:2},
       {x:900, y:150, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1000, y:250, w:192, h:20, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1200, y:200, w:192, h:20, type:6},
       {x:1400, y:250, w:192, h:20, type:7, startY:250, dir:1, speed:1, range:120},
-      {x:600, y:320, w:192, h:20, type:8},
+      {x:300, y:120, w:192, h:20, type:8},
       {x:300, y:250, w:192, h:20, type:9},
+
 
 
       // ★円運動ブロック
@@ -83,7 +86,8 @@ export const LEVELS = [
       {x:1500, y:432, w:34, h:48, type:"jumper"},
       {x:1600, y:366, w:34, h:48, dir:1, speed:6, type:"rush"},
       {x:380, y:332, w:34, h:48, dir:1, speed:1, type:"wander"},
-      {x:600, y:300, w:34, h:48, speed:1, type:"seeker"}
+      {x:600, y:300, w:34, h:48, speed:1, type:"seeker"},
+      { x:900, y:180, w:48, h:48, type:"chaser", speed:1.3 }
     ],
     boss: null
   },
@@ -98,10 +102,11 @@ export const LEVELS = [
       {x:1300, y:260, w:192, h:20, type:7, startY:260, dir:1, speed:1, range:100},
       {x:450, y:200, w:192, h:20, type:8},
       {x:300, y:250, w:192, h:20, type:9},
+      
 
       // ★円運動ブロック
       {
-        x:1100, y:180, w:96, h:20,
+        x:1100, y:100, w:96, h:20,
         type:11,
         centerX:600,
         centerY:250,
@@ -117,7 +122,8 @@ export const LEVELS = [
       {x:800, y:250, w:34, h:48, dir:-1, speed:1, type:"fly", vy:1},
       {x:1000, y:432, w:34, h:48, dir:1, speed:6, type:"rush"},
       {x:480, y:332, w:34, h:48, dir:1, speed:1, type:"wander"},
-      {x:520, y:300, w:34, h:48, speed:1, type:"seeker"}
+      {x:520, y:300, w:34, h:48, speed:1, type:"seeker"},
+      { x:900, y:180, w:48, h:48, type:"chaser", speed:1.3 }
     ],
     boss: {
       x:1400, y:400, w:80, h:80,
