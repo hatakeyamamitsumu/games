@@ -16,12 +16,13 @@ import {
   enemyJumperSprite,
   wanderEnemySprite,
   seekerEnemySprite,
-  chaserEnemySprite
+  chaserEnemySprite,
+  phaserEnemySprite,
 } from "./enemy.js";
 
 // ▼ ブロック画像（1〜7）
 const blockImages = [];
-for (let i = 1; i <= 10; i++) {
+for (let i = 1; i <= 11; i++) {
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);
@@ -59,7 +60,7 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   for (const b of blocks) {
     const tileCount = Math.ceil(b.w / 48);
     let img;
-    if (b.type >= 1 && b.type <= 10) {
+    if (b.type >= 1 && b.type <= 11) {
       img = blockImages[b.type - 1];  // 配列は0始まり
     } else {
       img = blockImages[0];           // デフォルト
@@ -79,6 +80,7 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
 // 敵描画
 // ============================
 for (const e of enemies) {
+  if (e.visible === false) continue;
   let sprite, frameW = 34, frameH = 48;
   let frameCount = ENEMY_FRAME_COUNT;
 
@@ -91,6 +93,7 @@ for (const e of enemies) {
     case 'wander': sprite = wanderEnemySprite; break;
     case 'seeker': sprite = seekerEnemySprite; break;
     case 'chaser': sprite = chaserEnemySprite; break;
+    case 'phaser': sprite = phaserEnemySprite; break;
 
     default: sprite = enemySprite;
   }
