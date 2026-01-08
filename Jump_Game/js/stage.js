@@ -22,6 +22,8 @@ export const LEVELS = [
       {x:600, y:250, w:96, h:20,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
     ],
     enemies: [
+        { x: 600, y: 350, w: 32, h: 32, type: "heal" },
+  { x: 1200, y: 300, w: 32, h: 32, type: "heal" },
       {x:600, y:446, w:34, h:48, dir:1, speed:1},
       {x:800, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"},
       {x:1000, y:432, w:34, h:48, dir:-1, speed:1, type:"jump"},
@@ -56,6 +58,9 @@ export const LEVELS = [
       {x:650, y:180, w:96, h:20,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
     ],
     enemies: [
+        // ▼ 回復アイテム
+  { x: 500,  y: 300, w: 32, h: 32, type: "heal" },
+  { x: 1100, y: 250, w: 32, h: 32, type: "heal" },
       {x:400, y:366, w:34, h:48, dir:-1, speed:1},
       {x:950, y:266, w:34, h:48, dir:-1, speed:1},
       {x:1000, y:432, w:34, h:48, dir:1, speed:1, type:"needle"},
@@ -83,17 +88,22 @@ export const LEVELS = [
       {x:300, y:250, w:192, h:20, type:9},
       {x:1100, y:100, w:96, h:20,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
     ],
-    enemies: [
-      {x:500, y:332, w:34, h:48, type:"jumper"},
-      {x:500, y:432, w:34, h:48, type:"jumper"},
-      {x:600, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1},
-      {x:800, y:250, w:34, h:48, dir:-1, speed:1, type:"fly", vy:1},
-      {x:1000, y:432, w:34, h:48, dir:1, speed:6, type:"rush"},
-      {x:480, y:332, w:34, h:48, dir:1, speed:1, type:"wander"},
-      {x:520, y:300, w:34, h:48, speed:1, type:"seeker"},
-      { x:900, y:180, w:48, h:48, type:"chaser", speed:1.3 },
-      {x: 900,y: 120,w: 48,h: 48,type: "phaser",timer: 0,interval: 120,visible: true,active: true}
-    ],
+enemies: [
+  // ▼ 回復アイテム
+  { x: 550, y: 260, w: 32, h: 32, type: "heal" },
+
+  // ▼ 敵
+  {x:500, y:332, w:34, h:48, type:"jumper"},
+  {x:500, y:432, w:34, h:48, type:"jumper"},
+  {x:600, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1},
+  {x:800, y:250, w:34, h:48, dir:-1, speed:1, type:"fly", vy:1},
+  {x:1000, y:432, w:34, h:48, dir:1, speed:6, type:"rush"},
+  {x:480, y:332, w:34, h:48, dir:1, speed:1, type:"wander"},
+  {x:520, y:300, w:34, h:48, speed:1, type:"seeker"},
+  {x:900, y:180, w:48, h:48, type:"chaser", speed:1.3},
+  {x:900, y:120, w:48, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true}
+],
+
     boss: {x:1400, y:400, w:80, h:80,dir:-1, speed:BOSS_SPEED, hp:BOSS_HP}
   }
 ];

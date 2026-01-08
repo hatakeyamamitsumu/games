@@ -1,9 +1,15 @@
-
 // ========== render.js ==========
 
 // ▼ プレイヤー画像
 const playerSprite = new Image();
 playerSprite.src = "./images/characters/player.png";
+
+// ▼ アイテム画像（回復）
+const healItemSprite = new Image();
+healItemSprite.src = "./images/characters/item1.png";
+
+
+
 
 // ▼ 敵・ボス画像
 import { 
@@ -18,9 +24,10 @@ import {
   seekerEnemySprite,
   chaserEnemySprite,
   phaserEnemySprite,
+
 } from "./enemy.js";
 
-// ▼ ブロック画像（1〜7）
+// ▼ ブロック画像（1〜11）
 const blockImages = [];
 for (let i = 1; i <= 11; i++) {
   const img = new Image();
@@ -30,15 +37,28 @@ for (let i = 1; i <= 11; i++) {
 
 // ===== スプライト情報 =====
 const PLAYER_FRAME_W = 34, PLAYER_FRAME_H = 48, PLAYER_FRAME_COUNT = 4;
-const ENEMY_FRAME_W = 34, ENEMY_FRAME_H = 48, ENEMY_FRAME_COUNT = 4;
-const BOSS_FRAME_W = 128, BOSS_FRAME_H = 128, BOSS_FRAME_COUNT = 2;
+const ENEMY_FRAME_W  = 34, ENEMY_FRAME_H  = 48, ENEMY_FRAME_COUNT  = 4;
+const BOSS_FRAME_W   = 128, BOSS_FRAME_H  = 128;
 
 // ===== アニメ用タイマー =====
 let playerFrameIndex = 0;
 let playerFrameTimer = 0;
 const PLAYER_FRAME_INTERVAL = 8;
 
-export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStageCleared, bgImage) {
+/**
+ * render
+ */
+export function render(
+  ctx,
+  cameraX,
+  blocks,
+  enemies,
+  boss,
+  player,
+  HUD,
+  isStageCleared,
+  bgImage
+) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   // ============================
@@ -55,18 +75,13 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
   ctx.translate(-cameraX, 0);
 
   // ============================
-  // ブロック描画（動く床も含む）
+  // ブロック描画
   // ============================
   for (const b of blocks) {
     const tileCount = Math.ceil(b.w / 48);
-    let img;
-    if (b.type >= 1 && b.type <= 11) {
-      img = blockImages[b.type - 1];  // 配列は0始まり
-    } else {
-      img = blockImages[0];           // デフォルト
-    }
+    const img = blockImages[b.type - 1] ?? blockImages[0];
 
-    if (img && img.complete) {
+    if (img.complete) {
       for (let i = 0; i < tileCount; i++) {
         ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
       }
@@ -76,78 +91,138 @@ export function render(ctx, cameraX, blocks, enemies, boss, player, HUD, isStage
     }
   }
 
-  // ============================
-// 敵描画
-// ============================
-for (const e of enemies) {
+
+
+  for (const e of enemies) {
   if (e.visible === false) continue;
-  let sprite, frameW = 34, frameH = 48;
-  let frameCount = ENEMY_FRAME_COUNT;
+  if (e.alive === false) continue; // ★重要
 
-  switch (e.type) {
-    case 'needle': sprite = needleSprite; break;
-    case 'jump': sprite = jumpEnemySprite; break;
-    case 'fly': sprite = flyEnemySprite; break;
-    case 'rush': sprite = rushEnemySprite; break;
-    case 'jumper': sprite = enemyJumperSprite; break;
-    case 'wander': sprite = wanderEnemySprite; break;
-    case 'seeker': sprite = seekerEnemySprite; break;
-    case 'chaser': sprite = chaserEnemySprite; break;
-    case 'phaser': sprite = phaserEnemySprite; break;
-
-    default: sprite = enemySprite;
+  // =====================
+  // 回復アイテム
+  // =====================
+  if (e.type === "heal") {
+    if (healItemSprite.complete) {
+      ctx.drawImage(
+        healItemSprite,
+        e.x,
+        e.y,
+        e.w,
+        e.h
+      );
+    }
+    continue;
   }
 
-  if (sprite.complete) {
-    if (e.type === "rush") {
-      // rush は左右反転しない
-      ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
-    } else {
-      ctx.save();
+  // =====================
+  // 通常の敵
+  // =====================
+  let sprite;
+  switch (e.type) {
+    case "needle":  sprite = needleSprite; break;
+    case "jump":    sprite = jumpEnemySprite; break;
+    case "fly":     sprite = flyEnemySprite; break;
+    case "rush":    sprite = rushEnemySprite; break;
+    case "jumper":  sprite = enemyJumperSprite; break;
+    case "wander":  sprite = wanderEnemySprite; break;
+    case "seeker":  sprite = seekerEnemySprite; break;
+    case "chaser":  sprite = chaserEnemySprite; break;
+    case "phaser":  sprite = phaserEnemySprite; break;
+    default:        sprite = enemySprite;
+  }
 
-      // dir=1 のとき反転（通常敵のルール）
-      if (e.dir === 1) {
-        ctx.translate(e.x + e.w, e.y);
-        ctx.scale(-1, 1);
-        ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, 0, 0, e.w, e.h);
-      } else {
-        ctx.drawImage(sprite, (e.frame ?? 0) * frameW, 0, frameW, frameH, e.x, e.y, e.w, e.h);
-      }
-
-      ctx.restore();
-    }
-  } else {
+  if (!sprite.complete) {
     ctx.fillStyle = "red";
     ctx.fillRect(e.x, e.y, e.w, e.h);
+    continue;
   }
+
+  const frame = (e.frame ?? 0) * ENEMY_FRAME_W;
+
+  ctx.save();
+  if (e.dir === 1) {
+    ctx.translate(e.x + e.w, e.y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(
+      sprite,
+      frame, 0,
+      ENEMY_FRAME_W, ENEMY_FRAME_H,
+      0, 0,
+      e.w, e.h
+    );
+  } else {
+    ctx.drawImage(
+      sprite,
+      frame, 0,
+      ENEMY_FRAME_W, ENEMY_FRAME_H,
+      e.x, e.y,
+      e.w, e.h
+    );
+  }
+  ctx.restore();
 }
 
 
   // ============================
   // ボス描画
   // ============================
-  if (boss) {
-    if (bossSprite.complete) {
-      ctx.save();
-      if (boss.dir === 1) {
-        ctx.translate(boss.x + boss.w, boss.y);
-        ctx.scale(-1, 1);
-        ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, 0, 0, boss.w, boss.h);
-      } else {
-        ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, boss.x, boss.y, boss.w, boss.h);
-      }
-      ctx.restore();
+  if (boss && bossSprite.complete) {
+    ctx.save();
+    if (boss.dir === 1) {
+      ctx.translate(boss.x + boss.w, boss.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, 0, 0, boss.w, boss.h);
     } else {
-      ctx.fillStyle = "purple";
-      ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+      ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, boss.x, boss.y, boss.w, boss.h);
+    }
+    ctx.restore();
+  }
+// ============================
+// HUD描画
+// ============================
+function drawHUD(ctx, HUD) {
+  ctx.save();
+
+  ctx.font = "24px 'Press Start 2P', sans-serif";
+  ctx.fillStyle = "#FFD700";
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 2;
+
+ctx.strokeText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
+ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
+
+  // HP
+  if (HUD.hp != null) {
+    const y = 70;
+    let x = ctx.canvas.width - (HUD.maxHp * 25 + 60);
+    ctx.fillStyle = "#0f0";
+    ctx.fillText("HP", x, y);
+    x += 40;
+
+    for (let i = 0; i < HUD.maxHp; i++) {
+      ctx.fillStyle = i < HUD.hp ? "#0f0" : "#555";
+      ctx.fillRect(x + i * 25, y, 20, 20);
     }
   }
 
-  // ============================
-  // プレイヤー描画（無敵点滅対応）
-  // ============================
-  const isInvincible = HUD.invincible === true;
+  // Lives
+  if (HUD.lives != null) {
+    const y = 40;
+    let x = ctx.canvas.width - (HUD.lives * 35 + 70);
+    ctx.fillStyle = "#f00";
+    ctx.fillText("LIVES", x, y);
+    x += 60;
 
+    for (let i = 0; i < HUD.lives; i++) {
+      ctx.fillRect(x + i * 35, y, 30, 20);
+    }
+  }
+
+  ctx.restore();
+}
+
+  // ============================
+  // プレイヤー描画（無敵点滅）
+  // ============================
   if (player.vx !== 0) {
     playerFrameTimer++;
     if (playerFrameTimer > PLAYER_FRAME_INTERVAL) {
@@ -158,127 +233,61 @@ for (const e of enemies) {
     playerFrameIndex = 0;
   }
 
-  let skipDraw = false;
-  if (isInvincible) {
-    const now = performance.now();
-    if (Math.floor(now / 100) % 2 === 1) skipDraw = true;
-  }
+  const invincible = HUD.invincible === true;
+  const blink = invincible && Math.floor(performance.now() / 100) % 2 === 1;
 
-  if (!skipDraw) {
+  if (!blink) {
     if (player.vx < 0) {
       ctx.save();
       ctx.scale(-1, 1);
-      ctx.drawImage(playerSprite, PLAYER_FRAME_W * playerFrameIndex, 0, PLAYER_FRAME_W, PLAYER_FRAME_H, -(player.x + player.w), player.y, player.w, player.h);
+      ctx.drawImage(
+        playerSprite,
+        PLAYER_FRAME_W * playerFrameIndex,
+        0,
+        PLAYER_FRAME_W,
+        PLAYER_FRAME_H,
+        -(player.x + player.w),
+        player.y,
+        player.w,
+        player.h
+      );
       ctx.restore();
     } else {
-      ctx.drawImage(playerSprite, PLAYER_FRAME_W * playerFrameIndex, 0, PLAYER_FRAME_W, PLAYER_FRAME_H, player.x, player.y, player.w, player.h);
+      ctx.drawImage(
+        playerSprite,
+        PLAYER_FRAME_W * playerFrameIndex,
+        0,
+        PLAYER_FRAME_W,
+        PLAYER_FRAME_H,
+        player.x,
+        player.y,
+        player.w,
+        player.h
+      );
     }
   }
 
   ctx.restore();
 
-  // ============================
-  // HUD描画
-  // ============================
-  drawHUD(ctx, HUD);
-
-  // ============================
-  // ステージクリア表示
-  // ============================
+  // ★ここ！
   if (isStageCleared) {
     ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "60px sans-serif";
+    ctx.fillStyle = "#fff";
+    ctx.font = "48px 'Press Start 2P', sans-serif";
     ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`ステージ ${HUD.stage} クリア！`, ctx.canvas.width / 2, ctx.canvas.height / 2);
+    ctx.fillText(
+      `STAGE ${HUD.stage} CLEAR!`,
+      ctx.canvas.width / 2,
+      ctx.canvas.height / 2
+    );
+    ctx.textAlign = "left";
     ctx.restore();
   }
 
-  // ============================
-  // ゲームオーバー表示
-  // ============================
-  if (HUD.lives <= 0) {
-    ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,0.8)";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    ctx.fillStyle = "#FF0000";
-    ctx.font = "60px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("GAME OVER", ctx.canvas.width / 2, ctx.canvas.height / 2);
-    ctx.restore();
-  }
+  drawHUD(ctx, HUD);
 }
 
-// ============================
-// HUD描画（横一列バージョン）
-// ============================
-function drawHUD(ctx, HUD) {
-  ctx.save();
 
-  // ステージ・スコア表示（左上）
-  ctx.font = "24px 'Press Start 2P', sans-serif";
-  ctx.fillStyle = "#FFD700";
-  ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 2;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
-  const hudText = `Stage ${HUD.stage}   Score ${HUD.score}`;
-  ctx.strokeText(hudText, 10, 10);
-  ctx.fillText(hudText, 10, 10);
-
-  // ===== HP（右上 横一列） =====
-  if (HUD.hp !== undefined && HUD.maxHp !== undefined) {
-    const barWidth = 20;
-    const barHeight = 20;
-    const spacing = 5;
-
-    ctx.font = "18px 'Press Start 2P', sans-serif";
-
-    const barsWidth = HUD.maxHp * (barWidth + spacing);
-    const labelWidth = 40;
-    const totalWidth = barsWidth + labelWidth;
-
-    let x = ctx.canvas.width - totalWidth - 10;
-    const y = 70;
-
-    ctx.fillStyle = "#00FF00";
-    ctx.fillText("HP", x, y);
-    x += labelWidth;
-
-    for (let i = 0; i < HUD.maxHp; i++) {
-      ctx.fillStyle = i < HUD.hp ? "#00FF00" : "#555555";
-      ctx.fillRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
-      ctx.strokeStyle = "#000000";
-      ctx.strokeRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
-    }
-  }
-
-  // ===== Lives（右上 横一列） =====
-  if (HUD.lives !== undefined) {
-    const barWidth = 30;
-    const barHeight = 20;
-    const spacing = 5;
-    ctx.font = "18px 'Press Start 2P', sans-serif";
-    const totalWidth = HUD.lives * (barWidth + spacing) + 50;
-    let x = ctx.canvas.width - totalWidth - 10;
-    const y = 40;
-    ctx.fillStyle = "#FF0000";
-    ctx.fillText("LIVES", x, y);
-    x += 60;
-
-    for (let i = 0; i < HUD.lives; i++) {
-      ctx.fillStyle = "#FF0000";
-      ctx.fillRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
-      ctx.strokeStyle = "#000000";
-      ctx.strokeRect(x + i * (barWidth + spacing), y, barWidth, barHeight);
-    }
-  }
-
-  ctx.restore();
-}

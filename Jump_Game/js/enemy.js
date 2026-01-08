@@ -37,6 +37,11 @@ phaserEnemySprite.src = "./images/characters/enemy9.png";
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
 
+
+export const healItemSprite = new Image();
+healItemSprite.src = "./images/characters/item1.png";
+
+
 // ===== 定数 =====
 const ENEMY_FRAME_COUNT = 4;
 const BOSS_FRAME_COUNT = 2;
@@ -103,18 +108,26 @@ export function updateEnemies(enemies, blocks) {
     // --------------------------------
     if (e.type === "needle") continue;
 
-    // --------------------------------
-    // rush：待って突進
-    // --------------------------------
-    if (e.type === "rush") {
-      e.wait = e.wait ?? 120;
-      if (e.wait > 0) e.wait--;
-      else e.x -= e.speed;
+// --------------------------------
+// rush：待って突進
+// --------------------------------
+if (e.type === "rush") {
+  e.wait = e.wait ?? 120;
 
-      if (e.x + e.w < 0) enemies.splice(i, 1);
-      animate(e);
-      continue;
-    }
+  e.dir = -1; // ★ 常に左向き
+
+  if (e.wait > 0) {
+    e.wait--;
+  } else {
+    e.x -= e.speed;
+  }
+
+  if (e.x + e.w < 0) enemies.splice(i, 1);
+
+  animate(e);
+  continue;
+}
+
 
 
         // ------------------------------------------------
@@ -263,6 +276,11 @@ if (e.type === "phaser") {
       animate(e);
       continue;
     }
+// ★ 回復アイテム
+    if (e.type === "heal") {
+      // 動かない・重力なし
+      continue;
+    }
 
 // ------------------------------------------------
     // 通常敵
@@ -324,19 +342,41 @@ export function checkEnemyHit(enemies) {
     if (e.visible === false) continue;
 
     if (aabb(player, e)) {
+
+      // ============================
+      // 回復アイテム
+      // ============================
+      if (e.type === "heal") {
+        player.hp = Math.min(player.hp + 1, player.maxHp);
+        enemies.splice(i, 1);   // 消す
+        return null;            // ダメージ扱いにしない
+      }
+
+      // ============================
+      // 上から踏んだ判定
+      // ============================
       if (player.vy > 0) {
         if (e.type === "needle") return "hit";
-        if (e.type === "jumper") { player.vy = -10; continue; }
+
+        if (e.type === "jumper") {
+          player.vy = -10;
+          continue;
+        }
 
         enemies.splice(i, 1);
         player.vy = -10;
         continue;
       }
+
+      // ============================
+      // 横・下から当たった
+      // ============================
       return "hit";
     }
   }
   return null;
 }
+
 
 
 // ===== ボス更新 =====
