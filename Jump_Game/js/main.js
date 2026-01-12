@@ -17,6 +17,7 @@ let score = 0, lives = 3, cameraX = 0;
 let invincible = false, invincibleTimer = 0;
 let isPaused = false, isStageCleared = false, clearTimer = 0;
 let isGameEnding = false;
+let isGameOver = false;   // ★追加
 
 // ===== キー & ボタン =====
 const keys = { left:false, right:false, jump:false };
@@ -180,9 +181,10 @@ function killPlayer(){
       isPaused = false;
     },3000);
   } else {
-    clearBGM.pause();
-    setTimeout(()=>playGameoverBGM(),1000);
-  }
+  clearBGM.pause();
+  isGameOver = true;          // ★追加
+  setTimeout(()=>playGameoverBGM(),1000);
+}
 }
 
 // ===== タイトル & エンディング =====
@@ -352,7 +354,7 @@ function loop(){
     invincible
   };
 
-  render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage);
+  render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage,isGameOver);
 
   if(isStageCleared || lives <= 0 || isPaused || isGameEnding){
     if(isStageCleared && performance.now() - clearTimer > 5000){

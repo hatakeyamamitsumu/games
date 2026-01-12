@@ -269,25 +269,53 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
 
   ctx.restore();
 
-  // ★ここ！
-  if (isStageCleared) {
-    ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    ctx.fillStyle = "#fff";
-    ctx.font = "48px 'Press Start 2P', sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(
-      `STAGE ${HUD.stage} CLEAR!`,
-      ctx.canvas.width / 2,
-      ctx.canvas.height / 2
-    );
-    ctx.textAlign = "left";
-    ctx.restore();
-  }
+// ============================
+// STAGE CLEAR
+// ============================
+if (isStageCleared) {
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-  drawHUD(ctx, HUD);
+  ctx.fillStyle = "#fff";
+  ctx.font = "48px 'Press Start 2P', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(
+    `STAGE ${HUD.stage} CLEAR!`,
+    ctx.canvas.width / 2,
+    ctx.canvas.height / 2
+  );
+  ctx.textAlign = "left";
+  ctx.restore();
 }
 
+// ============================
+// GAME OVER
+// ============================
+if (HUD.lives <= 0) {
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  ctx.fillStyle = "#ff3333";
+  ctx.font = "48px 'Press Start 2P', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(
+    "GAME OVER",
+    ctx.canvas.width / 2,
+    ctx.canvas.height / 2
+  );
+
+  ctx.font = "20px 'Press Start 2P', sans-serif";
+  ctx.fillStyle = "#fff";
+
+
+  ctx.textAlign = "left";
+  ctx.restore();
+}
+
+drawHUD(ctx, HUD);
+
+}
 
