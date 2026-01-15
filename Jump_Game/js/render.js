@@ -8,6 +8,9 @@ playerSprite.src = "./images/characters/player.png";
 const healItemSprite = new Image();
 healItemSprite.src = "./images/characters/item1.png";
 
+// ▼ アイテム画像（回復）
+const liveItemSprite = new Image();
+liveItemSprite.src = "./images/characters/item2.png";
 
 
 
@@ -104,6 +107,21 @@ export function render(
     if (healItemSprite.complete) {
       ctx.drawImage(
         healItemSprite,
+        e.x,
+        e.y,
+        e.w,
+        e.h
+      );
+    }
+    continue;
+  }
+    // =====================
+  // 回復アイテム
+  // =====================
+  if (e.type === "live") {
+    if (liveItemSprite.complete) {
+      ctx.drawImage(
+        liveItemSprite,
         e.x,
         e.y,
         e.w,

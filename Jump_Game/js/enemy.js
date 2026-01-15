@@ -41,7 +41,8 @@ bossSprite.src = "./images/characters/boss.png";
 export const healItemSprite = new Image();
 healItemSprite.src = "./images/characters/item1.png";
 
-
+export const liveItemSprite = new Image();
+liveItemSprite.src = "./images/characters/item2.png";
 // ===== 定数 =====
 const ENEMY_FRAME_COUNT = 4;
 const BOSS_FRAME_COUNT = 2;
@@ -281,7 +282,11 @@ if (e.type === "phaser") {
       // 動かない・重力なし
       continue;
     }
-
+// ★ 回復アイテム
+    if (e.type === "live") {
+      // 動かない・重力なし
+      continue;
+    }
 // ------------------------------------------------
     // 通常敵
     // ------------------------------------------------
@@ -348,6 +353,11 @@ export function checkEnemyHit(enemies) {
       // ============================
       if (e.type === "heal") {
         player.hp = Math.min(player.hp + 1, player.maxHp);
+        enemies.splice(i, 1);   // 消す
+        return null;            // ダメージ扱いにしない
+      }
+      if (e.type === "live") {
+        player.hp = Math.min(player.hp + 5, player.maxHp);
         enemies.splice(i, 1);   // 消す
         return null;            // ダメージ扱いにしない
       }
