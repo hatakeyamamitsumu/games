@@ -356,11 +356,10 @@ export function checkEnemyHit(enemies) {
         enemies.splice(i, 1);   // 消す
         return null;            // ダメージ扱いにしない
       }
-      if (e.type === "live") {
-        player.hp = Math.min(player.hp + 5, player.maxHp);
-        enemies.splice(i, 1);   // 消す
-        return null;            // ダメージ扱いにしない
-      }
+if (e.type === "live") {
+  enemies.splice(i, 1);
+  return "1up";   // ← main.js に知らせるだけ
+}
 
       // ============================
       // 上から踏んだ判定

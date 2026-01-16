@@ -552,20 +552,29 @@ function loop(){
     return;
   }
 
-  // ダメージ判定
-  if(!invincible){
-    if(checkEnemyHit(enemies) === "hit") takeDamage(1);
+// ダメージ判定
+if(!invincible){
 
-    const bossState = checkBossHit(boss);
-    if(bossState === "hit") takeDamage(1);
-    else if(bossState === "dead"){
-      score += 1000;
-      bgm.pause();
-      playClearBGM(stage);
-      isStageCleared = true;
-      clearTimer = performance.now();
-    }
+  const hitResult = checkEnemyHit(enemies);
+
+  if (hitResult === "1up") {
+    lives += 1;                 // ★ 残機アップ
   }
+  else if (hitResult === "hit") {
+    takeDamage(1);
+  }
+
+  const bossState = checkBossHit(boss);
+  if(bossState === "hit") takeDamage(1);
+  else if(bossState === "dead"){
+    score += 1000;
+    bgm.pause();
+    playClearBGM(stage);
+    isStageCleared = true;
+    clearTimer = performance.now();
+  }
+}
+
 
   // ゴール
   if(player.x > 1800){
