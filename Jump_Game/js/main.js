@@ -11,6 +11,25 @@ const totalStages = LEVELS.length;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+// ============================
+// 画面リサイズ（スマホ対応）
+// ============================
+const GAME_W = 960;
+const GAME_H = 540;
+
+
+function resizeCanvas(){
+  const vw = window.innerWidth;
+  const vh = window.innerHeight - 180; // ボタン分
+  const scale = Math.min(vw / GAME_W, vh / GAME_H);
+
+  canvas.style.width  = GAME_W * scale + "px";
+  canvas.style.height = GAME_H * scale + "px";
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
 // ===== グローバル変数 =====
 let blocks = [], enemies = [], boss = null;
 let score = 0, lives = 3, cameraX = 0;
