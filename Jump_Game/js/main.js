@@ -11,16 +11,15 @@ const totalStages = LEVELS.length;
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ============================
-// 画面リサイズ（スマホ対応）
-// ============================
+
+//const canvas = document.getElementById("game");
 const GAME_W = 960;
 const GAME_H = 540;
 
-
-function resizeCanvas(){
+function resizeCanvas() {
   const vw = window.innerWidth;
-  const vh = window.innerHeight - 180; // ボタン分
+  const vh = window.innerHeight;
+
   const scale = Math.min(vw / GAME_W, vh / GAME_H);
 
   canvas.style.width  = GAME_W * scale + "px";

@@ -14,15 +14,18 @@
   }
 
   /* ゲーム画面 */
-  canvas { 
-    display:block; 
-    margin:0 auto; 
-    background:#87CEEB; 
-    touch-action:none; 
-    width:100vw;
-    height:auto;
-    max-height: calc(100vh - 180px); /* ← ボタン分の高さを確保 */
-  }
+canvas {
+  display: block;
+  margin: auto;
+  background: #87CEEB;
+  touch-action: none;
+
+  /* 重要 */
+  width: 100vw;
+  height: 100vh;
+  max-width: 100%;
+  max-height: 100%;
+}
 
   /* HUD */
   #hud {
