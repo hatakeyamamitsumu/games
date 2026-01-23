@@ -8,6 +8,13 @@
 
 <style>
 /* ===============================
+   CSS 変数
+================================ */
+:root {
+  --controller-height: 180px;
+}
+
+/* ===============================
    基本レイアウト
 ================================ */
 body { 
@@ -26,12 +33,12 @@ canvas {
   background: #87CEEB;
   touch-action: none;
 
-  width: 100vw;
-  height: calc(100vh - var(--controller-height));
+  /* ★ 見た目を 10% 縮小 */
+  width: 90vw;
+  max-height: calc(100vh - var(--controller-height));
 
-  /* 追加 */
-  transform: scale(0.85);
-  transform-origin: top center;
+  /* ★ アスペクト比固定（960×540） */
+  aspect-ratio: 16 / 9;
 }
 
 /* ===============================
@@ -42,23 +49,39 @@ canvas {
 }
 
 /* ===============================
-   操作ボタン
+   操作ボタン全体
 ================================ */
 #controller {
   position: fixed;
   left: 0;
-  bottom: 0;              /* ← 単位ミス修正 */
+  bottom: 0;
   width: 100vw;
-  height: 180px;
+  height: var(--controller-height);
   background: #0002;
 
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
 
+  padding: 0 24px;
+  box-sizing: border-box;
   z-index: 2000;
 }
 
+/* 左右移動グループ */
+#moveButtons {
+  display: flex;
+  gap: 12px;
+}
+
+/* ジャンプボタン（少し左寄せ） */
+#jump {
+  margin-left: -30px;
+}
+
+/* ===============================
+   ボタンデザイン
+================================ */
 .btn {
   width: 90px;
   height: 90px;
@@ -107,12 +130,8 @@ canvas {
 ================================ */
 @media (orientation: landscape) {
 
-  canvas {
-    height: calc(100vh - 120px);
-  }
-
-  #controller {
-    height: 120px;
+  :root {
+    --controller-height: 120px;
   }
 
   .btn {
@@ -120,6 +139,10 @@ canvas {
     height: 64px;
     line-height: 64px;
     font-size: 28px;
+  }
+
+  #jump {
+    margin-left: -20px;
   }
 }
 </style>
@@ -141,8 +164,10 @@ canvas {
 
 <!-- 操作ボタン -->
 <div id="controller">
-  <div id="left" class="btn">◀</div>
-  <div id="right" class="btn">▶</div>
+  <div id="moveButtons">
+    <div id="left" class="btn">◀</div>
+    <div id="right" class="btn">▶</div>
+  </div>
   <div id="jump" class="btn">▲</div>
 </div>
 
