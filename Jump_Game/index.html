@@ -27,7 +27,11 @@ canvas {
   touch-action: none;
 
   width: 100vw;
-  height: calc(100vh - 180px); /* ← 操作ボタン分を引く */
+  height: calc(100vh - var(--controller-height));
+
+  /* 追加 */
+  transform: scale(0.85);
+  transform-origin: top center;
 }
 
 /* ===============================
