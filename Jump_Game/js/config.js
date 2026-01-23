@@ -13,3 +13,4 @@ export const PLAYER_JUMP = 15;
 export const ENEMY_SPEED = 1;
 export const BOSS_SPEED = 1.5;
 export const BOSS_HP = 5;
+

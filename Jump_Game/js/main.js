@@ -145,7 +145,22 @@ function startStage(s){
       b.prevX = b.x;
       b.prevY = b.y;
     }
-  }
+
+    // ===== 円運動する床（block12：逆回転） =====
+// ===== 円運動する床（block12：反時計回り）=====
+if (b.type === 12) {
+  b.cx = b.cx ?? b.x;
+  b.cy = b.cy ?? b.y;
+
+  b.angle  = b.angle  ?? 0;
+  b.radius = b.radius ?? 60;
+  b.speed  = b.speed  ?? 0.03;
+
+  b.prevX = b.x;
+  b.prevY = b.y;
+}
+
+      }
 
   resetPlayer();
   player.hp = player.maxHp;
@@ -493,6 +508,54 @@ function loop(){
         }
       }
     }
+    // ===== 円運動する床（block12：反時計回り）=====
+if (b.type === 12){
+
+  // 初期化（1回だけ）
+  if(b.angle === undefined){
+    b.angle = 0;
+    b.cx = b.cx ?? b.x;
+    b.cy = b.cy ?? b.y;
+    b.radius = b.radius ?? 80;
+    b.speed = b.speed ?? 0.03;
+  }
+
+  // 前フレーム位置保存
+  b.prevX = b.x;
+  b.prevY = b.y;
+
+  // ★ 反時計回り（ここだけ違う）
+  b.angle -= b.speed;
+
+  b.x = b.cx + Math.cos(b.angle) * b.radius;
+  b.y = b.cy + Math.sin(b.angle) * b.radius;
+
+  // プレイヤー追従
+  const onPlayer =
+    player.x + player.w > b.x &&
+    player.x < b.x + b.w &&
+    player.y + player.h >= b.y - 4 &&
+    player.y + player.h <= b.y + 20;
+
+  if(onPlayer){
+    player.x += b.x - b.prevX;
+    player.y += b.y - b.prevY;
+  }
+
+  // 敵追従
+  for(const e of enemies){
+    const onE =
+      e.x + e.w > b.x &&
+      e.x < b.x + b.w &&
+      e.y + e.h >= b.y - 4 &&
+      e.y + e.h <= b.y + 20;
+    if(onE){
+      e.x += b.x - b.prevX;
+      e.y += b.y - b.prevY;
+    }
+  }
+}
+
   }
 
   // ===== プレイヤー更新 =====
