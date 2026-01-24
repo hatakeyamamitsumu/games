@@ -31,15 +31,13 @@ canvas {
   display: block;
   margin: 0 auto;
   background: #87CEEB;
-  touch-action: none;
 
-  /* ★ 見た目を 10% 縮小 */
-  width: 90vw;
-  max-height: calc(100vh - var(--controller-height));
+  height: calc(100vh - var(--controller-height));
+  width: auto;
 
-  /* ★ アスペクト比固定（960×540） */
   aspect-ratio: 16 / 9;
 }
+
 
 /* ===============================
    HUD（未使用）
