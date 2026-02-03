@@ -68,7 +68,7 @@ export function render(
   // 背景描画
   // ============================
   if (bgImage && bgImage.complete) {
-    ctx.drawImage(bgImage, -cameraX, 0, bgImage.width, bgImage.height);
+    ctx.drawImage(bgImage, -cameraX*0.2, 0, bgImage.width, bgImage.height);
   } else {
     ctx.fillStyle = "#87CEEB";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
