@@ -12,7 +12,9 @@ healItemSprite.src = "./images/characters/item1.png";
 const liveItemSprite = new Image();
 liveItemSprite.src = "./images/characters/item2.png";
 
-
+// ▼ 前景ブロック画像
+const foregroundBlockSprite = new Image();
+foregroundBlockSprite.src = "./images/characters/foregroundblock1.png";
 
 // ▼ 敵・ボス画像
 import { 
@@ -286,6 +288,26 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
   }
 
   ctx.restore();
+
+// ============================
+// 前景ブロック描画（スクロール率変更）
+// ============================
+const FOREGROUND_SCROLL_RATE = 1.0;
+
+ctx.save();
+ctx.translate(-cameraX * FOREGROUND_SCROLL_RATE, 0);
+
+if (foregroundBlockSprite.complete) {
+  ctx.drawImage(
+    foregroundBlockSprite,
+    600,  // ← ワールドX座標
+    300,
+    48,
+    48
+  );
+}
+
+ctx.restore();
 
 
 // ============================

@@ -24,6 +24,9 @@ export const LEVELS = [
       {x:630, y:150, w:96, h:20,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03},
       {x:1200, y:150, w:96, h:20,type:12,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
     ],
+    foregroundBlocks: [
+  {x: 400,y: 300,w: 48,h: 48, type: 1},
+],
     enemies: [
       {x:345, y:432, w: 32, h: 32, type: "heal" },
         { x: 600, y: 350, w: 32, h: 32, type: "heal" },
