@@ -274,7 +274,7 @@ function showEndingScreen(){
 // ===== AABB 衝突判定（player / enemy） =====
 function handleBlockCollision(e, b){
 
-    if (b.type >= 13 && b.type <= 18) {
+    if (b.type >= 13 && b.type <= 33) {
     // 見た目だけ。完全スルー
     return;
     }

@@ -12,6 +12,7 @@ export const LEVELS = [
       {x:200, y:150, w:192, h:20, type:10},
       {x:380, y:432, w:48, h:60, type:13},
       {x:430, y:432, w:48, h:60, type:18},
+      {x:530, y:432, w:48, h:60, type:33},
       {x:288, y:432, w:48, h:60, type:3},
       {x:288, y:480, w:2400, h:60, type:0},
       {x:500, y:380, w:192, h:20, type:1},
@@ -24,13 +25,7 @@ export const LEVELS = [
       {x:630, y:150, w:96, h:20,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03},
       {x:1200, y:150, w:96, h:20,type:12,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
     ],
-    // ★ 前景ブロック（仮：1個）
-    foregroundBlocks: [
-      {
-        x: 600,
-        y: 300,
-      }
-    ],
+
     enemies: [
       {x:345, y:432, w: 32, h: 32, type: "heal" },
         { x: 600, y: 350, w: 32, h: 32, type: "heal" },

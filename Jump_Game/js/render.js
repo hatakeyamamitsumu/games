@@ -12,9 +12,7 @@ healItemSprite.src = "./images/characters/item1.png";
 const liveItemSprite = new Image();
 liveItemSprite.src = "./images/characters/item2.png";
 
-// ▼ 前景ブロック画像
-const foregroundBlockSprite = new Image();
-foregroundBlockSprite.src = "./images/characters/foregroundblock1.png";
+
 
 // ▼ 敵・ボス画像
 import { 
@@ -32,9 +30,9 @@ import {
 
 } from "./enemy.js";
 
-// ▼ ブロック画像（1〜18）
+// ▼ ブロック画像（1〜33）
 const blockImages = [];
-for (let i = 1; i <= 18; i++) {
+for (let i = 1; i <= 33; i++) {
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);
@@ -79,22 +77,7 @@ export function render(
   ctx.save();
   ctx.translate(-cameraX, 0);
 
-  // ============================
-  // ブロック描画
-  // ============================
-  for (const b of blocks) {
-    const tileCount = Math.ceil(b.w / 48);
-    const img = blockImages[b.type - 1] ?? blockImages[0];
 
-    if (img.complete) {
-      for (let i = 0; i < tileCount; i++) {
-        ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
-      }
-    } else {
-      ctx.fillStyle = "red";
-      ctx.fillRect(b.x, b.y, b.w, b.h);
-    }
-  }
 
 
 
@@ -287,26 +270,23 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
     }
   }
 
-  ctx.restore();
 
-// ============================
-// 前景ブロック描画（スクロール率変更）
-// ============================
-const FOREGROUND_SCROLL_RATE = 1.;
+  // ============================
+  // ブロック描画
+  // ============================
+  for (const b of blocks) {
+    const tileCount = Math.ceil(b.w / 48);
+    const img = blockImages[b.type - 1] ?? blockImages[0];
 
-ctx.save();
-ctx.translate(-cameraX * FOREGROUND_SCROLL_RATE, 0);
-
-if (foregroundBlockSprite.complete) {
-  ctx.drawImage(
-    foregroundBlockSprite,
-    600,  // ← ワールドX座標
-    300,
-    48,
-    48
-  );
-}
-
+    if (img.complete) {
+      for (let i = 0; i < tileCount; i++) {
+        ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
+      }
+    } else {
+      ctx.fillStyle = "red";
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+    }
+  }
 ctx.restore();
 
 
