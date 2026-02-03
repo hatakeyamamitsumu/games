@@ -292,7 +292,7 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
 // ============================
 // 前景ブロック描画（スクロール率変更）
 // ============================
-const FOREGROUND_SCROLL_RATE = 1.0;
+const FOREGROUND_SCROLL_RATE = 1.;
 
 ctx.save();
 ctx.translate(-cameraX * FOREGROUND_SCROLL_RATE, 0);

@@ -30,7 +30,7 @@ window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
 // ===== グローバル変数 =====
-let blocks = [], enemies = [], boss = null;
+let blocks = [], enemies = [], boss = null, foregroundBlocks = [];
 let score = 0, lives = 3, cameraX = 0;
 let invincible = false, invincibleTimer = 0;
 let isPaused = false, isStageCleared = false, clearTimer = 0;
