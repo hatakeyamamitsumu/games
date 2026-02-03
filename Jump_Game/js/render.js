@@ -30,9 +30,9 @@ import {
 
 } from "./enemy.js";
 
-// ▼ ブロック画像（1〜12）
+// ▼ ブロック画像（1〜18）
 const blockImages = [];
-for (let i = 1; i <= 12; i++) {
+for (let i = 1; i <= 18; i++) {
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);
@@ -336,4 +336,3 @@ if (HUD.lives <= 0) {
 drawHUD(ctx, HUD);
 
 }
-

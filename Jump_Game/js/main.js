@@ -273,78 +273,76 @@ function showEndingScreen(){
 
 // ===== AABB 衝突判定（player / enemy） =====
 function handleBlockCollision(e, b){
+
+    if (b.type >= 13 && b.type <= 18) {
+    // 見た目だけ。完全スルー
+    return;
+    }
+
   const ex1 = e.x, ex2 = e.x + e.w;
   const ey1 = e.y, ey2 = e.y + e.h;
   const bx1 = b.x, bx2 = b.x + b.w;
   const by1 = b.y, by2 = b.y + b.h;
 
   // 衝突なし
-  if(ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
+  if (ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
 
-// ======== 条件付きすり抜け床（type:10） ========
-if (b.type === 10) {
+  // ======== 条件付きすり抜け床（type:10） ========
+  if (b.type === 10) {
 
-  // 下から来た場合は常にすり抜け
-  if (ey1 > by2 - 5) return;
+    // 下から来た場合は常にすり抜け
+    if (ey1 > by2 - 5) return;
 
-  // 上から落ちてきた場合
-  const fromAbove = (e.vy >= 0 && ey2 > by1);
+    // 上から落ちてきた場合
+    const fromAbove = (e.vy >= 0 && ey2 > by1);
+    if (!fromAbove) return;
 
-  if (!fromAbove) return;
+    // プレイヤーが動いているか
+    let moving = true;
+    if (e === player) {
+      moving =
+        keys.left ||
+        keys.right ||
+        keys.jump;
+    }
 
-  // ===== ここが核心 =====
-  // プレイヤーが「動いているか？」
-  let moving = true;
+    // 動いていなければ床にならない
+    if (!moving) return;
 
-  if (e === player) {
-    moving =
-      keys.left ||
-      keys.right ||
-      keys.jump;
-  }
-
-  // 動いていなければ床として成立しない → 落ちる
-  if (!moving) {
+    // 着地
+    e.y = by1 - e.h;
+    e.vy = 0;
+    e.onGround = true;
     return;
   }
-
-  // 着地させる
-  e.y = by1 - e.h;
-  e.vy = 0;
-  e.onGround = true;
-
-  return;
-}
-
   // ======== ここまで type:10 ========
-
 
   const overlapX = Math.min(ex2 - bx1, bx2 - ex1);
   const overlapY = Math.min(ey2 - by1, by2 - ey1);
 
-  if(overlapY < overlapX){
-    // Y方向衝突
-    if(ey2 - by1 <= by2 - ey1){
+  if (overlapY < overlapX) {
+    // ===== Y方向衝突 =====
+    if (ey2 - by1 <= by2 - ey1) {
       // 上から
       e.y = by1 - e.h;
       e.vy = 0;
       e.onGround = true;
 
       // 横に動く床
-      if(b.type === 4) e.x += b.dir * b.speed;
+      if (b.type === 4) e.x += b.dir * b.speed;
 
       // 上下に動く床
-      if(b.type === 7) e.y += b.dir * b.speed;
+      if (b.type === 7) e.y += b.dir * b.speed;
 
       // 落ちる床
-      if(b.type === 5 && !b.fall){
+      if (b.type === 5 && !b.fall) {
         b.fall = true;
         b.vy = 0;
         b.timer = 0;
       }
 
       // 跳ねる床
-      if(b.type === 6 && e === player){
+      if (b.type === 6 && e === player) {
         e.vy = -20;
         e.onGround = false;
       }
@@ -359,20 +357,21 @@ if (b.type === 10) {
       }
 
     } else {
-      // 下からぶつかった
+      // 下から
       e.y = by2;
-      if(e.vy < 0) e.vy = 0;
+      if (e.vy < 0) e.vy = 0;
     }
 
   } else {
-    // X方向衝突
-    if(ex2 - bx1 < bx2 - ex1) e.x = bx1 - e.w;
+    // ===== X方向衝突 =====
+    if (ex2 - bx1 < bx2 - ex1) e.x = bx1 - e.w;
     else e.x = bx2;
 
-    if(b.type === 4) e.x += b.dir * b.speed;
+    if (b.type === 4) e.x += b.dir * b.speed;
     e.vx = 0;
   }
 }
+
 
 
 // ===== メインループ =====
