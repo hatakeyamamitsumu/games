@@ -107,7 +107,11 @@ export function updateEnemies(enemies, blocks) {
     // --------------------------------
     // needle：固定
     // --------------------------------
-    if (e.type === "needle") continue;
+    if (e.type === "needle") {
+  animate(e);   // ★ これを追加
+  continue;
+}
+
 
 // --------------------------------
 // rush：待って突進
