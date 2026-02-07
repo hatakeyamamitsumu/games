@@ -77,32 +77,43 @@ export function updateEnemies(enemies, blocks) {
       continue;
     }
 
-    // --------------------------------
-    // jump：跳ねる
-    // --------------------------------
-    if (e.type === "jump") {
-      e.vy = (e.vy ?? 0) + 0.5;
-      if (e.vy > 10) e.vy = 10;
+// --------------------------------
+// jump：ふんわり跳ねる
+// --------------------------------
+if (e.type === "jump") {
+  const GRAVITY = 0.1;
+  const MAX_FALL = 6;
+  const JUMP_POWER = -5;
 
-      e.x += e.dir * e.speed;
-      e.y += e.vy;
+  e.vy = (e.vy ?? 0) + GRAVITY;
+  if (e.vy > MAX_FALL) e.vy = MAX_FALL;
 
-      for (const b of blocks) {
-        if (!aabb(e, b)) continue;
-        const overlaps = {
-          l: (e.x + e.w) - b.x,
-          r: (b.x + b.w) - e.x,
-          t: (e.y + e.h) - b.y,
-          b: (b.y + b.h) - e.y,
-        };
-        const m = Math.min(overlaps.l, overlaps.r, overlaps.t, overlaps.b);
-        if (m === overlaps.t) { e.y = b.y - e.h; e.vy = -8; }
-        else if (m === overlaps.l || m === overlaps.r) e.dir *= -1;
-      }
+  e.x += e.dir * e.speed;
+  e.y += e.vy;
 
-      animate(e);
-      continue;
+  for (const b of blocks) {
+    if (!aabb(e, b)) continue;
+
+    const overlaps = {
+      l: (e.x + e.w) - b.x,
+      r: (b.x + b.w) - e.x,
+      t: (e.y + e.h) - b.y,
+      b: (b.y + b.h) - e.y,
+    };
+    const m = Math.min(overlaps.l, overlaps.r, overlaps.t, overlaps.b);
+
+    if (m === overlaps.t) {
+      e.y = b.y - e.h;
+      e.vy = JUMP_POWER;   // ← ふんわり
+    } else if (m === overlaps.l || m === overlaps.r) {
+      e.dir *= -1;
     }
+  }
+
+  animate(e);
+  continue;
+}
+
 
     // --------------------------------
     // needle：固定
@@ -119,7 +130,7 @@ export function updateEnemies(enemies, blocks) {
 if (e.type === "rush") {
   e.wait = e.wait ?? 120;
 
-  e.dir = -1; // ★ 常に左向き
+  e.dir = -1; // 常に左向き
 
   if (e.wait > 0) {
     e.wait--;
