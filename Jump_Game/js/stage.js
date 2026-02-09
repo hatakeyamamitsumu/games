@@ -13,6 +13,8 @@ export const LEVELS = [
       {x:380, y:432, w:48, h:60, type:13},
       {x:430, y:432, w:48, h:60, type:14},
       {x:192, y:482, w:96, h:60, type:33},
+      { x: 650, y: 300, w: 32, h: 32, type:17},
+      { x: 650, y: 340, w: 32, h: 32, type:48},
       {x:652, y:432, w:48, h:60, type:19},
       {x:700, y:432, w:48, h:60, type:18},
       {x:840, y:432, w:48, h:60, type:54},
@@ -46,7 +48,7 @@ export const LEVELS = [
   { x: 1200, y: 300, w: 32, h: 32, type: "heal" },
           { x: 700, y: 150, w: 32, h: 32, type: "live" },
       {x:600, y:446, w:34, h:48, dir:1, speed:1},
-      {x:800, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"},
+      {x:750, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"},
       {x:1000, y:432, w:34, h:48, dir:-1, speed:1, type:"jump"},
       {x:1200, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1},
       {x:1400, y:432, w:34, h:48, type:"jumper"},
@@ -76,6 +78,7 @@ export const LEVELS = [
       {x:1400, y:250, w:192, h:20, type:7, startY:250, dir:1, speed:1, range:120},
       {x:300, y:120, w:192, h:20, type:8},
       {x:300, y:250, w:192, h:20, type:9},
+      {x:500, y:430, w:192, h:20, type:32},
       {x:650, y:180, w:96, h:20,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
     ],
     enemies: [
