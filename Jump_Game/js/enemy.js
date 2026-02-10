@@ -45,7 +45,7 @@ export const liveItemSprite = new Image();
 liveItemSprite.src = "./images/characters/item2.png";
 // ===== 定数 =====
 const ENEMY_FRAME_COUNT = 4;
-const BOSS_FRAME_COUNT = 2;
+const BOSS_FRAME_COUNT = 4;
 
 // ===== 敵更新 =====
 export function updateEnemies(enemies, blocks) {
@@ -409,14 +409,19 @@ export function updateBoss(boss, blocks) {
   boss.x += boss.dir * boss.speed;
 
   for (const b of blocks) {
-    if (aabb(boss, b)) { boss.dir *= -1; boss.x += boss.dir * 10; }
+    if (aabb(boss, b)) {
+      boss.dir *= -1;
+      boss.x += boss.dir * 10;
+    }
   }
 
+  // ===== アニメ更新 =====
   boss._frameTimer = (boss._frameTimer ?? 0) + 1;
   const interval = boss._frameInterval ?? 12;
+
   if (boss._frameTimer >= interval) {
     boss._frameTimer = 0;
-    boss._frame = ((boss._frame ?? 0) + 1) % BOSS_FRAME_COUNT;
+    boss.frame = ((boss.frame ?? 0) + 1) % BOSS_FRAME_COUNT;
   }
 }
 
