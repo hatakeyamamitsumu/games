@@ -30,7 +30,12 @@ const bgNearImages = [
     return img;
   })(),
 ];
-
+// 例：render.js 上部でロード済み
+const bgNearNearImages = [
+  (() => { const i = new Image(); i.src = "./images/graphics/background_near_near1.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/background_near_near2.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/background_near_near3.png"; return i; })(),
+];
 
 // ▼ 敵・ボス画像
 import { 
@@ -84,24 +89,39 @@ export function render(
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
 // ============================
-// 背景描画（多重スクロール）
+// 背景描画（3重スクロール）
 // ============================
+
+// 共通：横タイル描画
+function drawParallax(image, rate) {
+  if (!image || !image.complete) return;
+
+  const w = image.width;
+  const h = image.height;
+
+  let x = (-cameraX * rate) % w;
+  if (x > 0) x -= w;
+
+  for (; x < ctx.canvas.width; x += w) {
+    ctx.drawImage(image, x, 0, w, h);
+  }
+}
 
 // ▼ 遠景
 if (bgImage && bgImage.complete) {
-  ctx.drawImage(bgImage, -cameraX * 0.0, 0);
+  drawParallax(bgImage, 0.05);
 } else {
   ctx.fillStyle = "#87CEEB";
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
-// ▼ 近景（ステージ別）
+// ▼ 中間近景（これが消えてた原因）
 const bgNear = bgNearImages[stage];
-if (bgNear && bgNear.complete) {
-  ctx.drawImage(bgNear, -cameraX * 0.2, 0);
-}
+drawParallax(bgNear, 0.2);
 
-
+// ▼ 最近景（さらに手前）
+const bgNearNear = bgNearNearImages[stage - 1];
+drawParallax(bgNearNear, 1.0);
   ctx.save();
   ctx.translate(-cameraX, 0);
 
