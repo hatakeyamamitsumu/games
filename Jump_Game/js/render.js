@@ -11,7 +11,25 @@ healItemSprite.src = "./images/characters/item1.png";
 // ▼ アイテム画像（回復）
 const liveItemSprite = new Image();
 liveItemSprite.src = "./images/characters/item2.png";
-
+// ▼ ステージ別・近景背景
+const bgNearImages = [
+  null, // stage 0 は使わない
+  (() => {
+    const img = new Image();
+    img.src = "./images/graphics/background_near1.png";
+    return img;
+  })(),
+  (() => {
+    const img = new Image();
+    img.src = "./images/graphics/background_near2.png";
+    return img;
+  })(),
+  (() => {
+    const img = new Image();
+    img.src = "./images/graphics/background_near3.png";
+    return img;
+  })(),
+];
 
 
 // ▼ 敵・ボス画像
@@ -60,19 +78,29 @@ export function render(
   player,
   HUD,
   isStageCleared,
-  bgImage
+  bgImage,
+  stage
 ) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-  // ============================
-  // 背景描画
-  // ============================
-  if (bgImage && bgImage.complete) {
-    ctx.drawImage(bgImage, -cameraX*0.1, 0, bgImage.width, bgImage.height);
-  } else {
-    ctx.fillStyle = "#87CEEB";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  }
+// ============================
+// 背景描画（多重スクロール）
+// ============================
+
+// ▼ 遠景
+if (bgImage && bgImage.complete) {
+  ctx.drawImage(bgImage, -cameraX * 0.0, 0);
+} else {
+  ctx.fillStyle = "#87CEEB";
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
+
+// ▼ 近景（ステージ別）
+const bgNear = bgNearImages[stage];
+if (bgNear && bgNear.complete) {
+  ctx.drawImage(bgNear, -cameraX * 0.2, 0);
+}
+
 
   ctx.save();
   ctx.translate(-cameraX, 0);

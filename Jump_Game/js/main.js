@@ -386,7 +386,18 @@ function loop(){
     invincible
   };
 
-  render(ctx, cameraX, blocks, enemies, boss, player, hudData, isStageCleared, bgImage,isGameOver);
+ render(
+  ctx,
+  cameraX,
+  blocks,
+  enemies,
+  boss,
+  player,
+  hudData,
+  isStageCleared,
+  bgImage,
+  hudData.stage 
+);
 
   if(isStageCleared || lives <= 0 || isPaused || isGameEnding){
     if(isStageCleared && performance.now() - clearTimer > 5000){
