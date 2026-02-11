@@ -37,6 +37,14 @@ const bgNearNearImages = [
   (() => { const i = new Image(); i.src = "./images/graphics/background_near_near3.png"; return i; })(),
 ];
 
+//前景
+const fgImages = [
+  null,
+  (() => { const i = new Image(); i.src = "./images/graphics/foreground1.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/foreground2.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/foreground3.png"; return i; })(),
+];
+
 // ▼ 敵・ボス画像
 import { 
   enemySprite, 
@@ -337,7 +345,13 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
   }
 ctx.restore();
 
-
+// ============================
+// 最前面スクロール
+// ============================
+const fg = fgImages[stage];
+if (fg && fg.complete) {
+  ctx.drawImage(fg, -cameraX * 1.0, 0);
+}
 // ============================
 // STAGE CLEAR
 // ============================
