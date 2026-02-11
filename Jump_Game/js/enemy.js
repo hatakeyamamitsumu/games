@@ -430,13 +430,26 @@ export function checkBossHit(boss) {
   if (!boss) return null;
 
   if (aabb(player, boss)) {
+
     if (player.vy > 0) {
       boss.hp--;
-      player.vy = -12;
+
+      // ▼ 上方向に強く跳ねる
+      player.vy = -20;
+
+      // ▼ 横にもノックバックさせる
+      if (player.x < boss.x) {
+        player.vx = -20;   // 左側から踏んだ
+      } else {
+        player.vx = 20;    // 右側から踏んだ
+      }
+
       if (boss.hp <= 0) return "dead";
+
     } else {
       return "hit";
     }
   }
+
   return null;
 }

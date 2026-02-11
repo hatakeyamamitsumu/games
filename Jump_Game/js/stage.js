@@ -107,7 +107,7 @@ export const LEVELS = [
       {x:450, y:380, w:240, h:20, type:1},
       {x:700, y:260, w:192, h:20, type:5},
       {x:900, y:230, w:192, h:20, type:6},
-      {x:1300, y:260, w:192, h:20, type:7, startY:260, dir:1, speed:1, range:100},
+      {x:1300, y:80, w:192, h:20, type:7, startY:160, dir:1, speed:1, range:100},
       {x:450, y:200, w:192, h:20, type:8},
       {x:300, y:250, w:192, h:20, type:9},
       {x:1100, y:100, w:96, h:20,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
@@ -128,7 +128,7 @@ enemies: [
   {x:900, y:120, w:48, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true}
 ],
 
-    boss: {x:1400, y:400, w:80, h:80,dir:-1, speed:BOSS_SPEED, hp:BOSS_HP}
+    boss: {x:1400, y:360, w:120, h:120,dir:-1, speed:BOSS_SPEED, hp:BOSS_HP}
   }
 ];
 

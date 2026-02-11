@@ -224,17 +224,52 @@ drawParallax(bgNearNear, 1.0);
   // ============================
   // ボス描画
   // ============================
-  if (boss && bossSprite.complete) {
-    ctx.save();
-    if (boss.dir === 1) {
-      ctx.translate(boss.x + boss.w, boss.y);
-      ctx.scale(-1, 1);
-      ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, 0, 0, boss.w, boss.h);
-    } else {
-      ctx.drawImage(bossSprite, boss.frame * BOSS_FRAME_W, 0, BOSS_FRAME_W, BOSS_FRAME_H, boss.x, boss.y, boss.w, boss.h);
-    }
-    ctx.restore();
+if (boss && bossSprite.complete) {
+  const scale = 1.0;
+
+  const drawW = boss.w * scale;
+  const drawH = boss.h * scale;
+  const drawY = boss.y - (drawH - boss.h) / 2;
+
+  ctx.save();
+
+  if (boss.dir === 1) {
+    ctx.translate(boss.x + boss.w / 2, 0);
+    ctx.scale(-1, 1);
+
+    const drawX = -drawW / 2;
+
+    ctx.drawImage(
+      bossSprite,
+      boss.frame * BOSS_FRAME_W,
+      0,
+      BOSS_FRAME_W,
+      BOSS_FRAME_H,
+      drawX,
+      drawY,
+      drawW,
+      drawH
+    );
+
+  } else {
+    const drawX = boss.x - (drawW - boss.w) / 2;
+
+    ctx.drawImage(
+      bossSprite,
+      boss.frame * BOSS_FRAME_W,
+      0,
+      BOSS_FRAME_W,
+      BOSS_FRAME_H,
+      drawX,
+      drawY,
+      drawW,
+      drawH
+    );
   }
+
+  ctx.restore();
+}
+
 // ============================
 // HUD描画
 // ============================
