@@ -253,26 +253,8 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
-function enterFullscreen() {
-  const elem = document.documentElement;
-
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) {
-    elem.webkitRequestFullscreen();
-  }
-}
 
 startButton.addEventListener("click", ()=>{
-
-  // 🔥 フルスクリーン化（追加）
-  const elem = document.documentElement;
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) {
-    elem.webkitRequestFullscreen();
-  }
-
   titleScreen.style.display = "none";
   document.getElementById("hud").style.display = "block";
   score = 0;
@@ -281,7 +263,6 @@ startButton.addEventListener("click", ()=>{
   bgm.play().catch(()=>{});
   loop();
 });
-
 
 function showEndingScreen(){
   isGameEnding = true;

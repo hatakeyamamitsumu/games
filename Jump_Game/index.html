@@ -50,16 +50,16 @@ canvas {
   display: none;
 }
 
-/* ===============================
-   操作ボタン全体
-================================ */
 #controller {
   position: fixed;
   left: 0;
-  bottom: 0;
+
+  top: 65%;              /* ← 中段に移動 */
+  transform: translateY(-50%);
+
   width: 100vw;
   height: var(--controller-height);
-  background: #0002;
+  background: none;
 
   display: flex;
   justify-content: space-between;
@@ -69,6 +69,7 @@ canvas {
   box-sizing: border-box;
   z-index: 2000;
 }
+
 
 /* 左右移動グループ */
 #moveButtons {
@@ -136,10 +137,10 @@ canvas {
   }
 
   .btn {
-    width: 64px;    /* 64 → 56 */
-    height: 64px;
+    width: 68px;    /* 64 → 56 */
+    height: 68px;
     line-height: 56px;
-    font-size: 30px;
+    font-size: 40px;
   }
 
 
