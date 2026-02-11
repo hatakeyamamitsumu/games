@@ -281,13 +281,13 @@ function drawHUD(ctx, HUD) {
   ctx.strokeStyle = "#000";
   ctx.lineWidth = 2;
 
-ctx.strokeText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
-ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
+ctx.strokeText(`Stage ${HUD.stage}   Score ${HUD.score}`, 130, 30);
+ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 130, 30);
 
   // HP
   if (HUD.hp != null) {
     const y = 70;
-    let x = ctx.canvas.width - (HUD.maxHp * 25 + 60);
+    let x = ctx.canvas.width -120 - (HUD.maxHp * 25 + 60);
     ctx.fillStyle = "#0f0";
     ctx.fillText("HP", x, y);
     x += 40;
@@ -301,7 +301,7 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 10, 30);
   // Lives
   if (HUD.lives != null) {
     const y = 40;
-    let x = ctx.canvas.width - (HUD.lives * 35 + 70);
+    let x = ctx.canvas.width -120 - (HUD.lives * 35 + 70);
     ctx.fillStyle = "#f00";
     ctx.fillText("LIVES", x, y);
     x += 60;
