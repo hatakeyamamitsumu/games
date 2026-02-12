@@ -44,13 +44,12 @@ export const LEVELS = [
 
     enemies: [
       {x:345, y:432, w: 32, h: 32, type: "heal" },
-        { x: 600, y: 350, w: 32, h: 32, type: "heal" },
-  { x: 1200, y: 300, w: 32, h: 32, type: "heal" },
-          { x: 700, y: 150, w: 32, h: 32, type: "live" },
+      { x: 600, y: 350, w: 32, h: 32, type: "heal" },
+      { x: 1200, y: 300, w: 32, h: 32, type: "heal" },
+      { x: 700, y: 150, w: 32, h: 32, type: "live" },
       {x:600, y:446, w:34, h:48, dir:1, speed:1},
       {x:750, y:432, w:34, h:48, dir:-1, speed:1, type:"needle"},
       {x:1000, y:432, w:34, h:48, dir:-1, speed:1, type:"jump"},
-      {x:500, y:132, w:34, h:48, dir:-1, speed:5, type:"thunder"},
       {x:1200, y:300, w:34, h:48, dir:1, speed:1, type:"fly", vy:1},
       {x:1400, y:432, w:34, h:48, type:"jumper"},
       {x:1500, y:432, w:34, h:48, type:"jumper"},
