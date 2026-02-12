@@ -20,13 +20,11 @@ body {
 
 canvas {
   display: block;
-  margin: 0 auto;
-  background: #87CEEB;
-  height: calc(100vh - var(--controller-height));
-  width: auto;
-  aspect-ratio: 16 / 9;
-  transform: scale(1.1);
-  transform-origin: top center;
+  margin: 0 auto;          /* 横中央 */
+  width: 95vw;             /* 横幅90% */
+  height: auto;            /* アスペクト比維持 */
+  max-height: calc(100vh - var(--controller-height)); /* コントローラーとの干渉回避 */
+  transform: none;         /* 拡大縮小はCSSで対応 */
 }
 
 #hud {
@@ -39,7 +37,7 @@ canvas {
 #controller {
   position: fixed;
   left: 0;
-  top: 10px;
+  bottom: 0;
 
   width: 100vw;
   height: var(--controller-height);
