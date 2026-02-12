@@ -49,16 +49,16 @@ liveItemSprite.src = "./images/characters/item2.png";
 // ===== 定数 =====
 const ENEMY_FRAME_COUNT = 4;
 const BOSS_FRAME_COUNT = 4;
-
-// ===== 敵更新 =====
-export function updateEnemies(enemies, blocks) {
-  for (let i = enemies.length - 1; i >= 0; i--) {
-    const e = enemies[i];
 function isEnemySolidBlock(b) {
   // 敵が当たる通常ブロックのみ true
   if (b.type >= 13 && b.type <= 33) return false;
   return true;
 }
+// ===== 敵更新 =====
+export function updateEnemies(enemies, blocks) {
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+
  // --------------------------------
 // fly：ふわふわ上下移動
 // --------------------------------
@@ -134,9 +134,31 @@ if (e.type === "jump") {
 // needle：固定
 // --------------------------------
 if (e.type === "needle") {
+
+  // ===== 初期化 =====
+  e.baseY = e.baseY ?? e.y;     // 元の位置を保存
+  e.timer = e.timer ?? 0;
+  e.state = e.state ?? "down";  // "up" or "down"
+
+  e.timer++;
+
+  // ===== 動き制御 =====
+  if (e.state === "down" && e.timer > 120) {
+    e.y = e.baseY - 48;   // 16px 上に出す（1コマ分）
+    e.state = "up";
+    e.timer = 0;
+  }
+
+  else if (e.state === "up" && e.timer > 60) {
+    e.y = e.baseY;        // 元に戻す
+    e.state = "down";
+    e.timer = 0;
+  }
+
   animate(e);
   continue;
 }
+
 
 // --------------------------------
 // rush：待って突進
