@@ -7,16 +7,10 @@
 <title>3ステージ マリオ型ゲーム</title>
 
 <style>
-/* ===============================
-   CSS 変数
-================================ */
 :root {
   --controller-height: 180px;
 }
 
-/* ===============================
-   基本レイアウト
-================================ */
 body { 
   margin:0; 
   background:#87CEEB; 
@@ -24,38 +18,28 @@ body {
   overflow:hidden; 
 }
 
-/* ===============================
-   ゲーム画面（canvas）
-================================ */
 canvas {
   display: block;
   margin: 0 auto;
   background: #87CEEB;
-
   height: calc(100vh - var(--controller-height));
   width: auto;
-
   aspect-ratio: 16 / 9;
-
   transform: scale(1.1);
   transform-origin: top center;
 }
 
-
-
-/* ===============================
-   HUD（未使用）
-================================ */
 #hud {
   display: none;
 }
 
+/* ===============================
+   コントローラー
+================================ */
 #controller {
   position: fixed;
   left: 0;
-
-  top: 10px;        /* ← 上から10px */
-  transform: none;  /* ← 中央寄せ解除 */
+  top: 10px;
 
   width: 100vw;
   height: var(--controller-height);
@@ -70,21 +54,30 @@ canvas {
   z-index: 2000;
 }
 
-
-/* 左右移動グループ */
+/* 縦並び */
 #moveButtons {
   display: flex;
-  flex-direction: column;  /* ← これを追加 */
-  gap: 20px;
+  flex-direction: column;
+  gap: 0px;
 }
 
-/* ジャンプボタン（少し左寄せ） */
+/* ▶を少し右へ */
+#right {
+  margin-left: 50px;
+}
+
+/* ◀を少し左へ */
+#left {
+  margin-right: 20px;
+}
+
+/* ジャンプボタン */
 #jump {
-  margin-left: -30px;
+  margin-left: -20px;
 }
 
 /* ===============================
-   ボタンデザイン
+   ボタン
 ================================ */
 .btn {
   width: 60px;
@@ -103,7 +96,7 @@ canvas {
 }
 
 /* ===============================
-   タイトル画面
+   タイトル
 ================================ */
 #titleScreen {
   position:fixed;
@@ -129,25 +122,17 @@ canvas {
   cursor:pointer;
 }
 
-/* ===============================
-   スマホ横向き対応
-================================ */
+/* 横向き対応 */
 @media (orientation: landscape) {
   :root {
-    --controller-height: 100px; /* 120 → 100 */
+    --controller-height: 100px;
   }
 
   .btn {
-    width: 56px;    /* 64 → 56 */
+    width: 56px;
     height:56px;
     line-height: 56px;
     font-size: 40px;
-  }
-
-
-
-  #jump {
-    margin-left: -20px;
   }
 }
 </style>
@@ -155,23 +140,19 @@ canvas {
 
 <body>
 
-<!-- タイトル画面 -->
 <div id="titleScreen">
   <div>3ステージ マリオ型ゲーム(スマホ横向き推奨)</div>
   <button id="startButton">スタート</button>
 </div>
 
-<!-- ゲーム画面 -->
 <canvas id="game" width="960" height="540"></canvas>
-
-<!-- HUD -->
 <div id="hud"></div>
 
-<!-- 操作ボタン -->
+<!-- 正しい構造 -->
 <div id="controller">
   <div id="moveButtons">
-    <div id="left" class="btn">◀</div>
     <div id="right" class="btn">▶</div>
+    <div id="left" class="btn">◀</div>
   </div>
   <div id="jump" class="btn">▲</div>
 </div>
