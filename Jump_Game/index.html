@@ -54,22 +54,28 @@ canvas {
   z-index: 2000;
 }
 
-/* 縦並び */
+/* 横並びのボタンコンテナ */
 #moveButtons {
   display: flex;
-  flex-direction: row;   /* ← 横並びに戻す */
-  gap: 0px;             /* ← ボタン間の間隔（お好みで） */
+  flex-direction: row;
+  gap: 20px; /* デフォルトのボタン間隔（ジャンプボタンとの間） */
+  align-items: center;
 }
 
-/* ▶を少し右へ */
-#right {
-  margin-left: 20px;
+/* 左右移動ボタンの間隔だけなくす */
+#left, #right {
+  margin: 0;  /* 個別の余白をリセット */
 }
 
-/* ◀を少し左へ */
+/* 左右ボタンをくっつける */
 #left {
-  margin-right: 20px;
+  margin-right: 0; /* 右側の余白を削除 */
 }
+
+#right {
+  margin-left: 0;  /* 左側の余白を削除 */
+}
+
 
 
 /* ジャンプボタン */
