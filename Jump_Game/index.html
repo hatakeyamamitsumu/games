@@ -57,19 +57,20 @@ canvas {
 /* 縦並び */
 #moveButtons {
   display: flex;
-  flex-direction: column;
-  gap: 0px;
+  flex-direction: row;   /* ← 横並びに戻す */
+  gap: 20px;             /* ← ボタン間の間隔（お好みで） */
 }
 
 /* ▶を少し右へ */
 #right {
-  margin-left: 50px;
+  margin-left: 20px;
 }
 
 /* ◀を少し左へ */
 #left {
   margin-right: 20px;
 }
+
 
 /* ジャンプボタン */
 #jump {
