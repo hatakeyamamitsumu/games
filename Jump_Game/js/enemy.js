@@ -2,7 +2,7 @@
 import { BOSS_SPEED, BOSS_HP } from "./config.js";
 import { aabb } from "./physics.js";
 import { player } from "./player.js";
-
+import { SCREEN_H } from "./config.js";
 // ===== スプライト =====
 export const enemySprite = new Image();
 enemySprite.src = "./images/characters/enemy1.png";
@@ -33,6 +33,9 @@ chaserEnemySprite.src = "./images/characters/enemy8.png";
 
 export const phaserEnemySprite = new Image();
 phaserEnemySprite.src = "./images/characters/enemy9.png";
+
+export const thunderEnemySprite = new Image();
+thunderEnemySprite.src = "./images/characters/enemy10.png";
 
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
@@ -281,6 +284,49 @@ if (e.type === "chaser") {
   animate(e);
   continue;
 }
+// --------------------------------
+// thunder：上から下に落ちる敵
+// --------------------------------
+if (e.type === "thunder") {
+  // 初期化
+  e.vy = e.vy ?? e.speed ?? 3;
+  e.frame = e.frame ?? 0;
+  e.frameCount = e.frameCount ?? 0;
+  e.respawnY = e.respawnY ?? -e.h;  // 再出現位置
+  e.respawnX = e.respawnX ?? e.x;   // 出現X固定
+
+  // 下方向に移動
+  e.y += e.vy;
+
+  // スプライトアニメーション
+  e.frameCount++;
+  if (e.frameCount % 8 === 0) e.frame = (e.frame + 1) % 4;
+
+  // ブロックにぶつかったらリセット
+  for (const b of blocks) {
+    if (!aabb(e, b)) continue;
+
+    // ぶつかったら上から再出現
+    e.y = e.respawnY;
+    e.x = e.respawnX;
+    break;
+  }
+
+  // 画面下まで行ったら上から再出現
+  if (e.y > SCREEN_H) {
+    e.y = e.respawnY;
+    e.x = e.respawnX;
+  }
+
+  animate(e);
+  continue;
+}
+
+
+
+
+
+
 
 // --------------------------------
 // heal / live：アイテム
@@ -369,15 +415,18 @@ export function checkEnemyHit(enemies) {
         enemies.splice(i, 1);   // 消す
         return null;            // ダメージ扱いにしない
       }
-if (e.type === "live") {
-  enemies.splice(i, 1);
-  return "1up";   // ← main.js に知らせるだけ
-}
+
+      if (e.type === "live") {
+        enemies.splice(i, 1);
+        return "1up";           // main.js に知らせるだけ
+      }
 
       // ============================
       // 上から踏んだ判定
       // ============================
       if (player.vy > 0) {
+
+        // 踏んで倒せる敵だけ
         if (e.type === "needle") return "hit";
 
         if (e.type === "jumper") {
@@ -385,8 +434,12 @@ if (e.type === "live") {
           continue;
         }
 
-        enemies.splice(i, 1);
-        player.vy = -10;
+        // thunder は踏んでも倒せない
+        if (e.type !== "thunder") {
+          enemies.splice(i, 1);
+          player.vy = -10;
+        }
+
         continue;
       }
 
@@ -398,6 +451,7 @@ if (e.type === "live") {
   }
   return null;
 }
+
 
 
 
