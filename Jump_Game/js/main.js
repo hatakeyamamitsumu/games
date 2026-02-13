@@ -601,14 +601,14 @@ if (b.type === 12){
   if(player.vy > 10) player.vy = 10;
 
   // 摩擦（滑る床）
-  let friction = 0.1;
+  let friction = 0.02;
   for(const b of blocks){
     if(b.type === 8 &&
        player.x + player.w > b.x &&
        player.x < b.x + b.w &&
        player.y + player.h >= b.y - 4 &&
        player.y + player.h <= b.y + 20){
-      friction = 0.02;
+      friction = 0.01;
       break;
     }
   }
