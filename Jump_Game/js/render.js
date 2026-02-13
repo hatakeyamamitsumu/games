@@ -364,23 +364,47 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 130, 30);
   }
 
 
-  // ============================
-  // ブロック描画
-  // ============================
-  for (const b of blocks) {
-    const tileCount = Math.ceil(b.w / 48);
-    const img = blockImages[b.type - 1] ?? blockImages[0];
+// ============================
+// ブロック描画
+// ============================
+for (const b of blocks) {
 
-    if (img.complete) {
-      for (let i = 0; i < tileCount; i++) {
-        ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
-      }
-    } else {
-      ctx.fillStyle = "red";
-      ctx.fillRect(b.x, b.y, b.w, b.h);
+  // ▼ バネだけ特別処理
+  if (b.type === 6) {
+
+    let offset = 0;
+
+    if (b.compress > 0) {
+      offset = 8; // 縮む量
     }
+
+    ctx.drawImage(
+      blockImages[b.type - 1],
+      b.x,
+      b.y + offset,
+      48,
+      48 - offset
+    );
+
+    continue; // ← 他の処理をスキップ
   }
+
+  // ▼ 通常ブロック
+  const tileCount = Math.ceil(b.w / 48);
+  const img = blockImages[b.type - 1] ?? blockImages[0];
+
+  if (img.complete) {
+    for (let i = 0; i < tileCount; i++) {
+      ctx.drawImage(img, b.x + i * 48, b.y, 48, 48);
+    }
+  } else {
+    ctx.fillStyle = "red";
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+  }
+}
+
 ctx.restore();
+
 
 // ============================
 // 最前面スクロール
