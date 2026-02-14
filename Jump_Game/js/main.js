@@ -359,7 +359,7 @@ function handleBlockCollision(e, b){
 
       // 滑る床
       if (b.type === 8 && e === player) {
-        e.friction = 0.00;
+        e.friction = 0.02;
         player.onSlippery = true;
       } else {
         e.friction = 0.1;

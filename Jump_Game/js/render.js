@@ -315,53 +315,97 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 130, 30);
 
   ctx.restore();
 }
+// ============================
+// ダメージビープ音
+// ============================
+let audioCtx = null;
 
-  // ============================
-  // プレイヤー描画（無敵点滅）
-  // ============================
-  if (player.vx !== 0) {
-    playerFrameTimer++;
-    if (playerFrameTimer > PLAYER_FRAME_INTERVAL) {
-      playerFrameTimer = 0;
-      playerFrameIndex = (playerFrameIndex + 1) % PLAYER_FRAME_COUNT;
-    }
+function playDamageBeep() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = "square";
+  osc.frequency.value = 220; // 低め＝ダメージ感
+
+  gain.gain.value = 0.15;
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.08);
+}
+
+// ============================
+// プレイヤー描画（無敵点滅＋ダメージ音検知）
+// ============================
+
+// ▼ 無敵開始検知用
+if (!player._prevInvincible) player._prevInvincible = false;
+
+// 無敵開始の瞬間を検出
+if (HUD.invincible && !player._prevInvincible) {
+  playDamageBeep();
+}
+
+player._prevInvincible = HUD.invincible;
+
+
+// ---------- アニメ更新 ----------
+if (player.vx !== 0) {
+  playerFrameTimer++;
+  if (playerFrameTimer > PLAYER_FRAME_INTERVAL) {
+    playerFrameTimer = 0;
+    playerFrameIndex = (playerFrameIndex + 1) % PLAYER_FRAME_COUNT;
+  }
+} else {
+  playerFrameIndex = 0;
+}
+
+
+// ---------- 無敵点滅 ----------
+const invincible = HUD.invincible === true;
+const blink =
+  invincible &&
+  Math.floor(performance.now() / 100) % 2 === 1;
+
+
+// ---------- 描画 ----------
+if (!blink) {
+  if (player.vx < 0) {
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(
+      playerSprite,
+      PLAYER_FRAME_W * playerFrameIndex,
+      0,
+      PLAYER_FRAME_W,
+      PLAYER_FRAME_H,
+      -(player.x + player.w),
+      player.y,
+      player.w,
+      player.h
+    );
+    ctx.restore();
   } else {
-    playerFrameIndex = 0;
+    ctx.drawImage(
+      playerSprite,
+      PLAYER_FRAME_W * playerFrameIndex,
+      0,
+      PLAYER_FRAME_W,
+      PLAYER_FRAME_H,
+      player.x,
+      player.y,
+      player.w,
+      player.h
+    );
   }
+}
 
-  const invincible = HUD.invincible === true;
-  const blink = invincible && Math.floor(performance.now() / 100) % 2 === 1;
-
-  if (!blink) {
-    if (player.vx < 0) {
-      ctx.save();
-      ctx.scale(-1, 1);
-      ctx.drawImage(
-        playerSprite,
-        PLAYER_FRAME_W * playerFrameIndex,
-        0,
-        PLAYER_FRAME_W,
-        PLAYER_FRAME_H,
-        -(player.x + player.w),
-        player.y,
-        player.w,
-        player.h
-      );
-      ctx.restore();
-    } else {
-      ctx.drawImage(
-        playerSprite,
-        PLAYER_FRAME_W * playerFrameIndex,
-        0,
-        PLAYER_FRAME_W,
-        PLAYER_FRAME_H,
-        player.x,
-        player.y,
-        player.w,
-        player.h
-      );
-    }
-  }
 
 
 // ============================

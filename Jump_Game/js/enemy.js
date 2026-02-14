@@ -232,23 +232,36 @@ if (e.type === "wander") {
   continue;
 }
 
+
 // --------------------------------
-// seeker：横追尾＋浮遊（元からOK）
+// seeker：横追尾＋上下ふわふわ（安定版）
 // --------------------------------
 if (e.type === "seeker") {
+
   const cx = player.x + player.w / 2;
   const ex = e.x + e.w / 2;
 
-  e.x += (cx > ex ? 1 : -1) * (e.speed ?? 1);
-  e.dir = cx >= ex ? 1 : -1;
+  const dx = cx - ex;
+  const speed = e.speed ?? 1;
 
+  // ★ 一定距離以上あるときだけ移動
+  if (Math.abs(dx) > speed) {
+    e.x += Math.sign(dx) * speed;
+    e.dir = dx > 0 ? 1 : -1;
+  }
+
+  // 上下ふわふわ
   e.float = (e.float ?? 0) + 0.05;
   e.y += Math.sin(e.float) * 2;
 
-  if (e.y > 600 || e.y < -100) enemies.splice(i, 1);
+  // 画面外削除
+  if (e.y > 600 || e.y < -100)
+    enemies.splice(i, 1);
+
   animate(e);
   continue;
 }
+
 
 // --------------------------------
 // phaser：消えたり現れたり
@@ -286,6 +299,7 @@ if (e.type === "phaser") {
 // chaser：全方向追尾
 // --------------------------------
 if (e.type === "chaser") {
+
   const px = player.x + player.w / 2;
   const py = player.y + player.h / 2;
   const ex = e.x + e.w / 2;
@@ -293,19 +307,28 @@ if (e.type === "chaser") {
 
   const dx = px - ex;
   const dy = py - ey;
-  const d = Math.hypot(dx, dy) || 1;
+  const d = Math.hypot(dx, dy);
 
   e.speed = e.speed ?? 1.3;
-  e.x += (dx / d) * e.speed;
-  e.y += (dy / d) * e.speed;
-  e.dir = dx >= 0 ? 1 : -1;
 
-  if (e.x < -200 || e.x > 2600 || e.y < -200 || e.y > 800)
-    enemies.splice(i, 1);
+  if (d > 0.5) {
+    const ax = (dx / d) * 0.2;
+    const ay = (dy / d) * 0.2;
+
+    e.vx = (e.vx ?? 0) * 0.9 + ax;
+    e.vy = (e.vy ?? 0) * 0.9 + ay;
+
+    e.x += e.vx;
+    e.y += e.vy;
+  }
+
+  if (Math.abs(e.vx) > 0.05)
+    e.dir = e.vx > 0 ? 1 : -1;
 
   animate(e);
   continue;
 }
+
 // --------------------------------
 // thunder：上から下に落ちる敵
 // --------------------------------
@@ -477,21 +500,69 @@ export function checkEnemyHit(enemies) {
 
 
 
-// ===== ボス更新 =====
+// ===== ボス更新（完全安定版） =====
 export function updateBoss(boss, blocks) {
   if (!boss) return;
 
-  boss.dir = (player.x > boss.x) ? 1 : -1;
-  boss.x += boss.dir * boss.speed;
+  // -----------------------------
+  // 中心座標を使用
+  // -----------------------------
+  const bossCenter = boss.x + boss.w / 2;
+  const playerCenter = player.x + player.w / 2;
 
+  const dx = playerCenter - bossCenter;
+
+  // -----------------------------
+  // 速度ベクトル方式（滑らか）
+  // -----------------------------
+  const accel = 0.4;           // 加速力
+  const maxSpeed = boss.speed ?? 3;
+
+  boss.vx = boss.vx ?? 0;
+
+  // プレイヤー方向へ加速
+  if (Math.abs(dx) > 4) {
+    boss.vx += Math.sign(dx) * accel;
+  }
+
+  // 最大速度制限
+  if (boss.vx > maxSpeed) boss.vx = maxSpeed;
+  if (boss.vx < -maxSpeed) boss.vx = -maxSpeed;
+
+  // 位置更新
+  boss.x += boss.vx;
+
+  // 向き更新（ほぼ止まってるときは変えない）
+  if (Math.abs(boss.vx) > 0.2) {
+    boss.dir = boss.vx > 0 ? 1 : -1;
+  }
+
+  // -----------------------------
+  // ブロック衝突（めり込み防止）
+  // -----------------------------
   for (const b of blocks) {
     if (aabb(boss, b)) {
-      boss.dir *= -1;
-      boss.x += boss.dir * 10;
+
+      if (boss.vx > 0) {
+        boss.x = b.x - boss.w;
+      } else if (boss.vx < 0) {
+        boss.x = b.x + b.w;
+      }
+
+      boss.vx *= -0.5; // 反発＋減速（暴れ防止）
     }
   }
 
-  // ===== アニメ更新 =====
+  // -----------------------------
+  // 微小震え防止
+  // -----------------------------
+  if (Math.abs(boss.vx) < 0.05) {
+    boss.vx = 0;
+  }
+
+  // -----------------------------
+  // アニメ更新
+  // -----------------------------
   boss._frameTimer = (boss._frameTimer ?? 0) + 1;
   const interval = boss._frameInterval ?? 12;
 
@@ -500,6 +571,8 @@ export function updateBoss(boss, blocks) {
     boss.frame = ((boss.frame ?? 0) + 1) % BOSS_FRAME_COUNT;
   }
 }
+
+
 
 // ===== ボス当たり判定 =====
 export function checkBossHit(boss) {
