@@ -39,7 +39,7 @@ export function updatePlayer(blocks, stageWidth = 3000) {
   // ---------- 横移動（滑る床対応版） ----------
   if (player.onSlippery) {
     // 加速の大きさ
-    const accel = 1.8;        // ← 好きに調整（1.0〜1.5で超高速化）
+    const accel = 1.0;        // ← 好きに調整（1.0〜1.5で超高速化）
 
     if(keys.left)  player.vx -= accel;
     if(keys.right) player.vx += accel;

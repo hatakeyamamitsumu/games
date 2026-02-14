@@ -351,13 +351,11 @@ function handleBlockCollision(e, b){
         b.timer = 0;
       }
 
-// 跳ねる床
-if (b.type === 6 && e === player) {
-  e.vy = -20;
-  e.onGround = false;
-
-  b.compress = 6; // ← 6フレーム縮む
-}
+      // 跳ねる床
+      if (b.type === 6 && e === player) {
+        e.vy = -20;
+        e.onGround = false;
+      }
 
       // 滑る床
       if (b.type === 8 && e === player) {
@@ -430,9 +428,6 @@ function loop(){
       if(b.x > (b.startX ?? b.x) + (b.range ?? 200)) b.dir = -1;
       if(b.x < (b.startX ?? b.x)) b.dir = 1;
     }
-if (b.type === 6 && b.compress > 0) {
-  b.compress--;
-}
 
     // ===== 上下に動く床 =====
     if(b.type === 7){
@@ -606,14 +601,14 @@ if (b.type === 12){
   if(player.vy > 10) player.vy = 10;
 
   // 摩擦（滑る床）
-  let friction = 0.02;
+  let friction = 0.1;
   for(const b of blocks){
     if(b.type === 8 &&
        player.x + player.w > b.x &&
        player.x < b.x + b.w &&
        player.y + player.h >= b.y - 4 &&
        player.y + player.h <= b.y + 20){
-      friction = 0.01;
+      friction = 0.02;
       break;
     }
   }
