@@ -321,6 +321,7 @@ ctx.fillText(`Stage ${HUD.stage}   Score ${HUD.score}`, 130, 30);
 let audioCtx = null;
 
 function playDamageBeep() {
+
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
@@ -328,17 +329,26 @@ function playDamageBeep() {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
 
-  osc.type = "square";
-  osc.frequency.value = 220; // 低め＝ダメージ感
+  const now = audioCtx.currentTime;
 
-  gain.gain.value = 0.15;
+  // 波形
+  osc.type = "square";
+
+  // 少し高めからスタートして下げる
+  osc.frequency.setValueAtTime(320, now);
+  osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+
+  // 音量を自然に減衰させる
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
   osc.connect(gain);
   gain.connect(audioCtx.destination);
 
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.08);
+  osc.start(now);
+  osc.stop(now + 0.08);
 }
+
 
 // ============================
 // プレイヤー描画（無敵点滅＋ダメージ音検知）

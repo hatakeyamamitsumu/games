@@ -197,12 +197,52 @@ function takeDamage(amount=1){
   if(player.hp <= 0) killPlayer();
   else { invincible=true; invincibleTimer=performance.now(); }
 }
+// ============================
+// デスサウンド（3音・低音版）
+// ============================
+function playDeathSound(){
+
+  if (!window.audioCtx) {
+    window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  const ctxAudio = window.audioCtx;
+  const now = ctxAudio.currentTime;
+
+  const notes = [150, 100, 60]; // 低音3音
+
+  notes.forEach((freq, i) => {
+
+    const osc = ctxAudio.createOscillator();
+    const gain = ctxAudio.createGain();
+
+    const startTime = now + i * 0.15;
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, startTime);
+
+    gain.gain.setValueAtTime(0.3, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
+
+    osc.connect(gain);
+    gain.connect(ctxAudio.destination);
+
+    osc.start(startTime);
+    osc.stop(startTime + 0.2);
+  });
+}
 
 function killPlayer(){
+
+  if (isGameOver || isPaused) return;
+
+  playDeathSound();   // ← ここだけでOK
+
   lives--;
   fadeOutAudio(bgm,1000);
 
-  if(lives>0){
+  if(lives > 0){
+
     isPaused = true;
     invincible = true;
     player.hp = player.maxHp;
@@ -213,12 +253,19 @@ function killPlayer(){
       invincible = false;
       isPaused = false;
     },3000);
+
   } else {
-  clearBGM.pause();
-  isGameOver = true;          // ★追加
-  setTimeout(()=>playGameoverBGM(),1000);
+
+    clearBGM.pause();
+    isGameOver = true;
+
+    setTimeout(()=>{
+      playGameoverBGM();
+    },1000);
+  }
 }
-}
+
+
 
 // ===== タイトル & エンディング =====
 const startButton = document.getElementById("startButton");
@@ -359,7 +406,7 @@ function handleBlockCollision(e, b){
 
       // 滑る床
       if (b.type === 8 && e === player) {
-        e.friction = 0.02;
+        e.friction = 0.00;
         player.onSlippery = true;
       } else {
         e.friction = 0.1;
