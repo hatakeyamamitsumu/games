@@ -338,9 +338,9 @@ function playDamageBeep() {
   osc.frequency.setValueAtTime(320, now);
   osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
 
-  // 音量を自然に減衰させる
-  gain.gain.setValueAtTime(0.2, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+gain.gain.setValueAtTime(0.3, now);
+gain.gain.exponentialRampToValueAtTime(0.05, now + 0.3);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
 
   osc.connect(gain);
   gain.connect(audioCtx.destination);

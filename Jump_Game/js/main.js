@@ -695,7 +695,10 @@ if (b.type === 12){
 
   // 落下死
   if(player.y > SCREEN_H){
+    invincible = true;
     killPlayer();
+    setTimeout(() => invincible = false, 0);
+
     requestAnimationFrame(loop);
     return;
   }
