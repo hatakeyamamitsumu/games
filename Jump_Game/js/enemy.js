@@ -37,6 +37,9 @@ phaserEnemySprite.src = "./images/characters/enemy9.png";
 export const thunderEnemySprite = new Image();
 thunderEnemySprite.src = "./images/characters/enemy10.png";
 
+export const ballEnemySprite = new Image();
+ballEnemySprite.src = "./images/characters/enemy11.png";
+
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
 
@@ -367,7 +370,55 @@ if (e.type === "thunder") {
   continue;
 }
 
+// --------------------------------
+// ballEnemy：配置位置から放物線で飛ぶ敵
+// --------------------------------
+if (e.type === "ball") {
 
+  // --- 初回だけ保存 ---
+  e.startX = e.startX ?? e.x;
+  e.startY = e.startY ?? e.y;
+  e.startVX = e.startVX ?? (e.speedX ?? -4);
+  e.startVY = e.startVY ?? (e.speedY ?? -6);
+  e.gravity = e.gravity ?? 0.1;
+
+  e.frame = e.frame ?? 0;
+  e.frameCount = e.frameCount ?? 0;
+
+  // --- 初回だけ速度セット ---
+  e.vx = e.vx ?? e.startVX;
+  e.vy = e.vy ?? e.startVY;
+
+  // --- 物理更新 ---
+  e.vy += e.gravity;
+  e.x += e.vx;
+  e.y += e.vy;
+
+  // --- アニメーション ---
+  e.frameCount++;
+  if (e.frameCount % 8 === 0) {
+    e.frame = (e.frame + 1) % 4;
+  }
+
+  // --- 衝突判定 ---
+  let hit = false;
+  for (const b of blocks) {
+    if (!aabb(e, b)) continue;
+    hit = true;
+    break;
+  }
+
+  // --- 衝突 or 画面外で完全リセット ---
+  if (hit || e.y > SCREEN_H || e.x < -e.w) {
+    e.x = e.startX;
+    e.y = e.startY;
+    e.vx = e.startVX;
+    e.vy = e.startVY;
+  }
+
+  animate(e);
+  continue;
+}
 
 
 
