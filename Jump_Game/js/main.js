@@ -164,7 +164,6 @@ function startStage(s){
       b.prevY = b.y;
     }
 
-    // ===== 円運動する床（block12：逆回転） =====
 // ===== 円運動する床（block12：反時計回り）=====
 if (b.type === 12) {
   b.cx = b.cx ?? b.x;
@@ -403,7 +402,18 @@ function handleBlockCollision(e, b){
         e.vy = -20;
         e.onGround = false;
       }
-
+// 斜めジャンプ台（右前）
+if (b.type === 55 && e === player) {
+  e.vy = -30;   // 上方向
+  e.vx = 30;    // 右方向
+  e.onGround = false;
+}
+// 斜めジャンプ台（右前）
+if (b.type === 56 && e === player) {
+  e.vy = -30;   // 上方向
+  e.vx = -30;    // 右方向
+  e.onGround = false;
+}
       // 滑る床
       if (b.type === 8 && e === player) {
         e.friction = 0.00;

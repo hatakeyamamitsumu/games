@@ -20,6 +20,7 @@ export const LEVELS = [
       {x:700, y:432, w:48, h:48, type:18},
       {x:840, y:432, w:48, h:48, type:54},
       {x:1050, y:432, w:48, h:48, type:34},
+      {x:1350, y:232, w:48, h:48, type:55},
       {x:1450, y:432, w:48, h:48, type:16},
       {x:1150, y:432, w:48, h:48, type:38},
       {x:1200, y:432, w:48, h:48, type:43},
@@ -71,6 +72,7 @@ export const LEVELS = [
   {
     blocks: [
       {x:0, y:480, w:2400, h:48, type:0},
+      
       {x:380, y:400, w:192, h:48, type:1},
       {x:500, y:352, w:192, h:48, type:1},
       {x:600, y:0, w:192, h:48, type:5},
@@ -78,11 +80,15 @@ export const LEVELS = [
       {x:900, y:150, w:192, h:48, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1000, y:250, w:192, h:48, type:4, startX:800, dir:1, speed:2, range:200},
       {x:1200, y:200, w:48, h:48, type:6},
+      {x:1300, y:232, w:48, h:48, type:56},
       {x:1400, y:250, w:192, h:48, type:7, startY:250, dir:1, speed:1, range:120},
       {x:300, y:120, w:192, h:48, type:8},
+      
       {x:300, y:250, w:192, h:48, type:9},
       {x:500, y:430, w:192, h:48, type:32},
-      {x:650, y:180, w:96, h:48,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03}
+      
+      {x:650, y:180, w:96, h:48,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03},
+      
     ],
     enemies: [
         // ▼ 回復アイテム
