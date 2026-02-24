@@ -41,42 +41,52 @@ let isGameOver = false;   // ★追加
 const keys = { left:false, right:false, jump:false, b:false };
 const prevKeys = { left:false, right:false, jump:false, b:false };
 
+// ボタン取得
 const btnLeft = document.getElementById("left");
 const btnRight = document.getElementById("right");
 const btnJump = document.getElementById("jump");
 const btnB = document.getElementById("b");
 
-// タッチ & マウス対応
-[[btnLeft,'left'],
- [btnRight,'right'],
- [btnJump,'jump'],
- [btnB,'b']]   // ← 追加
-.forEach(([btn,key])=>{
-  ['mousedown','touchstart'].forEach(evt=>{
-    btn.addEventListener(evt, e=>{
-      if(e.type==='touchstart') e.preventDefault();
-      keys[key]=true;
-    });
+// ===== タッチ & マウス対応 =====
+[['left', btnLeft], ['right', btnRight], ['jump', btnJump], ['b', btnB]].forEach(([key, btn]) => {
+  
+  // 押したとき
+  ['mousedown', 'touchstart'].forEach(evtType => {
+    btn.addEventListener(evtType, e => {
+      e.preventDefault();   // スクロール防止など
+      keys[key] = true;
+    }, { passive: false }); // passive falseでpreventDefaultが効く
   });
-  ['mouseup','mouseleave','touchend'].forEach(evt=>{
-    btn.addEventListener(evt, e=>{
-      if(e.type==='touchend') e.preventDefault();
-      keys[key]=false;
-    });
+
+  // 離したとき
+  ['mouseup', 'touchend'].forEach(evtType => {
+    btn.addEventListener(evtType, e => {
+      e.preventDefault();
+      keys[key] = false;
+    }, { passive: false });
   });
+
+  // PC用のマウスが外に出た場合も押下解除
+  btn.addEventListener('mouseleave', () => { keys[key] = false; });
 });
 
-window.addEventListener("keydown", e=>{
-  if(e.code==="ArrowLeft") keys.left=true;
-  if(e.code==="ArrowRight") keys.right=true;
-  if(e.code==="Space") keys.jump=true;
-  if(e.code==="KeyX") keys.b=true;   // ← 追加
+// ===== キーボード対応 =====
+window.addEventListener("keydown", e => {
+  switch(e.code){
+    case "ArrowLeft": keys.left = true; break;
+    case "ArrowRight": keys.right = true; break;
+    case "Space": keys.jump = true; break;
+    case "KeyX": keys.b = true; break;
+  }
 });
-window.addEventListener("keyup", e=>{
-  if(e.code==="ArrowLeft") keys.left=false;
-  if(e.code==="ArrowRight") keys.right=false;
-  if(e.code==="Space") keys.jump=false;
-  if(e.code==="KeyX") keys.b=false;  // ← 追加
+
+window.addEventListener("keyup", e => {
+  switch(e.code){
+    case "ArrowLeft": keys.left = false; break;
+    case "ArrowRight": keys.right = false; break;
+    case "Space": keys.jump = false; break;
+    case "KeyX": keys.b = false; break;
+  }
 });
 
 // ===== BGM =====
