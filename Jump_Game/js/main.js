@@ -757,23 +757,31 @@ if(!invincible){
   // カメラ
   cameraX = Math.max(player.x - 200, 0);
 
-// Bボタンの機能（上限あり）
-if (keys.b) {
-
-  let dir = 1;
-
-  if (keys.left) dir = -1;
-  else if (keys.right) dir = 1;
-  else dir = player.vx >= 0 ? 1 : -1;
-
-  player.vx += dir * 0.8; // 毎フレーム加速
-
-  // ▼ 速度上限
-  const maxDashSpeed = 15;
-  if (player.vx > maxDashSpeed) player.vx = maxDashSpeed;
-  if (player.vx < -maxDashSpeed) player.vx = -maxDashSpeed;
+// --- クールタイム減少 ---
+if (player.warpCooldown > 0) {
+  player.warpCooldown--;
 }
- Object.assign(prevKeys, keys);
 
-  requestAnimationFrame(loop);
+
+// --- Bボタン：最上空ワープ＋HP消費＋5秒クール ---
+if (
+  keys.b &&
+  !prevKeys.b &&
+  player.hp > 1 &&
+  player.warpCooldown === 0
+) {
+
+  player.hp--;               // HPを1減少
+  player.warpCooldown = 300; // 5秒クール（60fps想定）
+
+  player.y = 0;              // 最上空へ
+  player.vy = 2;             // 落下開始
+  player.onGround = false;
+}
+
+
+// キー状態更新（必ず最後）
+Object.assign(prevKeys, keys);
+
+requestAnimationFrame(loop);
 }

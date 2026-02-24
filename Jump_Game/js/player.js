@@ -20,7 +20,8 @@ export const player = {
   frameInterval: 100,
 
   hp: 5,
-  maxHp: 5
+  maxHp: 5,
+  warpCooldown: 0   // ← ワープ一回使ったら5秒使えなくする
 };
 
 export function resetPlayer() {
