@@ -38,13 +38,20 @@ let isGameEnding = false;
 let isGameOver = false;   // ★追加
 
 // ===== キー & ボタン =====
-const keys = { left:false, right:false, jump:false };
+const keys = { left:false, right:false, jump:false, b:false };
+const prevKeys = { left:false, right:false, jump:false, b:false };
+
 const btnLeft = document.getElementById("left");
 const btnRight = document.getElementById("right");
 const btnJump = document.getElementById("jump");
+const btnB = document.getElementById("b");
 
 // タッチ & マウス対応
-[[btnLeft,'left'],[btnRight,'right'],[btnJump,'jump']].forEach(([btn,key])=>{
+[[btnLeft,'left'],
+ [btnRight,'right'],
+ [btnJump,'jump'],
+ [btnB,'b']]   // ← 追加
+.forEach(([btn,key])=>{
   ['mousedown','touchstart'].forEach(evt=>{
     btn.addEventListener(evt, e=>{
       if(e.type==='touchstart') e.preventDefault();
@@ -59,16 +66,17 @@ const btnJump = document.getElementById("jump");
   });
 });
 
-// キーボード
 window.addEventListener("keydown", e=>{
   if(e.code==="ArrowLeft") keys.left=true;
   if(e.code==="ArrowRight") keys.right=true;
   if(e.code==="Space") keys.jump=true;
+  if(e.code==="KeyX") keys.b=true;   // ← 追加
 });
 window.addEventListener("keyup", e=>{
   if(e.code==="ArrowLeft") keys.left=false;
   if(e.code==="ArrowRight") keys.right=false;
   if(e.code==="Space") keys.jump=false;
+  if(e.code==="KeyX") keys.b=false;  // ← 追加
 });
 
 // ===== BGM =====
@@ -748,6 +756,24 @@ if(!invincible){
 
   // カメラ
   cameraX = Math.max(player.x - 200, 0);
+
+// Bボタンの機能（上限あり）
+if (keys.b) {
+
+  let dir = 1;
+
+  if (keys.left) dir = -1;
+  else if (keys.right) dir = 1;
+  else dir = player.vx >= 0 ? 1 : -1;
+
+  player.vx += dir * 0.8; // 毎フレーム加速
+
+  // ▼ 速度上限
+  const maxDashSpeed = 15;
+  if (player.vx > maxDashSpeed) player.vx = maxDashSpeed;
+  if (player.vx < -maxDashSpeed) player.vx = -maxDashSpeed;
+}
+ Object.assign(prevKeys, keys);
 
   requestAnimationFrame(loop);
 }

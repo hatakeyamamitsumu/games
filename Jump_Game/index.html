@@ -153,14 +153,17 @@ canvas {
 <canvas id="game" width="960" height="540"></canvas>
 <div id="hud"></div>
 
-<!-- 正しい構造 -->
 <div id="controller">
   <div id="moveButtons">
-        <div id="left" class="btn">◀</div>
+    <div id="left" class="btn">◀</div>
     <div id="right" class="btn">▶</div>
-
   </div>
-  <div id="jump" class="btn">▲</div>
+
+  <!-- 右側ボタンエリア -->
+  <div style="display:flex; gap:20px;">
+    <div id="jump" class="btn">▲</div>
+    <div id="b" class="btn">●</div>
+  </div>
 </div>
 
 <script type="module" src="js/main.js"></script>

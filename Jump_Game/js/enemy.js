@@ -517,27 +517,27 @@ export function checkEnemyHit(enemies) {
         return "1up";           // main.js に知らせるだけ
       }
 
-      // ============================
-      // 上から踏んだ判定
-      // ============================
-      if (player.vy > 0) {
+// ============================
+// 上から踏んだ判定
+// ============================
+if (player.vy > 0) {
 
-        // 踏んで倒せる敵だけ
-        if (e.type === "needle") return "hit";
+  // 踏んでもダメージになる敵
+  if (
+    e.type === "needle" ||
+    e.type === "jumper" ||
+    e.type === "thunder" ||
+    e.type === "ball"
+  ) {
+    return "hit";
+  }
 
-        if (e.type === "jumper") {
-          player.vy = -10;
-          continue;
-        }
+  // それ以外は倒せる
+  enemies.splice(i, 1);
+  player.vy = -10;
 
-        // thunder は踏んでも倒せない
-        if (e.type !== "thunder") {
-          enemies.splice(i, 1);
-          player.vy = -10;
-        }
-
-        continue;
-      }
+  continue;
+}
 
       // ============================
       // 横・下から当たった
