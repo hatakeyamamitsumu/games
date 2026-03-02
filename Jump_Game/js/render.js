@@ -387,7 +387,7 @@ const blink =
 
 
 // ---------- 描画 ----------
-if (!blink) {
+if (!player.isHidden && !blink) {
   if (player.vx < 0) {
     ctx.save();
     ctx.scale(-1, 1);

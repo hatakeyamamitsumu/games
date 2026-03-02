@@ -768,27 +768,41 @@ if(!invincible){
   cameraX = Math.max(player.x - 200, 0);
 
 // --- クールタイム減少 ---
+// --- クールタイム ---
 if (player.warpCooldown > 0) {
   player.warpCooldown--;
 }
 
-
-// --- Bボタン：最上空ワープ＋HP消費＋5秒クール ---
+// --- B押した瞬間：即消える ---
 if (
   keys.b &&
   !prevKeys.b &&
   player.hp > 1 &&
-  player.warpCooldown === 0
+  player.warpCooldown === 0 &&
+  player.warpTimer === 0
 ) {
-
-  player.hp--;               // HPを1減少
-  player.warpCooldown = 300; // 5秒クール（60fps想定）
-
-  player.y = 0;              // 最上空へ
-  player.vy = 2;             // 落下開始
-  player.onGround = false;
+  player.isHidden = true; // ★追加（消える）
+  player.warpTimer = 30;
 }
 
+// --- タイマー進行 ---
+if (player.warpTimer > 0) {
+  player.warpTimer--;
+
+  player.vx = 0;
+  player.vy = 0;
+
+  if (player.warpTimer === 0) {
+    player.hp--;
+    player.warpCooldown = 60;
+
+    player.y = 0;
+    player.vy = 2;
+    player.onGround = false;
+
+    player.isHidden = false; // ★再出現
+  }
+}
 
 // キー状態更新（必ず最後）
 Object.assign(prevKeys, keys);

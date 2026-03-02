@@ -21,7 +21,8 @@ export const player = {
 
   hp: 5,
   maxHp: 5,
-  warpCooldown: 0   // ← ワープ一回使ったら5秒使えなくする
+  warpCooldown: 0,   // ← ワープ一回使ったら5秒使えなくする
+  warpTimer: 0
 };
 
 export function resetPlayer() {
