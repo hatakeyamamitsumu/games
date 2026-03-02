@@ -416,6 +416,25 @@ if (!player.isHidden && !blink) {
       player.h
     );
   }
+
+// ★ 白フラッシュ（円形）
+if (player.flashTimer > 0) {
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+
+  ctx.beginPath();
+  ctx.arc(
+    player.x + player.w / 2, // 中心X
+    player.y + player.h / 2, // 中心Y
+    player.w / 1.2,          // 半径（好みで調整）
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+
+  ctx.restore();
+}
 }
 
 

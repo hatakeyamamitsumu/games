@@ -767,11 +767,16 @@ if(!invincible){
   // カメラ
   cameraX = Math.max(player.x - 200, 0);
 
-// --- クールタイム減少 ---
+
 // --- クールタイム ---
 if (player.warpCooldown > 0) {
   player.warpCooldown--;
 }
+
+// ★フラッシュタイマー（なければ作る）
+if (player.flashTimer === undefined) player.flashTimer = 0;
+if (player.flashTimer > 0) player.flashTimer--;
+
 
 // --- B押した瞬間：即消える ---
 if (
@@ -781,9 +786,11 @@ if (
   player.warpCooldown === 0 &&
   player.warpTimer === 0
 ) {
-  player.isHidden = true; // ★追加（消える）
-  player.warpTimer = 30;
+  player.isHidden = true;   // 消える
+  player.flashTimer = 6;    // ★消失フラッシュ
+  player.warpTimer = 30;    // 0.5秒待機
 }
+
 
 // --- タイマー進行 ---
 if (player.warpTimer > 0) {
@@ -800,7 +807,8 @@ if (player.warpTimer > 0) {
     player.vy = 2;
     player.onGround = false;
 
-    player.isHidden = false; // ★再出現
+    player.isHidden = false; // 再出現
+    player.flashTimer = 6;   // ★出現フラッシュ
   }
 }
 
