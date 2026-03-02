@@ -367,6 +367,10 @@ if (HUD.invincible && !player._prevInvincible) {
 player._prevInvincible = HUD.invincible;
 
 
+// ============================
+// プレイヤー描画
+// ============================
+
 // ---------- アニメ更新 ----------
 if (player.vx !== 0) {
   playerFrameTimer++;
@@ -386,8 +390,11 @@ const blink =
   Math.floor(performance.now() / 100) % 2 === 1;
 
 
-// ---------- 描画 ----------
+// ============================
+// スプライト描画
+// ============================
 if (!player.isHidden && !blink) {
+
   if (player.vx < 0) {
     ctx.save();
     ctx.scale(-1, 1);
@@ -416,25 +423,38 @@ if (!player.isHidden && !blink) {
       player.h
     );
   }
+}
 
-// ★ 白フラッシュ（円形）
+
+// ============================
+// 白フラッシュ（消失・出現）
+// ============================
 if (player.flashTimer > 0) {
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.fillStyle = "rgba(255,255,255,0.4)";
 
-  ctx.beginPath();
-  ctx.arc(
-    player.x + player.w / 2, // 中心X
-    player.y + player.h / 2, // 中心Y
-    player.w / 1.2,          // 半径（好みで調整）
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
+ctx.globalCompositeOperation = "lighter";
 
-  ctx.restore();
-}
+const cx = player.x + player.w / 2;
+const cy = player.y + player.h / 2;
+const r  = player.w * 1.2;
+
+// ★ 放射グラデーション
+const grad = ctx.createRadialGradient(
+  cx, cy, r * 0.1,   // 内側
+  cx, cy, r          // 外側
+);
+
+grad.addColorStop(0, "rgba(255,255,255,0.9)");
+grad.addColorStop(0.4, "rgba(255,255,255,0.6)");
+grad.addColorStop(1, "rgba(255,255,255,0)");
+
+ctx.fillStyle = grad;
+
+ctx.beginPath();
+ctx.arc(cx, cy, r, 0, Math.PI * 2);
+ctx.fill();
+
+ctx.restore();
 }
 
 

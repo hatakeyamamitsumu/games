@@ -768,17 +768,34 @@ if(!invincible){
   cameraX = Math.max(player.x - 200, 0);
 
 
-// --- クールタイム ---
+// ============================
+// ワープ関連 初期化（1回だけ）
+// ============================
+if (player.warpCooldown === undefined) player.warpCooldown = 0;
+if (player.warpTimer === undefined) player.warpTimer = 0;
+if (player.flashTimer === undefined) player.flashTimer = 0;
+if (player.isHidden === undefined) player.isHidden = false;
+
+
+// ============================
+// クールタイム減少
+// ============================
 if (player.warpCooldown > 0) {
   player.warpCooldown--;
 }
 
-// ★フラッシュタイマー（なければ作る）
-if (player.flashTimer === undefined) player.flashTimer = 0;
-if (player.flashTimer > 0) player.flashTimer--;
+
+// ============================
+// フラッシュタイマー減少
+// ============================
+if (player.flashTimer > 0) {
+  player.flashTimer--;
+}
 
 
-// --- B押した瞬間：即消える ---
+// ============================
+// B押した瞬間 → 即消える
+// ============================
 if (
   keys.b &&
   !prevKeys.b &&
@@ -787,19 +804,24 @@ if (
   player.warpTimer === 0
 ) {
   player.isHidden = true;   // 消える
-  player.flashTimer = 6;    // ★消失フラッシュ
+  player.flashTimer = 6;    // 消失フラッシュ
   player.warpTimer = 30;    // 0.5秒待機
 }
 
 
-// --- タイマー進行 ---
+// ============================
+// ワープ待機タイマー進行
+// ============================
 if (player.warpTimer > 0) {
   player.warpTimer--;
 
+  // 待機中は完全停止
   player.vx = 0;
   player.vy = 0;
 
+  // タイマー終了 → 再出現
   if (player.warpTimer === 0) {
+
     player.hp--;
     player.warpCooldown = 60;
 
@@ -807,8 +829,8 @@ if (player.warpTimer > 0) {
     player.vy = 2;
     player.onGround = false;
 
-    player.isHidden = false; // 再出現
-    player.flashTimer = 6;   // ★出現フラッシュ
+    player.isHidden = false;
+    player.flashTimer = 6; // 出現フラッシュ
   }
 }
 
