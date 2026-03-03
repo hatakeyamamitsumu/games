@@ -14,15 +14,20 @@ export const player = {
   x: 80, y: 0, w: PLAYER_WIDTH, h: PLAYER_HEIGHT,
   vx: 0, vy: 0,
   onGround: false,
-  onSlippery: false,     // ← 追加（滑る床のフラグ）
+  onSlippery: false,
+
   frame: 0,
   frameTimer: 0,
   frameInterval: 100,
 
   hp: 5,
   maxHp: 5,
-  warpCooldown: 0,   // ← ワープ一回使ったら5秒使えなくする
-  warpTimer: 0
+  warpCooldown: 0,
+  warpTimer: 0,
+
+
+  jumpCount: 0,
+  maxJump: 2
 };
 
 export function resetPlayer() {

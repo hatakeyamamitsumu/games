@@ -458,7 +458,6 @@ if (b.type === 56 && e === player) {
 }
 
 
-
 // ===== メインループ =====
 function loop(){
 
@@ -699,11 +698,26 @@ if (b.type === 12){
   for(const b of blocks){
     handleBlockCollision(player, b);
   }
+if (player.onGround) {
+  player.jumpCount = 0;
+}
 
-  if(keys.jump && player.onGround){
-    player.vy = -12;
+if (keys.jump && !prevKeys.jump) {
+
+  if (player.jumpCount < player.maxJump) {
+
+    if (player.jumpCount === 0) {
+      player.vy = -12;      // 1段目
+    } else {
+      player.vy = -8;       // 2段目は低くする
+      //player.vx *= 1.3;   // 横に伸ばす
+    }
+
+    player.jumpCount++;
     player.onGround = false;
   }
+
+}
 
   // ===== 敵更新 =====
   updateEnemies(enemies, blocks);
