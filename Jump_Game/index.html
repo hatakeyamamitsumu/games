@@ -7,6 +7,7 @@
 <title>3ステージ マリオ型ゲーム</title>
 
 <style>
+  
 :root {
   --controller-height: 180px;
 }
@@ -118,15 +119,34 @@ canvas {
   z-index:3000;
   color:#fff;
   font-size:2em;
+  text-align: center;
 }
-
+.title-image {
+  width: 80%;        /* 画面幅の80% */
+  max-width: 600px;  /* PCで大きくなりすぎないよう制限 */
+  display: block;
+  margin: 20px auto;
+}
 #startButton {
-  margin-top:20px;
-  padding:10px 30px;
-  font-size:1em;
-  cursor:pointer;
+  background: linear-gradient(to bottom, #ffa733, #ff7b00);
+  color: white;
+  font-size: 18px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+font-weight: bold;
+  /* 立体感 */
+  box-shadow: 0 5px 0 #cc6200;
+  transition: all 0.1s ease;
 }
-
+#startButton:active {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 #cc6200;
+}
+#startButton:hover {
+  filter: brightness(1.1);
+}
 /* 横向き対応 */
 @media (orientation: landscape) {
   :root {
@@ -146,7 +166,10 @@ canvas {
 <body>
 
 <div id="titleScreen">
-  <div>JUMP & WARP(スマホ横向き推奨)</div>
+
+  <img src="./images/graphics/title.png" 
+       alt="タイトル画像" 
+       class="title-image">
 
   <button id="startButton">スタート</button>
 
@@ -155,8 +178,11 @@ canvas {
   </div>
 
   <div style="font-size: 22px;">
-    ●‥‥瞬間移動。再上空まで一瞬で飛べますが、ＨＰを１消耗します
+    ●‥‥瞬間移動。再上空まで一瞬で飛べますが、ＨＰを１消耗します。あと、一回使ったら５秒間使えません
   </div>
+
+  <div style="font-size: 22px;">スマホ横向き推奨</div>
+
 </div>
 
 <canvas id="game" width="960" height="540"></canvas>
