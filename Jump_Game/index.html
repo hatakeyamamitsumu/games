@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
+<meta charset="utf-8">
 
 <meta name="viewport"
 content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -9,6 +9,10 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>3ステージ マリオ型ゲーム</title>
 
 <style>
+
+/* ===============================
+基本設定
+================================ */
 
 :root{
   --controller-height:180px;
@@ -18,10 +22,11 @@ body{
   margin:0;
   background:#87CEEB;
   font-family:sans-serif;
+  overflow:hidden;
 }
 
 /* ===============================
-   ゲーム画面
+ゲーム画面
 ================================ */
 
 canvas{
@@ -37,7 +42,7 @@ canvas{
 }
 
 /* ===============================
-   コントローラー
+コントローラー
 ================================ */
 
 #controller{
@@ -57,7 +62,6 @@ canvas{
   box-sizing:border-box;
 
   z-index:2000;
-
 }
 
 #moveButtons{
@@ -65,12 +69,8 @@ canvas{
   gap:20px;
 }
 
-#jump{
-  margin-left:-20px;
-}
-
 /* ===============================
-   操作ボタン
+操作ボタン
 ================================ */
 
 .btn{
@@ -79,18 +79,16 @@ canvas{
   height:80px;
 
   background:#ffffff88;
-
   border-radius:50%;
 
-  font-size:48px;
+  font-size:42px;
   text-align:center;
-  line-height:60px;
+  line-height:80px;
 
   user-select:none;
   -webkit-user-select:none;
 
   touch-action:none;
-
 }
 
 .btn:active{
@@ -98,23 +96,18 @@ canvas{
 }
 
 /* ===============================
-   タイトル画面
+タイトル画面
 ================================ */
 
 #titleScreen{
 
   position:fixed;
-  top:0;
-  left:0;
-
-  width:100%;
-  height:100%;
+  inset:0;
 
   background:#00000088;
 
   display:flex;
   flex-direction:column;
-
   align-items:center;
   justify-content:center;
 
@@ -122,23 +115,19 @@ canvas{
 
   color:#fff;
   text-align:center;
-
 }
 
-/* タイトル画像 */
+/* タイトル画像 + ボタン */
 
 .title-container{
   position:relative;
-  display:inline-block;
+  width:60vw;
+  max-width:420px;
 }
 
 .title-image{
-
-  width:50vw;
-  max-width:400px;
-
+  width:100%;
   display:block;
-
 }
 
 /* スタートボタン */
@@ -146,57 +135,51 @@ canvas{
 #startButton{
 
   position:absolute;
-
   left:50%;
-  top:70%;
+  bottom:15%;
 
-  transform:translate(-50%,-50%);
+  transform:translateX(-50%);
 
-  background:linear-gradient(to bottom,#ffa733,#ff7b00);
-
+  background:linear-gradient(#ffa733,#ff7b00);
   color:white;
 
   font-size:18px;
-
-  padding:10px 24px;
+  padding:10px 26px;
 
   border:none;
   border-radius:12px;
 
-  cursor:pointer;
-
   font-weight:bold;
 
-  box-shadow:0 5px 0 #cc6200;
+  cursor:pointer;
 
+  box-shadow:0 5px 0 #cc6200;
 }
 
 #startButton:active{
-
-  transform:translate(-50%,-45%);
+  transform:translate(-50%,4px);
   box-shadow:0 0 0 #cc6200;
-
 }
 
 /* ===============================
-   説明スクロール
+説明スクロール
 ================================ */
 
 .instructions{
 
-  width:80%;
-  max-width:500px;
+  width:82%;
+  max-width:520px;
 
-  height:160px;
+  height:200px;
 
   overflow-y:auto;
 
-  margin-top:20px;
+  margin-top:25px;
 
-  font-size:22px;
+  font-size:20px;
   line-height:1.6;
 
-  padding:12px;
+  padding:14px;
 
   background:#00000055;
   border-radius:10px;
@@ -208,10 +191,9 @@ canvas{
   -webkit-touch-callout:none;
 
   touch-action:pan-y;
-
 }
 
-/* スクロールバー表示 */
+/* スクロールバー */
 
 .instructions::-webkit-scrollbar{
   width:10px;
@@ -219,7 +201,7 @@ canvas{
 
 .instructions::-webkit-scrollbar-thumb{
   background:#ffffffaa;
-  border-radius:10px;
+  border-radius:8px;
 }
 
 .instructions::-webkit-scrollbar-track{
@@ -227,7 +209,7 @@ canvas{
 }
 
 /* ===============================
-   横向き対応
+横向き対応
 ================================ */
 
 @media (orientation:landscape){
@@ -237,17 +219,14 @@ canvas{
 }
 
 .btn{
-
-  width:80px;
-  height:80px;
-
-  font-size:40px;
-  line-height:56px;
-
+  width:70px;
+  height:70px;
+  line-height:70px;
+  font-size:36px;
 }
 
 .instructions{
-  height:140px;
+  height:150px;
 }
 
 }
@@ -257,12 +236,13 @@ canvas{
 
 <body>
 
+<!-- タイトル画面 -->
+
 <div id="titleScreen">
 
 <div class="title-container">
 
-<img src="./images/graphics/title.png"
-class="title-image">
+<img src="./images/graphics/title.png" class="title-image">
 
 <button id="startButton">
 スタート
@@ -273,14 +253,17 @@ class="title-image">
 <div class="instructions">
 
 <div>
-▲ ジャンプ。ジャンプ中に押すと二段ジャンプできます
+▲ ジャンプ  
+ジャンプ中に押すと二段ジャンプできます
 </div>
 
 <br>
 
 <div>
-● 瞬間移動。再上空まで一瞬で飛びます。  
-HPを1消費し、使用後5秒クールタイムがあります
+● 瞬間移動  
+再上空まで一瞬で飛びます  
+HPを1消費します  
+使用後5秒クールタイム
 </div>
 
 <br>
@@ -293,9 +276,13 @@ HPを1消費し、使用後5秒クールタイムがあります
 
 </div>
 
+<!-- ゲーム画面 -->
+
 <canvas id="game" width="960" height="540"></canvas>
 
 <div id="hud"></div>
+
+<!-- コントローラー -->
 
 <div id="controller">
 
@@ -304,9 +291,9 @@ HPを1消費し、使用後5秒クールタイムがあります
 <div id="right" class="btn">▶</div>
 </div>
 
-<div style="display:flex; gap:80px;">
-<div id="b" class="btn">●</div>
+<div style="display:flex;flex-direction:column;gap:25px;">
 <div id="jump" class="btn">▲</div>
+<div id="b" class="btn">●</div>
 </div>
 
 </div>
