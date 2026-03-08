@@ -4,192 +4,35 @@
 <meta charset="utf-8"/>
 <meta name="viewport"
       content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>3ステージ マリオ型ゲーム</title>
 
-<style>
-  
-:root {
-  --controller-height: 180px;
-}
-
-body { 
-  margin:0; 
-  background:#87CEEB; 
-  font-family:sans-serif; 
-  overflow:hidden; 
-}
-
-canvas {
-  display: block;
-  margin: 0 auto;          /* 横中央 */
-  width: 90vw;             /* 横幅90% */
-  height: auto;            /* アスペクト比維持 */
-  max-height: calc(100vh - var(--controller-height)); /* コントローラーとの干渉回避 */
-  transform: none;         /* 拡大縮小はCSSで対応 */
-}
-
-#hud {
-  display: none;
-}
-
-/* ===============================
-   コントローラー
-================================ */
-#controller {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-
-  width: 100vw;
-  height: var(--controller-height);
-  background: none;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 0 24px;
-  box-sizing: border-box;
-  z-index: 2000;
-}
-
-/* 横並びのボタンコンテナ */
-#moveButtons {
-  display: flex;
-  flex-direction: row;
-  gap: 20px; /* デフォルトのボタン間隔（ジャンプボタンとの間） */
-  align-items: center;
-}
-
-/* 左右移動ボタンの間隔だけなくす */
-#left, #right {
-  margin: 0;  /* 個別の余白をリセット */
-}
-
-/* 左右ボタンをくっつける */
-#left {
-  margin-right: 0; /* 右側の余白を削除 */
-}
-
-#right {
-  margin-left: 0;  /* 左側の余白を削除 */
-}
-
-
-
-/* ジャンプボタン */
-#jump {
-  margin-left: -20px;
-}
-
-/* ===============================
-   ボタン
-================================ */
-.btn {
-  width: 80px;
-  height: 80px;
-  background:#fff8;
-  border-radius:50%;
-  font-size:48px;
-  text-align:center;
-  line-height:60px;
-  user-select:none;
-  touch-action: none;
-}
-
-.btn:active {
-  background:#fff4;
-}
-
-/* ===============================
-   タイトル
-================================ */
-#titleScreen {
-  position:fixed;
-  top:0; left:0;
-  width:100%;
-  height:100%;
-  background:#0008;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-
-  z-index:3000;
-  color:#fff;
-  font-size:2em;
-  text-align: center;
-}
-.title-image {
-  width: 40%;        /* 画面幅の50% */
-  max-width: 400px;  /* PCで大きくなりすぎないよう制限 */
-  display: block;
-  margin: 20px auto;
-}
-#startButton {
-  background: linear-gradient(to bottom, #ffa733, #ff7b00);
-  color: white;
-  font-size: 18px;
-  padding: 10px 24px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-font-weight: bold;
-  /* 立体感 */
-  box-shadow: 0 5px 0 #cc6200;
-  transition: all 0.1s ease;
-}
-#startButton:active {
-  transform: translateY(5px);
-  box-shadow: 0 0 0 #cc6200;
-}
-#startButton:hover {
-  filter: brightness(1.1);
-}
-/* 横向き対応 */
-@media (orientation: landscape) {
-  :root {
-    --controller-height: 100px;
-  }
-
-  .btn {
-    width: 80px;
-    height:80px;
-    line-height: 56px;
-    font-size: 40px;
-  }
-}
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>3ステージ マリオ型ゲーム</title>
 
 <style>
 
-:root {
-  --controller-height: 180px;
+:root{
+  --controller-height:180px;
 }
 
-body { 
-  margin:0; 
-  background:#87CEEB; 
-  font-family:sans-serif; 
-  overflow:hidden; 
+body{
+  margin:0;
+  background:#87CEEB;
+  font-family:sans-serif;
+  overflow:hidden;
 }
 
-canvas {
-  display: block;
-  margin: 0 auto;
-  width: 90vw;
-  height: auto;
-  max-height: calc(100vh - var(--controller-height));
+/* ===============================
+   ゲーム画面
+================================ */
+
+canvas{
+  display:block;
+  margin:0 auto;
+  width:90vw;
+  height:auto;
+  max-height:calc(100vh - var(--controller-height));
 }
 
-#hud {
+#hud{
   display:none;
 }
 
@@ -197,12 +40,12 @@ canvas {
    コントローラー
 ================================ */
 
-#controller {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100vw;
-  height: var(--controller-height);
+#controller{
+  position:fixed;
+  left:0;
+  bottom:0;
+  width:100vw;
+  height:var(--controller-height);
 
   display:flex;
   justify-content:space-between;
@@ -210,12 +53,12 @@ canvas {
 
   padding:0 24px;
   box-sizing:border-box;
+
   z-index:2000;
 }
 
 #moveButtons{
   display:flex;
-  flex-direction:row;
   gap:20px;
 }
 
@@ -224,17 +67,20 @@ canvas {
 }
 
 /* ===============================
-   ボタン
+   操作ボタン
 ================================ */
 
 .btn{
   width:80px;
   height:80px;
+
   background:#fff8;
   border-radius:50%;
+
   font-size:48px;
   text-align:center;
   line-height:60px;
+
   user-select:none;
   touch-action:none;
 }
@@ -251,6 +97,7 @@ canvas {
   position:fixed;
   top:0;
   left:0;
+
   width:100%;
   height:100%;
 
@@ -267,23 +114,20 @@ canvas {
   text-align:center;
 }
 
-/* タイトル画像とボタンの箱 */
+/* タイトル画像 */
 
 .title-container{
   position:relative;
   display:inline-block;
 }
 
-/* タイトル画像 */
-
 .title-image{
-  width:40%;
-  max-width:400px;
+  width:50vw;
   display:block;
   margin:20px auto;
 }
 
-/* スタートボタン（画像の上に浮く） */
+/* スタートボタン */
 
 #startButton{
 
@@ -305,7 +149,6 @@ canvas {
   font-weight:bold;
 
   box-shadow:0 5px 0 #cc6200;
-  transition:all 0.1s ease;
 }
 
 #startButton:active{
@@ -313,11 +156,30 @@ canvas {
   box-shadow:0 0 0 #cc6200;
 }
 
-#startButton:hover{
-  filter:brightness(1.1);
+/* ===============================
+   説明スクロール
+================================ */
+
+.instructions{
+
+  width:80%;
+  max-width:500px;
+
+  max-height:150px;
+
+  overflow-y:auto;
+
+  margin-top:20px;
+
+  font-size:22px;
+  line-height:1.6;
+
+  -webkit-overflow-scrolling:touch;
 }
 
-/* 横向き対応 */
+/* ===============================
+   横向き対応
+================================ */
 
 @media (orientation: landscape){
 
@@ -350,16 +212,20 @@ canvas {
 
   </div>
 
-  <div style="font-size:22px;margin-top:20px;">
-    ▲‥‥ジャンプ。ジャンプ中に押したら二段ジャンプできます
-  </div>
+  <div class="instructions">
 
-  <div style="font-size:22px;">
-    ●‥‥瞬間移動。再上空まで一瞬で飛べますが、ＨＰを１消耗します。あと、一回使ったら５秒間使えません
-  </div>
+    <div>
+      ▲‥‥ジャンプ。ジャンプ中に押したら二段ジャンプできます
+    </div>
 
-  <div style="font-size:22px;">
-    スマホ横向き推奨
+    <div>
+      ●‥‥瞬間移動。再上空まで一瞬で飛べますが、ＨＰを１消耗します。あと、一回使ったら５秒間使えません
+    </div>
+
+    <div>
+      スマホ横向き推奨
+    </div>
+
   </div>
 
 </div>
