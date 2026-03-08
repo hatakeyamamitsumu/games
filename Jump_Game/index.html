@@ -175,6 +175,14 @@ canvas{
   line-height:1.6;
 
   -webkit-overflow-scrolling:touch;
+
+  touch-action:pan-y;
+}
+
+/* スクロールバー非表示（ゲームUI） */
+
+.instructions::-webkit-scrollbar{
+  display:none;
 }
 
 /* ===============================
