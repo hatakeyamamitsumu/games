@@ -9,7 +9,8 @@ export const LEVELS = [
     blocks: [
       {x:0, y:480, w:192, h:48, type:0},
       {x:200, y:380, w:192, h:48, type:8},
-      {x:120, y:432, w:48, h:48, type:16},
+      {x:30, y:432, w:48, h:48, type:28},
+      {x:80, y:432, w:48, h:48, type:27},
       {x:80, y:432, w:48, h:48, type:27},
       {x:200, y:150, w:192, h:48, type:10},
       
@@ -34,6 +35,8 @@ export const LEVELS = [
       {x:1300, y:432, w:48, h:48, type:22},
       {x:1350, y:432, w:48, h:48, type:23},
       {x:1400, y:432, w:48, h:48, type:24},
+      {x:1600, y:432, w:48, h:48, type:29},
+      {x:1650, y:432, w:48, h:48, type:29},
       { x: 1540, y: 230, w:36, h: 48, type:49},
       {x:1500, y:432, w:48, h:48, type:46},
       {x:1548, y:432, w:48, h:48, type:47},
@@ -92,7 +95,10 @@ export const LEVELS = [
       {x:300, y:120, w:192, h:48, type:8},
       
       {x:300, y:250, w:192, h:48, type:9},
-      {x:500, y:430, w:192, h:48, type:32},
+      
+      {x:500, y:435, w:192, h:48, type:32},
+      {x:700, y:435, w:48, h:48, type:31},
+      {x:750, y:435, w:48, h:48, type:30},
       
       {x:650, y:180, w:96, h:48,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03},
       
