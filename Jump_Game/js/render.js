@@ -63,9 +63,9 @@ import {
 
 } from "./enemy.js";
 
-// ▼ ブロック画像（1〜56）
+// ▼ ブロック画像（1〜59）
 const blockImages = [];
-for (let i = 1; i <= 56; i++) {
+for (let i = 1; i <= 59; i++) {
   const img = new Image();
   img.src = `./images/characters/block${i}.png`;
   blockImages.push(img);

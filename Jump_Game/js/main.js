@@ -360,7 +360,53 @@ function handleBlockCollision(e, b){
 
   // 衝突なし
   if (ex2 <= bx1 || ex1 >= bx2 || ey2 <= by1 || ey1 >= by2) return;
+// ==========================
+// block57（ここに移動！！）
+// ==========================
+if (b.type === 57) {
 
+  // 右から来たときだけ止める
+  if (e.vx < 0 && e.x > b.x) {
+    e.x = b.x + b.w;
+    e.vx = 0;
+    return;
+  }
+
+  // それ以外は全部すり抜け
+  return;
+}
+if (b.type === 58) {
+
+  // 左から来たときだけ止める
+  if (e.vx > 0 && e.x + e.w < b.x + b.w) {
+    e.x = b.x - e.w;
+    e.vx = 0;
+    return;
+  }
+
+  // それ以外は全部すり抜け
+  return;
+}
+if (b.type === 59) {
+
+  // 前の位置を計算
+  const prevBottom = e.y + e.h - e.vy;
+  const currBottom = e.y + e.h;
+
+  // 上から落ちてきて、床をまたいだときだけ着地
+  if (
+    e.vy > 0 &&
+    prevBottom <= b.y &&
+    currBottom >= b.y
+  ) {
+    e.y = b.y - e.h;
+    e.vy = 0;
+    e.onGround = true;
+    return;
+  }
+
+  return;
+}
   // ======== 条件付きすり抜け床（type:10） ========
   if (b.type === 10) {
 
@@ -432,6 +478,7 @@ if (b.type === 56 && e === player) {
   e.vx = -30;    // 右方向
   e.onGround = false;
 }
+
       // 滑る床
       if (b.type === 8 && e === player) {
         e.friction = 0.00;
