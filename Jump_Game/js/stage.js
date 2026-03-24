@@ -60,7 +60,9 @@ export const LEVELS = [
       { x: 1200, y: 300, w:36, h: 48, type: "heal" },
       { x: 700, y: 150, w:36, h: 48, type: "live" },
       {x:600, y:446, w:36, h:48, dir:1, speed:1},
+      { x: 100, y: 200, w:36, h: 48, type: "phasePlatform" },
       { x: 1500, y: 200, w:36, h: 48, type: "ball" },
+      { x: 300, y: 50, w:36, h: 48, type: "hover8" },
       {x:750, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
       {x:1000, y:432, w:36, h:48, dir:-1, speed:1, type:"jump"},
       {x:1200, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
@@ -105,6 +107,7 @@ export const LEVELS = [
     ],
     enemies: [
         // ▼ 回復アイテム
+      { x: 20, y: 10, w:36, h: 48, type: "hover8" },
       { x: 500,  y: 300, w:36, h: 48, type: "heal" },
       { x: 1100, y: 250, w:36, h: 48, type: "heal" },
       {x:400, y:366, w:36, h:48, dir:-1, speed:1},

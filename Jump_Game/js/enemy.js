@@ -40,6 +40,12 @@ thunderEnemySprite.src = "./images/characters/enemy10.png";
 export const ballEnemySprite = new Image();
 ballEnemySprite.src = "./images/characters/enemy11.png";
 
+export const hover8EnemySprite = new Image();
+hover8EnemySprite.src = "./images/characters/enemy12.png";
+
+export const phasePlatformEnemySprite = new Image();
+phasePlatformEnemySprite.src = "./images/characters/enemy15.png";
+
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
 
@@ -61,6 +67,7 @@ function isEnemySolidBlock(b) {
 export function updateEnemies(enemies, blocks) {
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
+
 
  // --------------------------------
 // fly：ふわふわ上下移動
@@ -277,7 +284,7 @@ if (e.type === "phaser") {
 
   if (e.timer <= 0) {
     e.visible = !e.visible;
-    e.timer = 90;
+    e.timer = 180;
   }
 
   if (e.visible) {
@@ -297,7 +304,31 @@ if (e.type === "phaser") {
 
   continue;
 }
+// --------------------------------
+// enemy13：消える足場
+// --------------------------------
+if (e.type === "phasePlatform") {
 
+  e.visible = e.visible ?? true;
+  e.timer = (e.timer ?? 90) - 1;
+
+  if (e.timer <= 0) {
+    e.visible = !e.visible;
+    e.timer = 90;
+  }
+
+  // 動かないので x は変更しない
+
+  // 表示中だけ当たり判定あり
+  if (e.visible) {
+    e.solid = true;   // ←これ重要
+    animate(e);
+  } else {
+    e.solid = false;  // ←すり抜け
+  }
+
+  continue;
+}
 // --------------------------------
 // chaser：全方向追尾
 // --------------------------------
@@ -420,7 +451,27 @@ if (e.type === "ball") {
   continue;
 }
 
+// --------------------------------
+// enemy12：その場で8の字ホバリング
+// --------------------------------
+if (e.type === "hover8") {
 
+  if (e.baseX === undefined) {
+    e.baseX = e.x;
+    e.baseY = e.y;
+    e.t = 0;
+  }
+
+  e.t += 0.05;
+
+const ampX = 60; // 横に大きく
+const ampY = 40; // 縦に大きく
+
+  e.x = e.baseX + Math.sin(e.t) * ampX;
+  e.y = e.baseY + Math.sin(e.t * 2) * ampY;
+
+  continue; // ←これ超重要
+}
 
 
 
@@ -531,7 +582,13 @@ if (player.vy > 0) {
   ) {
     return "hit";
   }
-
+  // ★ 足場タイプ
+  if (e.type === "phasePlatform") {
+    player.y = e.y - player.h; // 上に乗せる
+    player.vy = 0;
+    player.onGround = true;    // ←これ重要
+    return null;
+  }
   // それ以外は倒せる
   enemies.splice(i, 1);
   player.vy = -10;

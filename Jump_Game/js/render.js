@@ -59,7 +59,9 @@ import {
   chaserEnemySprite,
   phaserEnemySprite,
   thunderEnemySprite,
-  ballEnemySprite
+  ballEnemySprite,
+  hover8EnemySprite,
+  phasePlatformEnemySprite
 
 } from "./enemy.js";
 
@@ -190,6 +192,9 @@ drawParallax(bgNearNear, 1.0);
     case "phaser":  sprite = phaserEnemySprite; break;
     case "thunder": sprite = thunderEnemySprite; break;
     case "ball":    sprite = ballEnemySprite; break;
+    case "hover8":  sprite = hover8EnemySprite; break;
+    case "phasePlatform":  sprite = phasePlatformEnemySprite; break;
+
     default:        sprite = enemySprite;
   }
 
