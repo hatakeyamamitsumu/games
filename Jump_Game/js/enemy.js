@@ -37,11 +37,17 @@ phaserEnemySprite.src = "./images/characters/enemy9.png";
 export const thunderEnemySprite = new Image();
 thunderEnemySprite.src = "./images/characters/enemy10.png";
 
-export const ballEnemySprite = new Image();
-ballEnemySprite.src = "./images/characters/enemy11.png";
-
 export const hover8EnemySprite = new Image();
-hover8EnemySprite.src = "./images/characters/enemy12.png";
+hover8EnemySprite.src = "./images/characters/enemy11.png";
+
+export const smokeBallEnemySprite = new Image();
+smokeBallEnemySprite.src = "./images/characters/enemy12.png";
+
+export const smokeFloatEnemySprite = new Image();
+smokeFloatEnemySprite.src = "./images/characters/enemy13.png";
+
+export const ballEnemySprite = new Image();
+ballEnemySprite.src = "./images/characters/enemy14.png";
 
 export const phasePlatformEnemySprite = new Image();
 phasePlatformEnemySprite.src = "./images/characters/enemy15.png";
@@ -400,7 +406,83 @@ if (e.type === "thunder") {
   animate(e);
   continue;
 }
+// --------------------------------
+// smokeFloat：大きく揺れながら漂う煙
+// --------------------------------
+if (e.type === "smokeFloat") {
 
+  // 初期化
+  if (!e.initialized) {
+    e.startX = e.x;
+    e.startY = e.y;
+
+    e.t = Math.random() * Math.PI * 2;
+
+    e.initialized = true;
+  }
+
+  // 時間
+  e.t += 0.03;
+
+  // 大きな揺れ（ここがポイント）
+  const ampX = 80; // 横の揺れ（大きく）
+  const ampY = 30; // 縦の揺れ
+
+  // 8の字っぽくしないために周期をズラす
+  const offsetX = Math.sin(e.t) * ampX;
+  const offsetY = Math.sin(e.t * 0.6) * ampY;
+
+  // ゆっくり下に流す（煙っぽさ）
+  e.startY += 0.2;
+
+  // 位置更新
+  e.x = e.startX + offsetX;
+  e.y = e.startY + offsetY;
+
+  // 一定距離でリセット
+  if (e.startY > e.y + 200) {
+    e.startY = e.y;
+  }
+
+  animate(e);
+  continue;
+}
+// --------------------------------
+// smokeBall：放物線で落ちる煙
+// --------------------------------
+if (e.type === "smokeBall") {
+
+  // 初期化
+  if (!e.initialized) {
+    e.startX = e.x;
+    e.startY = e.y;
+
+    e.vx = (Math.random() - 0.5) * 2; // 横に流れる
+    e.vy = -2;                        // 少し上に出てから落ちる
+
+    e.gravity = 0.08;                 // ゆるめの重力
+    e.initialized = true;
+  }
+
+  // 重力
+  e.vy += e.gravity;
+
+  // 移動
+  e.x += e.vx;
+  e.y += e.vy;
+
+  // 画面外でリセット
+  if (e.y > e.startY + 200) {
+    e.x = e.startX;
+    e.y = e.startY;
+
+    e.vx = (Math.random() - 0.5) * 2;
+    e.vy = -2;
+  }
+
+  animate(e);
+  continue;
+}
 // --------------------------------
 // ballEnemy：配置位置から放物線で飛ぶ敵
 // --------------------------------

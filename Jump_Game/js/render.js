@@ -61,8 +61,9 @@ import {
   thunderEnemySprite,
   ballEnemySprite,
   hover8EnemySprite,
-  phasePlatformEnemySprite
-
+  phasePlatformEnemySprite,
+  smokeBallEnemySprite,
+  smokeFloatEnemySprite
 } from "./enemy.js";
 
 // ▼ ブロック画像（1〜59）
@@ -194,6 +195,8 @@ drawParallax(bgNearNear, 1.0);
     case "ball":    sprite = ballEnemySprite; break;
     case "hover8":  sprite = hover8EnemySprite; break;
     case "phasePlatform":  sprite = phasePlatformEnemySprite; break;
+    case "smokeBall":  sprite = smokeBallEnemySprite; break;
+    case "smokeFloat":  sprite = smokeFloatEnemySprite; break;
 
     default:        sprite = enemySprite;
   }
