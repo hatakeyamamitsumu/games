@@ -815,9 +815,9 @@ if(!invincible){
   }
 }
 
+const GOAL_X = 5400;
 
-  // ゴール
-  if(player.x > 1800){
+  if(player.x > GOAL_X){
     score += 500;
     bgm.pause();
     playClearBGM(stage);
