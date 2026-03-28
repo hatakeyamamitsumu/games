@@ -208,7 +208,11 @@ if (b.type === 12) {
 }
 
 // ===== プレイヤーダメージ / 死亡 =====
+let debugInvincible = true; // ←テスト用無敵モードのために追加
+
 function takeDamage(amount=1){
+  if(debugInvincible) return; // ←テスト用無敵モードのために追加
+
   if(invincible || isPaused) return;
   player.hp -= amount;
   if(player.hp <= 0) killPlayer();
