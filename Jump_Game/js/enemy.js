@@ -313,25 +313,34 @@ if (e.type === "phaser") {
 // --------------------------------
 // enemy13：消える足場
 // --------------------------------
+// --------------------------------
+// phasePlatform：消える＋踏むと跳ねる足場
+// --------------------------------
+// --------------------------------
+// phasePlatform：消える＋当たると跳ねる足場
+// --------------------------------
 if (e.type === "phasePlatform") {
 
+  // ===== 初期化 =====
   e.visible = e.visible ?? true;
-  e.timer = (e.timer ?? 90) - 1;
+  e.timer   = (e.timer ?? 90) - 1;
 
+  // ===== 表示ON/OFF =====
   if (e.timer <= 0) {
     e.visible = !e.visible;
     e.timer = 90;
   }
 
-  // 動かないので x は変更しない
+  // ===== 表示中だけ当たり判定 =====
+  e.solid = e.visible;
 
-  // 表示中だけ当たり判定あり
-  if (e.visible) {
-    e.solid = true;   // ←これ重要
-    animate(e);
-  } else {
-    e.solid = false;  // ←すり抜け
+  // ===== どこからでも当たれば跳ねる =====
+  if (e.visible && aabb(player, e)) {
+    player.vy = -10; // ←ジャンプ力（調整OK）
   }
+
+  // ===== アニメ =====
+  if (e.visible) animate(e);
 
   continue;
 }
@@ -416,32 +425,27 @@ if (e.type === "smokeFloat") {
     e.startX = e.x;
     e.startY = e.y;
 
-    e.t = Math.random() * Math.PI * 2;
+    e.vx = (Math.random() - 0.5) * 2; // 横に流れる
+    e.vy = -2;                        // 少し上に出てから落ちる
 
+    e.gravity = 0.08;                 // ゆるめの重力
     e.initialized = true;
   }
 
-  // 時間
-  e.t += 0.03;
+  // 重力
+  e.vy += e.gravity;
 
-  // 大きな揺れ（ここがポイント）
-  const ampX = 80; // 横の揺れ（大きく）
-  const ampY = 30; // 縦の揺れ
+  // 移動
+  e.x += e.vx;
+  e.y += e.vy;
 
-  // 8の字っぽくしないために周期をズラす
-  const offsetX = Math.sin(e.t) * ampX;
-  const offsetY = Math.sin(e.t * 0.6) * ampY;
+  // 画面外でリセット
+  if (e.y > e.startY + 200) {
+    e.x = e.startX;
+    e.y = e.startY;
 
-  // ゆっくり下に流す（煙っぽさ）
-  e.startY += 0.2;
-
-  // 位置更新
-  e.x = e.startX + offsetX;
-  e.y = e.startY + offsetY;
-
-  // 一定距離でリセット
-  if (e.startY > e.y + 200) {
-    e.startY = e.y;
+    e.vx = (Math.random() - 0.5) * 2;
+    e.vy = -2;
   }
 
   animate(e);
@@ -635,6 +639,13 @@ export function checkEnemyHit(enemies) {
     if (e.visible === false) continue;
 
     if (aabb(player, e)) {
+
+  // ============================
+  // 煙,弾は当たり判定なし
+  // ============================
+  if (e.type === "smokeFloat" || e.type === "smokeBall" ||  e.type === "ball" ) {
+    continue;
+  }
 
       // ============================
       // 回復アイテム
