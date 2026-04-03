@@ -3,6 +3,7 @@ import { BOSS_SPEED, BOSS_HP } from "./config.js";
 import { aabb } from "./physics.js";
 import { player } from "./player.js";
 import { SCREEN_H } from "./config.js";
+import { SCREEN_W } from "./config.js";
 // ===== スプライト =====
 export const enemySprite = new Image();
 enemySprite.src = "./images/characters/enemy1.png";
@@ -195,7 +196,7 @@ if (e.type === "rush") {
 // --------------------------------
 // jumper：ジャンプ繰り返し
 // --------------------------------
-else if (e.type === "jumper") {
+if (e.type === "jumper") {
   e.vy = e.vy ?? 0;
   e.baseY = e.baseY ?? e.y;
 
@@ -310,12 +311,7 @@ if (e.type === "phaser") {
 
   continue;
 }
-// --------------------------------
-// enemy13：消える足場
-// --------------------------------
-// --------------------------------
-// phasePlatform：消える＋踏むと跳ねる足場
-// --------------------------------
+
 // --------------------------------
 // phasePlatform：消える＋当たると跳ねる足場
 // --------------------------------
