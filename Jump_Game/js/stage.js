@@ -268,15 +268,34 @@ export const LEVELS = [
       {x:4032, y:480, w:96, h:48, type:33},//海
       {x:4128, y:480, w:1280, h:48, type:1},//ノーマル床
       
+      {x:200, y:400, w:96, h:48, type:5},//落ちる床
       {x:380, y:400, w:192, h:48, type:1},//ノーマル床
       {x:500, y:352, w:192, h:48, type:1},//ノーマル床
       {x:600, y:0, w:192, h:48, type:5},//落ちる床
       {x:900, y:300, w:192, h:48, type:2},//ノーマル床（草）
       {x:900, y:150, w:192, h:48, type:4, startX:800, dir:1, speed:2, range:200},//左右に動く床
       {x:1000, y:250, w:192, h:48, type:4, startX:800, dir:1, speed:2, range:200},//左右に動く床
+      {x:1300, y:100, w:192, h:48, type:4, startX:800, dir:1, speed:2, range:200},//左右に動く床
       {x:1200, y:200, w:48, h:48, type:6},//上に飛ぶバネ
-      {x:1300, y:232, w:48, h:48, type:56},//左に飛ぶバネ
+      {x:1300, y:200, w:48, h:48, type:56},//左に飛ぶバネ
+      {x:1348, y:200, w:48, h:48, type:56},//左に飛ぶバネ
+      {x:1396, y:200, w:48, h:48, type:56},//左に飛ぶバネ
+      {x:1444, y:200, w:48, h:48, type:56},//左に飛ぶバネ
       {x:1400, y:250, w:192, h:48, type:7, startY:250, dir:1, speed:1, range:120},//上下移動の金属床
+      {x:1700, y:200, w:48, h:48, type:55},//左に飛ぶバネ
+      {x:1748, y:200, w:48, h:48, type:55},//左に飛ぶバネ
+      {x:1950, y:550, w:48, h:48, type:54},//障害物ブロック
+
+      {x:1950, y:52, w:48, h:48, type:54},//障害物ブロック
+      {x:1950, y:100, w:48, h:48, type:54},//障害物ブロック
+      {x:1950, y:148, w:48, h:48, type:54},//障害物ブロック
+      {x:1950, y:196, w:48, h:48, type:54},//障害物ブロック
+      {x:1950, y:204, w:48, h:48, type:54},//障害物ブロック
+      {x:1950, y:252, w:48, h:48, type:54},//障害物ブロック
+      {x:1950, y:300, w:48, h:48, type:54},//障害物ブロック
+      {x:1950, y:348, w:48, h:48, type:54},//障害物ブロック
+
+      {x:1500, y:0, w:192, h:48, type:5},//落ちる床
       {x:300, y:120, w:144, h:48, type:8},//氷の床
       {x:300, y:250, w:192, h:48, type:9},//透明床
       {x:500, y:435, w:192, h:48, type:32},//ダミー工事中の柵
@@ -293,10 +312,13 @@ export const LEVELS = [
       {x:3000, y:200, w:48, h:48, type:6},//上に飛ぶバネ
       {x:3100, y:232, w:48, h:48, type:56},//左に飛ぶバネ
       {x:3200, y:250, w:192, h:48, type:7, startY:250, dir:1, speed:1, range:120},//上下移動の金属床
+
+      {x:3500, y:150, w:192, h:48, type:4, startX:3400, dir:1, speed:2, range:200},//左右に動く床
+      {x:3500, y:250, w:192, h:48, type:4, startX:3400, dir:1, speed:2, range:200},//左右に動く床
       {x:2100, y:120, w:192, h:48, type:8},//氷の床
       {x:2100, y:250, w:192, h:48, type:9},//透明床
-      {x:2300, y:435, w:192, h:48, type:32},//ダミー工事中の柵
-      {x:2500, y:435, w:48, h:48, type:31},//ダミー工事中のコーン
+      {x:2200, y:435, w:192, h:48, type:32},//ダミー工事中の柵
+      {x:2400, y:435, w:48, h:48, type:31},//ダミー工事中のコーン
       {x:2550, y:435, w:48, h:48, type:30},//ダミータンポポ
       {x:2450, y:180, w:96, h:48,type:11,centerX:2400,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
       
@@ -318,7 +340,7 @@ export const LEVELS = [
     ],
     enemies: [
 
-      { x: 20, y: 10, w:36, h: 48, type: "hover8" },
+      { x: 200, y: 50, w:36, h: 48, type: "hover8" },
       {x:300, y:100, w:36, h:48, type:"jumper"},
       {x:400, y:100, w:36, h:48, type:"jumper"},
               // ▼ 回復アイテム
@@ -329,6 +351,9 @@ export const LEVELS = [
       {x:400, y:366, w:36, h:48, dir:-1, type:"enemy",speed:1},
       {x:950, y:266, w:36, h:48, dir:-1, type:"enemy",speed:1},
       {x:1000, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+      {x:1036, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+      {x:1072, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+      {x:1108, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
       {x:1200, y:252, w:36, h:48, dir:-1, speed:1, type:"jump"},
       {x:1400, y:200, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
       {x:1500, y:432, w:36, h:48, type:"jumper"},
@@ -347,6 +372,9 @@ export const LEVELS = [
       {x:2200, y:366, w:36, h:48, dir:-1, type:"enemy",speed:1},
       {x:2750, y:266, w:36, h:48, dir:-1, type:"enemy",speed:1},
       {x:2800, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+      {x:2836, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+      {x:2872, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+
       {x:3000, y:252, w:36, h:48, dir:-1, speed:1, type:"jump"},
       {x:3200, y:200, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
       {x:3300, y:432, w:36, h:48, type:"jumper"},
@@ -365,6 +393,8 @@ export const LEVELS = [
       {x:4000, y:366, w:36, h:48, dir:-1, type:"enemy",speed:1},
       {x:4550, y:266, w:36, h:48, dir:-1, type:"enemy",speed:1},
       {x:4500, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+      {x:4536, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+      {x:4572, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
       {x:4800, y:252, w:36, h:48, dir:-1, speed:1, type:"jump"},
       {x:5000, y:200, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
       {x:5100, y:432, w:36, h:48, type:"jumper"},
