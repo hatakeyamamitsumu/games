@@ -513,8 +513,17 @@ ctx.restore();
 // 最前面スクロール
 // ============================
 const fg = fgImages[stage];
+
 if (fg && fg.complete) {
-  ctx.drawImage(fg, -cameraX * 1.0, 0);
+
+  const w = fg.width;
+
+  let x = (-cameraX) % w;
+  if (x > 0) x -= w;
+
+  for (; x < ctx.canvas.width; x += w) {
+    ctx.drawImage(fg, x, 0);
+  }
 }
 // ============================
 // STAGE CLEAR
