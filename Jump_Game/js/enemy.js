@@ -283,31 +283,58 @@ if (e.type === "seeker") {
 // --------------------------------
 // phaser：消えたり現れたり
 // --------------------------------
+// --------------------------------
+// phaser：消えたり現れたり（修正版）
+// --------------------------------
 if (e.type === "phaser") {
-  e.visible = e.visible ?? true;
-  e.timer = (e.timer ?? 90) - 1;
-  e.speed = e.speed ?? 1;
-  e.dir = e.dir ?? -1;
+
+  // 初期化
+  if (e.visible === undefined) e.visible = true;
+  if (e.timer === undefined) e.timer = 90;
+  if (e.speed === undefined) e.speed = 1;
+  if (e.dir === undefined) e.dir = -1;
+
+  // タイマー
+  e.timer--;
 
   if (e.timer <= 0) {
     e.visible = !e.visible;
     e.timer = 180;
   }
 
+  // 見えてるときだけ移動
   if (e.visible) {
     e.x += e.dir * e.speed;
   }
 
-  for (const b of blocks) {
-    if (!isEnemySolidBlock(b)) continue;
-    if (aabb(e, b)) {
-      e.dir *= -1;
-      e.x += e.dir * 4;
+  // 見えてるときだけ当たり判定
+  if (e.visible) {
+    for (const b of blocks) {
+      if (!isEnemySolidBlock(b)) continue;
+
+      if (aabb(e, b)) {
+        e.dir *= -1;
+        e.x += e.dir * 4;
+        break; // ← これ重要（多重反転防止）
+      }
     }
   }
 
-  if (e.x < -200 || e.x > 2600) enemies.splice(i, 1);
-  if (e.visible) animate(e);
+  // プレイヤーから遠い敵は「処理スキップ」（削除しない）
+  if (Math.abs(e.x - player.x) > 1200) {
+    continue;
+  }
+
+  // 削除範囲をステージに合わせて拡張
+  if (e.x < -500 || e.x > 6000) {
+    enemies.splice(i, 1);
+    continue;
+  }
+
+  // アニメーション
+  if (e.visible) {
+    animate(e);
+  }
 
   continue;
 }
