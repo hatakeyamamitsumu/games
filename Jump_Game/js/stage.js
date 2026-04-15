@@ -27,7 +27,7 @@ export const LEVELS = [
       //{x:300, y:250, w:192, h:48, type:9},//透明床
       {x:450, y:200, w:192, h:48, type:8},//氷の床
       {x:400, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:700, y:260, w:192, h:48, type:5},//落ちる床
+      {x:700, y:260, w:192, h:48, type:10},//落ちる床
       {x:900, y:400, w:240, h:48, type:1},//ノーマル床
       
       {x:900, y:230, w:48, h:48, type:6},//上に飛ぶバネ
@@ -35,24 +35,42 @@ export const LEVELS = [
       {x:1300, y:80, w:192, h:48, type:7, startY:160, dir:1, speed:1, range:100},//上下移動の金属床
 
       {x:1700, y:400, w:36, h:48, type:5},//落ちる床
-      //{x:2100, y:250, w:192, h:48, type:9},//透明床
+
+      {x:2100, y:197, w:36, h:48, type:49},//砲台
+      {x:2100, y:245, w:36, h:48, type:50},//モアイブロック1
+      {x:2100, y:293, w:36, h:48, type:54},//障害物ブロック
+      {x:2100, y:341, w:36, h:48, type:54},//障害物ブロック
+      {x:2100, y:389, w:36, h:48, type:54},//障害物ブロック
+      {x:2100, y:437, w:36, h:48, type:54},//障害物ブロック
+
       {x:2250, y:380, w:240, h:48, type:1},//ノーマル床
       {x:2260, y:250, w:192, h:48, type:8},//氷の床
+
+
+
+
+
       {x:2600, y:350, w:286, h:48, type:1},//ノーマル床
 
       {x:2700, y:230, w:48, h:48, type:6},//上に飛ぶバネ
       {x:2900, y:100, w:96, h:48,type:11,centerX:2400,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
-      {x:3100, y:80, w:192, h:48, type:7, startY:160, dir:1, speed:1, range:100},//上下移動の金属床
+      {x:3200, y:80, w:192, h:48, type:7, startY:160, dir:1, speed:1, range:100},//上下移動の金属床
 
 
-
-      {x:3800, y:260, w:36, h:48, type:49},//砲台
-      {x:3800, y:293, w:36, h:48, type:50},//モアイブロック1
+      {x:3800, y:197, w:36, h:48, type:49},//砲台
+      {x:3800, y:245, w:36, h:48, type:50},//モアイブロック1
+      {x:3800, y:293, w:36, h:48, type:54},//障害物ブロック
       {x:3800, y:341, w:36, h:48, type:54},//障害物ブロック
       {x:3800, y:389, w:36, h:48, type:54},//障害物ブロック
       {x:3800, y:437, w:36, h:48, type:54},//障害物ブロック
 
-
+      {x:3900, y:149, w:36, h:48, type:49},//砲台
+      {x:3900, y:197, w:36, h:48, type:50},//モアイブロック1
+      {x:3900, y:245, w:36, h:48, type:54},//障害物ブロック
+      {x:3900, y:293, w:36, h:48, type:54},//障害物ブロック
+      {x:3900, y:341, w:36, h:48, type:54},//障害物ブロック
+      {x:3900, y:389, w:36, h:48, type:54},//障害物ブロック
+      {x:3900, y:437, w:36, h:48, type:54},//障害物ブロック
 
 
       //{x:3900, y:250, w:192, h:48, type:9},//透明床
@@ -78,7 +96,7 @@ enemies: [
 {x:600, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
 //{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:700, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
+{x:800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:800, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
 {x:850, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:900, y:120, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
@@ -100,6 +118,10 @@ enemies: [
 {x:1300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:1450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 
+{x:1950, y:300, w:36, h:48, type:"phasePlatform"},
+{x:2000, y:250, w:36, h:48, type:"phasePlatform"},
+
+{x:2050, y:130, w:36, h:48, type:"ball"},
 // ===== 第2ブロック =====
 
 {x:2280, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
@@ -142,7 +164,8 @@ enemies: [
 {x:3550, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:3600, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:3650, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:3750, y:230, w:36, h:48, type:"ball"},
+{x:3750, y:130, w:36, h:48, type:"ball"},
+{x:3850, y:80, w:36, h:48, type:"ball"},
 // ===== 第3ブロック =====
 
 {x:4080, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
@@ -178,7 +201,7 @@ enemies: [
 //{x:4900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"}
 ],
 
-    boss: {x:3700, y:350, w:128, h:128,dir:-1, speed:BOSS_SPEED, hp:BOSS_HP}
+    boss: {x:3300, y:350, w:128, h:128,dir:-1, speed:BOSS_SPEED, hp:BOSS_HP}
   },
 
   // --- Stage 1 ---
