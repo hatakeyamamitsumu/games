@@ -804,22 +804,29 @@ export function checkBossHit(boss) {
 
   if (aabb(player, boss)) {
 
+    // ▼ 上から踏んだ場合
     if (player.vy > 0) {
       boss.hp--;
 
-      // ▼ 上方向に強く跳ねる
+      // ===== プレイヤー =====
       player.vy = -20;
 
-      // ▼ 横にもノックバックさせる
       if (player.x < boss.x) {
-        player.vx = -20;   // 左側から踏んだ
+        player.vx = -20;
+        boss.vx = 20;   // 右へ強くノックバック
       } else {
-        player.vx = 20;    // 右側から踏んだ
+        player.vx = 20;
+        boss.vx = -20;  // 左へ強くノックバック
       }
 
+      // ▼ 上方向にも強く吹っ飛ばす
+      boss.vy = -20;
+
+      // ▼ 撃破判定
       if (boss.hp <= 0) return "dead";
 
     } else {
+      // 横・下から当たった
       return "hit";
     }
   }
