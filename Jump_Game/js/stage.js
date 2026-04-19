@@ -5,8 +5,7 @@ import { BOSS_SPEED, BOSS_HP } from "./config.js";
 export let stage = 0;
 
 export const LEVELS = [
-
-    // --- Stage 1 ---
+      // --- Stage 1 ---
   {
     blocks: [
       {x:0, y:480, w:192, h:48, type:1},//ノーマル床
@@ -84,7 +83,7 @@ export const LEVELS = [
 {x:2180, y:432, w:48, h:48, type:13},//ダミー床１
 
 {x:2250, y:48, w:144, h:48, type:10},//雲の床
-{x:2300, y:150, w:96, h:48,type:11,centerX:2400,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
+{x:2300, y:150, w:48, h:48,type:11,centerX:2400,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
 {x:2300, y:390, w:192, h:48, type:8},//氷の床
 
 {x:2350, y:432, w:48, h:48, type:19},//ダミー草ブロック中
@@ -99,7 +98,7 @@ export const LEVELS = [
 {x:2850, y:432, w:48, h:48, type:34},//岩1
 {x:2950, y:432, w:48, h:48, type:38},//樽
 
-{x:3000, y:150, w:96, h:48, type:12,centerX:3500,centerY:250,radius:80,angle:0,angularSpeed:0.03},//反時計回り床
+{x:3000, y:150, w:48, h:48, type:12,centerX:3500,centerY:250,radius:80,angle:0,angularSpeed:0.03},//反時計回り床
 {x:3000, y:340, w:48, h:48, compress: 0 ,type:6},//上に飛ぶバネ
 {x:3000, y:384, w:48, h:48, type:44},//柱上
 {x:3000, y:432, w:48, h:48, type:43},//柱下
@@ -137,7 +136,7 @@ export const LEVELS = [
 {x:4100, y:380, w:192, h:48, type:1},//ノーマル床
 
 {x:4204, y:432, w:48, h:48, type:20},//ダミー草ブロック小
-{x:4230, y:150, w:96, h:48,type:11,centerX:4200,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
+{x:4230, y:150, w:48, h:48,type:11,centerX:4200,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
 {x:4250, y:300, w:48, h:48, type:17},//ダミー赤い花
 {x:4250, y:335, w:48, h:48, type:48},//植木鉢
 {x:4252, y:432, w:48, h:48, type:19},//ダミー草ブロック中
@@ -152,7 +151,7 @@ export const LEVELS = [
 {x:4650, y:432, w:48, h:48, type:34},//岩1
 {x:4750, y:432, w:48, h:48, type:38},//樽
 
-{x:4800, y:150, w:96, h:48, type:12,centerX:4200,centerY:250,radius:80,angle:0,angularSpeed:0.03},//反時計回り床
+{x:4800, y:150, w:48, h:48, type:12,centerX:4200,centerY:250,radius:80,angle:0,angularSpeed:0.03},//反時計回り床
 {x:4800, y:340, w:48, h:48, compress: 0 ,type:6},//上に飛ぶバネ
 {x:4800, y:384, w:48, h:48, type:44},//柱上
 {x:4800, y:432, w:48, h:48, type:43},//柱下
@@ -233,6 +232,7 @@ export const LEVELS = [
 {x:2400, y:300, w:36, h:48, type:"fly", vy:1},
 
 {x:2500, y:430, w:36, h:48, type:"live"},
+{x:2650, y:430, w:36, h:48, type:"heal"},
 
 //{x:2590, y:50, w:36, h:48, type:"heal"},
 
@@ -248,7 +248,7 @@ export const LEVELS = [
 
 {x:3000, y:50, w:36, h:48, type:"heal"},
 {x:3000, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
-{x:3050, y:430, w:36, h:48, type:"heal"},
+{x:2990, y:245, w:36, h:48, type:"heal"},
 {x:3200, y:432, w:36, h:48, type:"jumper"},
 
 {x:3300, y:200, w:36, h:48, type:"ball"},
@@ -310,15 +310,12 @@ export const LEVELS = [
     ],
     boss: null
   },
-
-
-
           // --- Stage 2 ---
   {
     blocks: [
       {x:0, y:480, w:192, h:48, type:1},//ノーマル床
-      {x:192, y:480, w:96, h:48, type:33},//海
-      {x:288, y:480, w:1152, h:48, type:1},//ノーマル床
+      {x:192, y:480, w:144, h:48, type:33},//海
+      {x:336, y:480, w:1104, h:48, type:1},//ノーマル床
       {x:1440, y:480, w:192, h:48, type:33},//海
       {x:1632, y:480, w:230, h:48, type:1},//ノーマル床
       {x:1872, y:480, w:96, h:48, type:33},//海
@@ -332,11 +329,11 @@ export const LEVELS = [
 
 
 
-      {x:200, y:400, w:48, h:48, type:5},//落ちる床
-      {x:300, y:160, w:144, h:48, type:8},//氷の床
-      //{x:300, y:250, w:192, h:48, type:9},//透明床
-      {x:380, y:400, w:192, h:48, type:1},//ノーマル床
-      {x:500, y:225, w:96, h:48,type:11,centerX:550,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
+      {x:250, y:400, w:48, h:48, type:5},//落ちる床
+      {x:300, y:130, w:144, h:48, type:8},//氷の床
+
+      {x:380, y:370, w:192, h:48, type:1},//ノーマル床
+      {x:500, y:225, w:48, h:48,type:11,centerX:550,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
 
       {x:500, y:352, w:192, h:48, type:1},//ノーマル床
       {x:600, y:100, w:48, h:48, type:5},//落ちる床
@@ -384,17 +381,17 @@ export const LEVELS = [
       {x:2204, y:150, w:48, h:48, type:55},//右に飛ぶバネ
 
 
-      {x:2450, y:180, w:96, h:48,type:11,centerX:2400,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
+      {x:2450, y:180, w:48, h:48,type:11,centerX:2400,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
       {x:2550, y:435, w:48, h:48, type:30},//ダミータンポポ
-      {x:2700, y:300, w:192, h:48, type:2},//ノーマル床（草）
+      {x:2700, y:300, w:240, h:48, type:2},//ノーマル床（草）
       {x:2700, y:40, w:144, h:48, type:8},//氷の床
       {x:2700, y:150, w:192, h:48, type:4, startX:2600, dir:1, speed:2, range:200},//左右に動く床
-      {x:2800, y:250, w:192, h:48, type:4, startX:2600, dir:1, speed:2, range:200},//左右に動く床
+      {x:2700, y:250, w:192, h:48, type:4, startX:2600, dir:1, speed:2, range:100},//左右に動く床
 
-      {x:2800, y:200, w:48, h:48, type:56},//左に飛ぶバネ
-      {x:2850, y:200, w:48, h:48, type:55},//右に飛ぶバネ
-      {x:2900, y:200, w:48, h:48, type:56},//左に飛ぶバネ
-      {x:2950, y:200, w:48, h:48, type:55},//右に飛ぶバネ
+      {x:2800, y:200, w:48, h:48, type:55},//右に飛ぶバネ
+      {x:2850, y:200, w:48, h:48, type:56},//左に飛ぶバネ
+      {x:2900, y:200, w:48, h:48, type:55},//右に飛ぶバネ
+      {x:2950, y:200, w:48, h:48, type:56},//左に飛ぶバネ
 
       {x:3000, y:432, w:48, h:48, type:6},//上に飛ぶバネ
       {x:3100, y:232, w:48, h:48, type:56},//左に飛ぶバネ
@@ -418,11 +415,11 @@ export const LEVELS = [
       {x:3900, y:30, w:192, h:48, type:8},//氷の床
       {x:3920, y:130, w:144, h:48, type:8},//氷の床
       //{x:3900, y:250, w:192, h:48, type:9},//透明床
-      {x:3980, y:400, w:192, h:48, type:1},//ノーマル床
+      {x:3980, y:380, w:192, h:48, type:1},//ノーマル床
       {x:4100, y:352, w:192, h:48, type:1},//ノーマル床
       //{x:4200, y:435, w:192, h:48, type:32},//ダミー工事中の柵
-      {x:4200, y:50, w:48, h:48, type:5},//落ちる床
-      {x:4250, y:180, w:96, h:48,type:11,centerX:4200,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
+      {x:4220, y:50, w:48, h:48, type:54},//落ちる床
+      {x:4250, y:180, w:48, h:48,type:11,centerX:4200,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
 
 
       //{x:4400, y:435, w:48, h:48, type:31},//ダミー工事中のコーン
@@ -456,7 +453,7 @@ export const LEVELS = [
 {x:380, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
 {x:400, y:100, w:36, h:48, type:"jumper"},
 {x:400, y:366, w:36, h:48, dir:-1, type:"enemy",speed:1},
-
+{x:450, y:320, w:36, h:48, type:"jumper"},
 {x:600, y:50, w:36, h:48, type:"heal"},
 {x:600, y:300, w:36, h:48, speed:1, type:"seeker"},
 
@@ -496,10 +493,13 @@ export const LEVELS = [
 {x:2600, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 {x:2700, y:180, w:36, h:48, type:"chaser", speed:1.3},
 {x:2750, y:266, w:36, h:48, dir:-1, type:"enemy",speed:1},
-{x:2800, y:0, w:36, h:48, type:"heal"},
-{x:2800, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:2836, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:2700, y:0, w:36, h:48, type:"jumper"},
+{x:2750, y:0, w:36, h:48, type:"heal"},
+{x:2800, y:0, w:36, h:48, type:"jumper"},
+{x:2840, y:432, w:36, h:48, type:"jumper"},
 {x:2872, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:2908, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:2944, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 
 {x:2900, y:250, w:36, h:48, type:"heal"},
 
@@ -518,7 +518,7 @@ export const LEVELS = [
 {x:3980, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
 {x:4000, y:366, w:36, h:48, dir:-1, type:"enemy",speed:1},
 
-{x:4100, y:300, w:36, h:48, type:"heal"},// ▼ 回復アイテム
+{x:4050, y:400, w:36, h:48, type:"heal"},// ▼ 回復アイテム
 {x:4200, y:300, w:36, h:48, speed:1, type:"seeker"},
 
 {x:4400, y:400, w:36, h:48, type:"phaser",timer:0,interval:120,visible:true,active:true},
@@ -536,13 +536,21 @@ export const LEVELS = [
 {x:5100, y:332, w:36, h:48, type:"jumper"},
 {x:5100, y:432, w:36, h:48, type:"jumper"},
 {x:5150, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:5200, y:366, w:36, h:48, dir:1, speed:6, type:"rush"},
-{x:5200, y:300, w:36, h:48, type:"phaser",timer:0,interval:120,visible:true,active:true},
-{x:5300, y:450, w:36, h:48, type:"jumper"}
+{x:5150, y:450, w:36, h:48, type:"jump"},
+{x:5300, y:366, w:36, h:48, dir:1, speed:6, type:"rush"},
+{x:5300, y:300, w:36, h:48, type:"jump"},
+{x:5300, y:400, w:36, h:48, dir:1, speed:1, type:"wander"},
+
+
       
     ],
     boss: null
   },
+
+
+
+
+
 
 
     // --- Stage 3（ラスボスステージ） ---
@@ -571,7 +579,7 @@ export const LEVELS = [
       {x:900, y:370, w:240, h:48, type:1},//ノーマル床
       
       {x:900, y:80, w:48, h:48, type:6},//上に飛ぶバネ
-      {x:1100, y:100, w:96, h:48,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
+      {x:1100, y:100, w:48, h:48,type:11,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03},//時計回り床
       {x:1300, y:80, w:192, h:48, type:7, startY:160, dir:1, speed:1, range:100},//上下移動の金属床
 
       {x:1700, y:400, w:36, h:48, type:5},//落ちる床
