@@ -472,14 +472,14 @@ if (b.type === 59) {
       }
 // 斜めジャンプ台（右前）
 if (b.type === 55 && e === player) {
-  e.vy = -30;   // 上方向
-  e.vx = 30;    // 右方向
+  e.vy = -5;   // 上方向
+  e.vx = 40;    // 右方向
   e.onGround = false;
 }
 // 斜めジャンプ台（右前）
 if (b.type === 56 && e === player) {
-  e.vy = -30;   // 上方向
-  e.vx = -30;    // 右方向
+  e.vy = -5;   // 上方向
+  e.vx = -40;    // 右方向
   e.onGround = false;
 }
 
