@@ -515,12 +515,19 @@ if (e.type === "smokeBall") {
 // --------------------------------
 if (e.type === "ball") {
 
+  // ★ スロー係数
+  const slow = 0.6;
+
   // --- 初回だけ保存 ---
   e.startX = e.startX ?? e.x;
   e.startY = e.startY ?? e.y;
-  e.startVX = e.startVX ?? (e.speedX ?? -4);
-  e.startVY = e.startVY ?? (e.speedY ?? -6);
-  e.gravity = e.gravity ?? 0.1;
+
+  // ★ 初速をスロー化
+  e.startVX = e.startVX ?? (e.speedX ?? -4) * slow;
+  e.startVY = e.startVY ?? (e.speedY ?? -6) * slow;
+
+  // ★ 重力もスロー化
+  e.gravity = e.gravity ?? 0.1 * slow;
 
   e.frame = e.frame ?? 0;
   e.frameCount = e.frameCount ?? 0;
@@ -529,7 +536,7 @@ if (e.type === "ball") {
   e.vx = e.vx ?? e.startVX;
   e.vy = e.vy ?? e.startVY;
 
-  // --- 物理更新 ---
+  // --- 物理更新（ここは変更しない） ---
   e.vy += e.gravity;
   e.x += e.vx;
   e.y += e.vy;
