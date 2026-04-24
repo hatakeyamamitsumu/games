@@ -178,14 +178,37 @@ if (e.type === "needle") {
 
 
 // --------------------------------
-// rush：待って突進
+// rush：近づいたら待って突進
 // --------------------------------
 if (e.type === "rush") {
-  e.wait = e.wait ?? 120;
+
+  e.state = e.state ?? "idle"; // idle → wait → rush
+  e.wait = e.wait ?? 60;
   e.dir = -1;
 
-  if (e.wait > 0) e.wait--;
-  else e.x -= e.speed;
+  // プレイヤーとの距離
+  const dx = Math.abs(player.x - e.x);
+
+  // ===== 未起動 =====
+  if (e.state === "idle") {
+    if (dx < 300) {  // ← 検知距離（調整可）
+      e.state = "wait";
+    }
+  }
+
+  // ===== 待機 =====
+  else if (e.state === "wait") {
+    if (e.wait > 0) {
+      e.wait--;
+    } else {
+      e.state = "rush";
+    }
+  }
+
+  // ===== 突進 =====
+  else if (e.state === "rush") {
+    e.x -= e.speed;
+  }
 
   if (e.x + e.w < 0) enemies.splice(i, 1);
 
@@ -200,7 +223,7 @@ if (e.type === "jumper") {
   e.vy = e.vy ?? 0;
   e.baseY = e.baseY ?? e.y;
 
-  e.vy += 0.5;
+  e.vy += 0.2;
   if (e.vy > 10) e.vy = 10;
   e.y += e.vy;
 
@@ -231,8 +254,33 @@ if (e.type === "wander") {
     e.timer = 40 + Math.random() * 60;
   }
 
+  // ★ 段差チェック（追加）
+  let frontX = e.x + (e.dir === 1 ? e.w + 1 : -1);
+  let footY = e.y + e.h + 2;
+
+  let hasGround = false;
+  for (const b of blocks) {
+    if (!isEnemySolidBlock(b)) continue;
+
+    if (
+      frontX >= b.x &&
+      frontX <= b.x + b.w &&
+      footY >= b.y &&
+      footY <= b.y + b.h
+    ) {
+      hasGround = true;
+      break;
+    }
+  }
+
+  if (!hasGround) {
+    e.dir *= -1;
+  }
+
+  // 横移動
   e.x += e.dir * e.speed;
 
+  // 重力
   e.vy = (e.vy ?? 0) + 0.5;
   e.y += e.vy;
 
@@ -283,9 +331,7 @@ if (e.type === "seeker") {
 // --------------------------------
 // phaser：消えたり現れたり
 // --------------------------------
-// --------------------------------
-// phaser：消えたり現れたり（修正版）
-// --------------------------------
+
 if (e.type === "phaser") {
 
   // 初期化
@@ -384,8 +430,8 @@ if (e.type === "chaser") {
   e.speed = e.speed ?? 1.3;
 
   if (d > 0.5) {
-    const ax = (dx / d) * 0.2;
-    const ay = (dy / d) * 0.2;
+    const ax = (dx / d) * 0.15;
+    const ay = (dy / d) * 0.15;
 
     e.vx = (e.vx ?? 0) * 0.9 + ax;
     e.vy = (e.vy ?? 0) * 0.9 + ay;
@@ -409,30 +455,39 @@ if (e.type === "thunder") {
   e.vy = e.vy ?? e.speed ?? 3;
   e.frame = e.frame ?? 0;
   e.frameCount = e.frameCount ?? 0;
-  e.respawnY = e.respawnY ?? -e.h;  // 再出現位置
-  e.respawnX = e.respawnX ?? e.x;   // 出現X固定
+  e.respawnY = e.respawnY ?? -e.h;
+  e.respawnX = e.respawnX ?? e.x;
+
+  e.wait = e.wait ?? 0;   // ← 追加：待機時間
+
+  // ===== 待機中 =====
+  if (e.wait > 0) {
+    e.wait--;
+    continue;  // 動かない
+  }
 
   // 下方向に移動
   e.y += e.vy;
 
-  // スプライトアニメーション
+  // アニメーション
   e.frameCount++;
   if (e.frameCount % 8 === 0) e.frame = (e.frame + 1) % 4;
 
-  // ブロックにぶつかったらリセット
+  // ブロックに衝突
   for (const b of blocks) {
     if (!aabb(e, b)) continue;
 
-    // ぶつかったら上から再出現
     e.y = e.respawnY;
     e.x = e.respawnX;
+    e.wait = 60;  // ← 1秒待つ（60fps想定）
     break;
   }
 
-  // 画面下まで行ったら上から再出現
+  // 画面外
   if (e.y > SCREEN_H) {
     e.y = e.respawnY;
     e.x = e.respawnX;
+    e.wait = 60;  // ← 同じく待つ
   }
 
   animate(e);
@@ -515,28 +570,42 @@ if (e.type === "smokeBall") {
 // --------------------------------
 if (e.type === "ball") {
 
-  // ★ スロー係数
   const slow = 0.6;
 
-  // --- 初回だけ保存 ---
   e.startX = e.startX ?? e.x;
   e.startY = e.startY ?? e.y;
 
-  // ★ 初速をスロー化
   e.startVX = e.startVX ?? (e.speedX ?? -4) * slow;
   e.startVY = e.startVY ?? (e.speedY ?? -6) * slow;
 
-  // ★ 重力もスロー化
   e.gravity = e.gravity ?? 0.1 * slow;
 
   e.frame = e.frame ?? 0;
   e.frameCount = e.frameCount ?? 0;
 
-  // --- 初回だけ速度セット ---
   e.vx = e.vx ?? e.startVX;
   e.vy = e.vy ?? e.startVY;
 
-  // --- 物理更新（ここは変更しない） ---
+  e.wait = e.wait ?? 0;
+  e.isWaiting = e.isWaiting ?? false;
+
+  // ===== 待機中 =====
+  if (e.isWaiting) {
+    e.wait--;
+
+    if (e.wait <= 0) {
+      // ★ ここで初めて再出現
+      e.x = e.startX;
+      e.y = e.startY;
+      e.vx = e.startVX;
+      e.vy = e.startVY;
+      e.isWaiting = false;
+    }
+
+    continue;
+  }
+
+  // --- 通常移動 ---
   e.vy += e.gravity;
   e.x += e.vx;
   e.y += e.vy;
@@ -555,38 +624,20 @@ if (e.type === "ball") {
     break;
   }
 
-  // --- 衝突 or 画面外で完全リセット ---
+  // --- 消滅処理 ---
   if (hit || e.y > SCREEN_H || e.x < -e.w) {
-    e.x = e.startX;
-    e.y = e.startY;
-    e.vx = e.startVX;
-    e.vy = e.startVY;
+
+    // ★ 画面外へ退避（見えなくする）
+    e.x = -9999;
+    e.y = -9999;
+
+    // ★ 待機開始
+    e.wait = 60; // 1秒
+    e.isWaiting = true;
   }
 
   animate(e);
   continue;
-}
-
-// --------------------------------
-// enemy12：その場で8の字ホバリング
-// --------------------------------
-if (e.type === "hover8") {
-
-  if (e.baseX === undefined) {
-    e.baseX = e.x;
-    e.baseY = e.y;
-    e.t = 0;
-  }
-
-  e.t += 0.05;
-
-const ampX = 60; // 横に大きく
-const ampY = 40; // 縦に大きく
-
-  e.x = e.baseX + Math.sin(e.t) * ampX;
-  e.y = e.baseY + Math.sin(e.t * 2) * ampY;
-
-  continue; // ←これ超重要
 }
 
 

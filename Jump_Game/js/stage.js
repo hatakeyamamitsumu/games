@@ -225,7 +225,7 @@ export const LEVELS = [
 
 {x:1400, y:320, w:36, h:48, type:"jumper"},
 
-{x:1500, y:200, w:36, h:48, type:"ball"},
+{x:1500, y:190, w:36, h:48, type:"ball"},
 {x:1540, y:100, w:36, h:48, type:"jumper"},
 {x:1480, y:422, w:36, h:48, type:"heal"},
 {x:1600, y:332, w:36, h:48, type:"jumper"},
