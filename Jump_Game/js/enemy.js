@@ -223,8 +223,9 @@ if (e.type === "jumper") {
   e.vy = e.vy ?? 0;
   e.baseY = e.baseY ?? e.y;
 
-  e.vy += 0.2;
-  if (e.vy > 10) e.vy = 10;
+  e.vy += 0.18;
+  if (e.vy > 2) e.vy = 2; // ← 効く値にする
+
   e.y += e.vy;
 
   if (e.y >= e.baseY) {
@@ -512,7 +513,7 @@ if (e.type === "smokeFloat") {
     e.startX = e.x;
     e.startY = e.y;
 
-    e.vx = (Math.random() - 0.5) * 2;
+    e.vx = (Math.random() - 0.5) * 3;
     e.vy = -1.5;
 
     e.gravity = 0.02;

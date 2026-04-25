@@ -5,8 +5,6 @@ import { BOSS_SPEED, BOSS_HP } from "./config.js";
 export let stage = 0;
 
 export const LEVELS = [
-
-
         // --- Stage 1 ---
   {
     blocks: [
@@ -53,6 +51,8 @@ export const LEVELS = [
 
 {x:1200, y:150, w:48, h:48, type:12,centerX:600,centerY:250,radius:80,angle:0,angularSpeed:0.03},//反時計回り床
 
+{x:1200, y:288, w:48, h:48, type:17},//ダミー赤い花
+{x:1200, y:336, w:48, h:48, type:48},//植木鉢
 {x:1200, y:384, w:48, h:48, type:44},//柱上
 {x:1200, y:432, w:48, h:48, type:43},//柱下
 
@@ -86,7 +86,7 @@ export const LEVELS = [
 {x:1760, y:432, w:48, h:48, type:27},//草むら大
 {x:1820, y:432, w:48, h:48, type:27},//草むら大
 
-{x:2000, y:380, w:192, h:48, type:1},//ノーマル床
+{x:1980, y:380, w:192, h:48, type:1},//ノーマル床
 {x:2050, y:300, w:48, h:48, type:17},//ダミー赤い花
 {x:2050, y:335, w:48, h:48, type:48},//植木鉢
 {x:2088, y:432, w:48, h:48, type:3},//木箱ブロック
@@ -129,7 +129,7 @@ export const LEVELS = [
 {x:3500, y:56, w:48, h:48, type:17},//ダミー赤い花
 {x:3500, y:104, w:48, h:48, type:48},//植木鉢
 {x:3500, y:150, w:48, h:48, compress: 0 ,type:42},//雲ブロック2
-{x:3500, y:300, w:192, h:48, type:7, startY:300, dir:1, speed:1, range:80},//上下移動の金属床
+{x:3550, y:300, w:48, h:48, type:7, startY:300, dir:1, speed:1, range:80},//上下移動の金属床
 
 {x:3600, y:150, w:48, h:48, compress: 0 ,type:41},//雲ブロック2
 
@@ -189,16 +189,16 @@ export const LEVELS = [
 {x:5140, y:341, w:36, h:48, type:51},//モアイブロック2
 {x:5140, y:389, w:36, h:48, type:54},//障害物ブロック
 {x:5140, y:437, w:36, h:48, type:54},//障害物ブロック
-{x:5148, y:432, w:48, h:48, type:47},//吊り橋2
+//{x:5148, y:432, w:48, h:48, type:47},//吊り橋2
 {x:5200, y:432, w:48, h:48, type:29},//ダミー笹
 {x:5250, y:432, w:48, h:48, type:29},//ダミー笹
 
-{x:5300, y:56, w:48, h:48, type:17},//ダミー赤い花
-{x:5300, y:104, w:48, h:48, type:48},//植木鉢
-{x:5300, y:150, w:48, h:48, compress: 0 ,type:41},//雲ブロック1
-{x:5300, y:300, w:192, h:48, type:7, startY:300, dir:1, speed:1, range:80},//上下移動の金属床
+{x:5250, y:56, w:48, h:48, type:17},//ダミー赤い花
+{x:5250, y:104, w:48, h:48, type:48},//植木鉢
+{x:5250, y:150, w:48, h:48, compress: 0 ,type:41},//雲ブロック1
+{x:5300, y:300, w:48, h:48, type:7, startY:300, dir:1, speed:1, range:80},//上下移動の金属床
 
-{x:5400, y:150, w:48, h:48, compress: 0 ,type:42}//雲ブロック2
+{x:5350, y:150, w:48, h:48, compress: 0 ,type:42}//雲ブロック2
     ],
 
     enemies: [
@@ -235,7 +235,7 @@ export const LEVELS = [
 {x:1888, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
 
 {x:1950, y:332, w:36, h:48, type:"jumper"},
-
+{x:2050, y:432, w:36, h:48, type:"heal"},
 {x:2050, y:300, w:36, h:48, type:"fly", vy:1},
 {x:2064, y:192, w:36, h:48, type:"phasePlatform"},
 {x:2100, y:50, w:36, h:48, type:"hover8"},
@@ -250,7 +250,7 @@ export const LEVELS = [
 
 {x:2400, y:300, w:36, h:48, type:"fly", vy:1},
 
-{x:2500, y:430, w:36, h:48, type:"live"},
+{x:2500, y:430, w:36, h:48, type:"heal"},
 {x:2650, y:430, w:36, h:48, type:"heal"},
 
 //{x:2590, y:50, w:36, h:48, type:"heal"},
@@ -317,7 +317,7 @@ export const LEVELS = [
 
 {x:5100, y:250, w:36, h:48, type:"ball"},
 {x:5100, y:432, w:36, h:48, type:"jumper"},
-{x:5150, y:432, w:36, h:48, type:"heal"},
+//{x:5150, y:432, w:36, h:48, type:"heal"},
 
 {x:5200, y:352, w:36, h:48, dir:1, speed:6, type:"rush"},
 {x:5200, y:382, w:36, h:48, type:"jumper"},
@@ -325,9 +325,10 @@ export const LEVELS = [
 
 {x:5300, y:200, w:36, h:48, type:"smokeBall"},
 
-{x:5400, y:100, w:36, h:48, type:"jumper"},
-{x:5400, y:200, w:36, h:48, type:"smokeFloat"},
-{x:5400, y:528, w:48, h:48, type:"needle"}
+{x:5300, y:100, w:36, h:48, type:"jumper"},
+{x:5350, y:100, w:36, h:48, type:"live"},
+{x:5350, y:200, w:36, h:48, type:"smokeFloat"},
+{x:5300, y:528, w:48, h:48, type:"needle"}
     ],
     boss: null
   },
@@ -356,7 +357,7 @@ export const LEVELS = [
       {x:380, y:370, w:192, h:48, type:1},//ノーマル床
       {x:600, y:80, w:48, h:48,type:11,centerX:550,centerY:250,radius:100,angle:0,angularSpeed:0.03},//時計回り床
 
-      {x:500, y:250, w:144, h:48, type:1},//ノーマル床
+      {x:500, y:250, w:96, h:48, type:1},//ノーマル床
       {x:600, y:100, w:48, h:48, type:5},//落ちる床
       
 
@@ -489,18 +490,18 @@ export const LEVELS = [
 {x:400, y:100, w:36, h:48, type:"jumper"},
 {x:400, y:366, w:36, h:48, dir:-1, type:"enemy",speed:1},
 {x:450, y:320, w:36, h:48, type:"jumper"},
-
+{x:600, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 //{x:600, y:300, w:36, h:48, speed:1, type:"seeker"},
 {x:600, y:50, w:36, h:48, type:"heal"},
 {x:900, y:120, w:36, h:48, type:"phaser",timer:0,interval:120,visible:true,active:true},
 
 
-{x:1000, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:1036, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:1072, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:1050, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:1100, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:1150, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 {x:1100, y:50, w:36, h:48, type:"heal"},
 {x:1100, y:250, w:36, h:48, type:"heal"},
-{x:1108, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+
 
 {x:1298, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 
@@ -531,8 +532,8 @@ export const LEVELS = [
 {x:2700, y:0, w:36, h:48, type:"jumper"},
 {x:2750, y:0, w:36, h:48, type:"heal"},
 {x:2800, y:0, w:36, h:48, type:"jumper"},
-{x:2840, y:432, w:36, h:48, type:"jumper"},
-{x:2872, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:2940, y:432, w:36, h:48, type:"jumper"},
+//{x:2872, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 {x:2908, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 {x:2944, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
 
@@ -581,6 +582,8 @@ export const LEVELS = [
     ],
     boss: null
   },
+
+
 
         // --- Stage 3（ラスボスステージ） ---
   {
