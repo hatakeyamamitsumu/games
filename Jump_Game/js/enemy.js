@@ -191,7 +191,7 @@ if (e.type === "rush") {
 
   // ===== 未起動 =====
   if (e.state === "idle") {
-    if (dx < 300) {  // ← 検知距離（調整可）
+    if (dx < 800) {  // ← 検知距離（調整可）
       e.state = "wait";
     }
   }
@@ -414,9 +414,11 @@ if (e.type === "phasePlatform") {
   continue;
 }
 // --------------------------------
-// chaser：全方向追尾
+// chaser：近づいたら追尾
 // --------------------------------
 if (e.type === "chaser") {
+
+  e.active = e.active ?? false; // ← 追加：起動フラグ
 
   const px = player.x + player.w / 2;
   const py = player.y + player.h / 2;
@@ -427,8 +429,16 @@ if (e.type === "chaser") {
   const dy = py - ey;
   const d = Math.hypot(dx, dy);
 
-  e.speed = e.speed ?? 1.3;
+  // ===== 未起動 =====
+  if (!e.active) {
+    if (d < 800) {   // ← 検知距離（調整可）
+      e.active = true;
+    } else {
+      continue; // ← 完全停止
+    }
+  }
 
+  // ===== 追尾 =====
   if (d > 0.5) {
     const ax = (dx / d) * 0.15;
     const ay = (dy / d) * 0.15;
@@ -446,7 +456,6 @@ if (e.type === "chaser") {
   animate(e);
   continue;
 }
-
 // --------------------------------
 // thunder：上から下に落ちる敵
 // --------------------------------
@@ -493,73 +502,90 @@ if (e.type === "thunder") {
   animate(e);
   continue;
 }
+
 // --------------------------------
 // smokeFloat：大きく揺れながら漂う煙
 // --------------------------------
 if (e.type === "smokeFloat") {
 
-  // 初期化
   if (!e.initialized) {
     e.startX = e.x;
     e.startY = e.y;
 
-    e.vx = (Math.random() - 0.5) * 2; // 横に流れる
-    e.vy = -2;                        // 少し上に出てから落ちる
+    e.vx = (Math.random() - 0.5) * 2;
+    e.vy = -1.5;
 
-    e.gravity = 0.08;                 // ゆるめの重力
+    e.gravity = 0.02;
+
+    e.t = 0; // 揺れ用
     e.initialized = true;
   }
+
+  e.t += 0.04;
 
   // 重力
   e.vy += e.gravity;
 
-  // 移動
-  e.x += e.vx;
+  // ★ 横揺れ（メイン）
+  const sway = Math.sin(e.t) * 3;
+
+  // ★ ランダム揺れ
+  const noise = (Math.random() - 0.5) * 0.5;
+
+  e.x += e.vx + sway + noise;
   e.y += e.vy;
 
-  // 画面外でリセット
-  if (e.y > e.startY + 200) {
+  // リセット
+  if (e.y > e.startY + 180) {
     e.x = e.startX;
     e.y = e.startY;
 
     e.vx = (Math.random() - 0.5) * 2;
-    e.vy = -2;
+    e.vy = -1.5;
+    e.t = 0;
   }
 
   animate(e);
   continue;
 }
+
 // --------------------------------
 // smokeBall：放物線で落ちる煙
 // --------------------------------
 if (e.type === "smokeBall") {
 
-  // 初期化
   if (!e.initialized) {
     e.startX = e.x;
     e.startY = e.y;
 
-    e.vx = (Math.random() - 0.5) * 2; // 横に流れる
-    e.vy = -2;                        // 少し上に出てから落ちる
+    e.vx = (Math.random() - 0.5) * 3;
+    e.vy = -4;
 
-    e.gravity = 0.08;                 // ゆるめの重力
+    e.gravity = 0.05;
+
+    e.t = 0;
     e.initialized = true;
   }
+
+  e.t += 0.08;
 
   // 重力
   e.vy += e.gravity;
 
-  // 移動
-  e.x += e.vx;
+  // ★ 横ブレ（控えめ）
+  const sway = Math.sin(e.t) * 1.5;
+
+  e.x += e.vx + sway;
   e.y += e.vy;
 
-  // 画面外でリセット
+  // リセット
   if (e.y > e.startY + 200) {
     e.x = e.startX;
     e.y = e.startY;
 
-    e.vx = (Math.random() - 0.5) * 2;
-    e.vy = -2;
+    e.vx = (Math.random() - 0.5) * 3;
+    e.vy = -4;
+    e.t = 0;
   }
 
   animate(e);

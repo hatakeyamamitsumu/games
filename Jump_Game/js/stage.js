@@ -204,7 +204,7 @@ export const LEVELS = [
     enemies: [
 
 
-
+//{x:300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:500, y:400, w:36, h:48, speed:1, type:"seeker"},
 {x:550, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
 {x:600, y:446, w:36, h:48, type:"enemy",dir:1, speed:1},
