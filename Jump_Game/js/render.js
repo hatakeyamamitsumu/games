@@ -29,12 +29,36 @@ const bgNearImages = [
     img.src = "./images/graphics/background_near3.png";
     return img;
   })(),
+    (() => {
+    const img = new Image();
+    img.src = "./images/graphics/background_near4.png";
+    return img;
+  })(),
+    (() => {
+    const img = new Image();
+    img.src = "./images/graphics/background_near5.png";
+    return img;
+  })(),
+    (() => {
+    const img = new Image();
+    img.src = "./images/graphics/background_near6.png";
+    return img;
+  })(),
+    (() => {
+    const img = new Image();
+    img.src = "./images/graphics/background_near7.png";
+    return img;
+  })(),
 ];
 // 例：render.js 上部でロード済み
 const bgNearNearImages = [
   (() => { const i = new Image(); i.src = "./images/graphics/background_near_near1.png"; return i; })(),
   (() => { const i = new Image(); i.src = "./images/graphics/background_near_near2.png"; return i; })(),
   (() => { const i = new Image(); i.src = "./images/graphics/background_near_near3.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/background_near_near4.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/background_near_near5.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/background_near_near6.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/background_near_near7.png"; return i; })(),
 ];
 
 //前景
@@ -43,6 +67,10 @@ const fgImages = [
   (() => { const i = new Image(); i.src = "./images/graphics/foreground1.png"; return i; })(),
   (() => { const i = new Image(); i.src = "./images/graphics/foreground2.png"; return i; })(),
   (() => { const i = new Image(); i.src = "./images/graphics/foreground3.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/foreground4.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/foreground5.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/foreground6.png"; return i; })(),
+  (() => { const i = new Image(); i.src = "./images/graphics/foreground7.png"; return i; })(),
 ];
 
 // ▼ 敵・ボス画像

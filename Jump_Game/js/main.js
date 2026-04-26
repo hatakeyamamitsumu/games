@@ -37,6 +37,7 @@ let isPaused = false, isStageCleared = false, clearTimer = 0;
 let isGameEnding = false;
 let isGameOver = false;   // ★追加
 
+
 // ===== キー & ボタン =====
 const keys = { left:false, right:false, jump:false, b:false };
 const prevKeys = { left:false, right:false, jump:false, b:false };
@@ -90,10 +91,18 @@ window.addEventListener("keyup", e => {
 });
 
 // ===== BGM =====
-let bgm = new Audio(), clearBGM = new Audio(), gameoverBGM = new Audio();
+let bgm = new Audio(), clearBGM = new Audio(), gameoverBGM = new Audio(), endingBGM = new Audio();;
 bgm.loop = true; bgm.volume = 0.5;
 clearBGM.loop = false; clearBGM.volume = 0.7;
 gameoverBGM.loop = false; gameoverBGM.volume = 0.7;
+
+
+endingBGM.loop = true;
+endingBGM.volume = 0.7;
+
+
+
+
 
 function playAudio(audio, src){
   audio.src = src;
@@ -104,7 +113,7 @@ function playAudio(audio, src){
 function playBGM(stageNumber){ playAudio(bgm, `./sounds/BGM/bgm${stageNumber+1}.mp3`); }
 function playClearBGM(stageNumber){ playAudio(clearBGM, `./sounds/BGM/clear_bgm${stageNumber+1}.mp3`); }
 function playGameoverBGM(){ playAudio(gameoverBGM, "./sounds/BGM/gameover_bgm1.mp3"); }
-
+function playEndingBGM(){playAudio(endingBGM, "./sounds/BGM/Ending_bgm1.mp3"); }
 function fadeOutAudio(audio,duration=1000){
   const steps=20, interval=duration/steps;
   let vol = audio.volume;
@@ -345,8 +354,13 @@ startButton.addEventListener("click", ()=>{
 function showEndingScreen(){
   isGameEnding = true;
   endingScreen.style.display = "flex";
+
   fadeOutAudio(bgm,1000);
   clearBGM.pause();
+
+  setTimeout(() => {
+    playEndingBGM();
+  }, 1500); // 少し待ってから再生
 }
 
 // ===== AABB 衝突判定（player / enemy） =====
