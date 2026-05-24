@@ -78,6 +78,7 @@ import {
   enemySprite, 
   bossSprite, 
   needleSprite, 
+  needleDownSprite,
   jumpEnemySprite, 
   flyEnemySprite,
   rushEnemySprite,
@@ -211,6 +212,7 @@ drawParallax(bgNearNear, 1.0);
   let sprite;
   switch (e.type) {
     case "needle":  sprite = needleSprite; break;
+    case "needleDown":  sprite = needleDownSprite; break;
     case "jump":    sprite = jumpEnemySprite; break;
     case "fly":     sprite = flyEnemySprite; break;
     case "rush":    sprite = rushEnemySprite; break;

@@ -8,9 +8,6 @@ import { SCREEN_W } from "./config.js";
 export const enemySprite = new Image();
 enemySprite.src = "./images/characters/enemy1.png";
 
-export const needleSprite = new Image();
-needleSprite.src = "./images/characters/needle.png";
-
 export const jumpEnemySprite = new Image();
 jumpEnemySprite.src = "./images/characters/enemy2.png";
 
@@ -52,6 +49,13 @@ ballEnemySprite.src = "./images/characters/enemy14.png";
 
 export const phasePlatformEnemySprite = new Image();
 phasePlatformEnemySprite.src = "./images/characters/enemy15.png";
+
+export const needleSprite = new Image();
+needleSprite.src = "./images/characters/enemy16.png";
+
+export const needleDownSprite = new Image();
+needleDownSprite.src = "./images/characters/enemy17.png";
+
 
 export const bossSprite = new Image();
 bossSprite.src = "./images/characters/boss.png";
@@ -175,7 +179,34 @@ if (e.type === "needle") {
   animate(e);
   continue;
 }
+// --------------------------------
+// needleDown：上から下に突き刺す
+// --------------------------------
+if (e.type === "needleDown") {
 
+  // ===== 初期化 =====
+  e.baseY = e.baseY ?? e.y;     // 天井位置を保存
+  e.timer = e.timer ?? 0;
+  e.state = e.state ?? "up";    // "up" or "down"
+
+  e.timer++;
+
+  // ===== 動き制御 =====
+  if (e.state === "up" && e.timer > 120) {
+    e.y = e.baseY + 48;   // 下に出す
+    e.state = "down";
+    e.timer = 0;
+  }
+
+  else if (e.state === "down" && e.timer > 60) {
+    e.y = e.baseY;        // 天井に戻る
+    e.state = "up";
+    e.timer = 0;
+  }
+
+  animate(e);
+  continue;
+}
 
 // --------------------------------
 // rush：近づいたら待って突進
