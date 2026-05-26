@@ -16,19 +16,19 @@ export const LEVELS = [
       {x:1872, y:480, w:96, h:48, type:33},//海
       {x:1968, y:480, w:480, h:48, type:1},//ノーマル床
       {x:2448, y:480, w:144, h:48, type:33},//海
-      {x:2592, y:480, w:2400, h:48, type:1},//ノーマル床
+      {x:2592, y:480, w:2400, h:48, type:33},//海
       {x:4992, y:480, w:1200, h:48, type:33},//海
 
       {x:288, y:380, w:240, h:48, type:1},//ノーマル床
       {x:772, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:1108, y:380, w:480, h:48, type:1},//ノーマル床
+      {x:1108, y:380, w:384, h:48, type:1},//ノーマル床
       {x:1652, y:380, w:240, h:48, type:1},//ノーマル床
       {x:2080, y:380, w:240, h:48, type:1},//ノーマル床
       {x:2550, y:380, w:240, h:48, type:1},//ノーマル床
       {x:3200, y:380, w:480, h:48, type:1},//ノーマル床
       {x:3900, y:380, w:240, h:48, type:1},//ノーマル床
       {x:4700, y:380, w:480, h:48, type:1},//ノーマル床
-      {x:5300, y:380, w:480, h:48, type:1},//ノーマル床
+
 
       {x:0, y:280, w:192, h:48, type:1},//ノーマル床
       {x:400, y:280, w:480, h:48, type:1},//ノーマル床
@@ -66,6 +66,21 @@ export const LEVELS = [
 
 //障害物 下段から
       {x:100, y:432, w:48, h:48, type:3},//木箱
+
+      {x:300, y:32, w:48, h:48, type:3},//木箱
+      {x:300, y:-16, w:48, h:48, type:3},//木箱
+      {x:300, y:-64, w:48, h:48, type:3},//木箱
+      {x:300, y:-112, w:48, h:48, type:3},//木箱
+      {x:300, y:-160, w:48, h:48, type:3},//木箱
+      {x:300, y:-208, w:48, h:48, type:3},//木箱
+      {x:300, y:-256, w:48, h:48, type:3},//木箱
+      {x:350, y:-256, w:48, h:48, type:3},//木箱
+      {x:300, y:-256, w:48, h:48, type:3},//木箱
+      {x:250, y:-256, w:48, h:48, type:3},//木箱
+      {x:200, y:-256, w:48, h:48, type:3},//木箱
+      {x:3150, y:-256, w:48, h:48, type:3},//木箱
+      {x:3200, y:-256, w:48, h:48, type:3},//木箱
+
       {x:400, y:432, w:48, h:48, type:3},//木箱
       {x:1000, y:432, w:48, h:48, type:3},//木箱
       {x:2000, y:432, w:48, h:48, type:3},//木箱
@@ -77,8 +92,19 @@ export const LEVELS = [
       {x:4050, y:332, w:48, h:48, type:3},//木箱
       {x:5050, y:332, w:48, h:48, type:3},//木箱
 
-      {x:400, y:232, w:48, h:48, type:3},//木箱
-      {x:1000, y:232, w:48, h:48, type:3},//木箱
+      {x:192, y:240, w:96, h:48, type:7, startY:130, dir:1, speed:1, range:270},//上下移動の金属床
+      {x:900, y:240, w:96, h:48, type:7, startY:50, dir:1, speed:1, range:270},//上下移動の金属床
+      {x:1510, y:250, w:96, h:48, type:7, startY:170, dir:1, speed:1, range:240},//上下移動の金属床
+      {x:1900, y:240, w:48, h:48, type:7, startY:220, dir:1, speed:1, range:200},//上下移動の金属床
+      {x:2480, y:240, w:48, h:48, type:7, startY:220, dir:1, speed:1, range:200},//上下移動の金属床
+      {x:2900, y:185, w:48, h:48, type:4, startX:3070, dir:1, speed:2, range:170},//左右に動く床
+      {x:2700, y:377, w:48, h:48, type:4, startX:2800, dir:1, speed:2, range:350},//左右に動く床
+      {x:3630, y:377, w:48, h:48, type:4, startX:3700, dir:1, speed:2, range:150},//左右に動く床
+      {x:4250, y:377, w:48, h:48, type:4, startX:4150, dir:1, speed:2, range:300},//左右に動く床
+      {x:4400, y:277, w:48, h:48, type:4, startX:4400, dir:1, speed:2, range:300},//左右に動く床
+
+      {x:400, y:227, w:48, h:48, type:3},//木箱
+      {x:1000, y:227, w:48, h:48, type:3},//木箱
 
       {x:1100, y:32, w:48, h:48, type:3},//木箱
       {x:1100, y:-16, w:48, h:48, type:3},//木箱
@@ -135,7 +161,7 @@ export const LEVELS = [
 enemies: [
 // ▼ 回復アイテム
 //{ x: 550, y: 260, w:36, h: 48, type: "heal" },
-      {x:350, y:232, w:48, h:48, type:3},//木箱
+      {x:350, y:232, w:36, h: 48, type: "heal" },
 // ▼ 敵
 {x:480, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
 //{x:550, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
@@ -219,7 +245,7 @@ enemies: [
 //{x:3400, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:3450, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 //{x:3500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:3500, y:50, w:36, h:48, type:"hover8"},
+//{x:3500, y:50, w:36, h:48, type:"hover8"},
 {x:3550, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:3600, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:3650, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
@@ -232,7 +258,7 @@ enemies: [
 //{x:3750, y:130, w:36, h:48, type:"ball"},
 //{x:3850, y:80, w:36, h:48, type:"ball"},
 // ===== 第3ブロック =====
-{x:4000, y:50, w:36, h:48, type:"hover8"},
+//{x:4000, y:50, w:36, h:48, type:"hover8"},
 {x:4080, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
 {x:4100, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:4100, y:332, w:36, h:48, type:"jumper"},
@@ -248,7 +274,7 @@ enemies: [
 //{x:4300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 
 {x:4500, y:50, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
-{x:4500, y:50, w:36, h:48, type:"hover8"},
+//{x:4500, y:50, w:36, h:48, type:"hover8"},
 //{x:4500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:4500, y:180, w:36, h:48, type:"chaser", speed:1.3},
 
@@ -263,7 +289,7 @@ enemies: [
 
 {x:4800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:4800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:5000, y:50, w:36, h:48, type:"hover8"},
+//{x:5000, y:50, w:36, h:48, type:"hover8"},
 {x:5200, y:48, w:36, h:48, type:"live"},
 //{x:4950, y:130, w:36, h:48, type:"ball"},
 //{x:5050, y:30, w:36, h:48, type:"ball"},
