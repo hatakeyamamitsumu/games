@@ -5,326 +5,57 @@ import { BOSS_SPEED, BOSS_HP } from "./config.js";
 export let stage = 0;
 
 export const LEVELS = [
-                 // --- Stage 6---
-  {
-    blocks: [
-      {x:0, y:480, w:192, h:48, type:1},//ノーマル床
-      {x:192, y:480, w:96, h:48, type:33},//海
-      {x:288, y:480, w:1152, h:48, type:1},//ノーマル床
-      {x:1440, y:480, w:192, h:48, type:33},//海
-      {x:1632, y:480, w:240, h:48, type:33},//ノーマル床
-      {x:1872, y:480, w:96, h:48, type:33},//海
-      {x:1968, y:480, w:480, h:48, type:1},//ノーマル床
-      {x:2448, y:480, w:144, h:48, type:33},//海
-      {x:2592, y:480, w:2400, h:48, type:33},//海
-      {x:4992, y:480, w:1200, h:48, type:33},//海
 
-      {x:288, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:772, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:1108, y:380, w:384, h:48, type:1},//ノーマル床
-      {x:1652, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:2080, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:2550, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:3200, y:380, w:480, h:48, type:1},//ノーマル床
-      {x:3900, y:380, w:240, h:48, type:1},//ノーマル床
-      {x:4700, y:380, w:480, h:48, type:1},//ノーマル床
-
-
-      {x:0, y:280, w:192, h:48, type:1},//ノーマル床
-      {x:400, y:280, w:480, h:48, type:1},//ノーマル床
-      {x:1000, y:280, w:480, h:48, type:1},//ノーマル床
-      {x:1632, y:280, w:240, h:48, type:1},//ノーマル床
-      {x:1968, y:280, w:480, h:48, type:1},//ノーマル床
-      {x:2592, y:280, w:480, h:48, type:1},//ノーマル床
-      {x:3200, y:280, w:480, h:48, type:1},//ノーマル床
-      {x:3800, y:280, w:480, h:48, type:1},//ノーマル床
-
-      {x:0, y:180, w:98, h:48, type:1},//ノーマル床
-      {x:300, y:180, w:480, h:48, type:1},//ノーマル床
-      {x:1000, y:180, w:480, h:48, type:1},//ノーマル床
-      {x:1750, y:180, w:480, h:48, type:1},//ノーマル床
-      {x:2300, y:180, w:480, h:48, type:1},//ノーマル床
-      {x:2900, y:180, w:144, h:48, type:1},//ノーマル床
-      {x:3300, y:180, w:240, h:48, type:1},//ノーマル床
-      {x:3600, y:180, w:240, h:48, type:1},//ノーマル床
-      {x:4000, y:180, w:480, h:48, type:1},//ノーマル床
-      {x:4600, y:180, w:480, h:48, type:1},//ノーマル床
-
-      {x:0, y:80, w:192, h:48, type:1},//ノーマル床
-      {x:250, y:80, w:192, h:48, type:1},//ノーマル床
-      {x:500, y:80, w:240, h:48, type:1},//ノーマル床
-      {x:1100, y:80, w:240, h:48, type:1},//ノーマル床
-      {x:1400, y:80, w:144, h:48, type:1},//ノーマル床
-      {x:1700, y:80, w:144, h:48, type:1},//ノーマル床
-      {x:2100, y:80, w:144, h:48, type:1},//ノーマル床
-      {x:2500, y:80, w:48, h:48, type:1},//ノーマル床
-      {x:2700, y:80, w:144, h:48, type:1},//ノーマル床
-      {x:3000, y:80, w:144, h:48, type:1},//ノーマル床
-      {x:3500, y:80, w:144, h:48, type:1},//ノーマル床
-      {x:4000, y:80, w:144, h:48, type:1},//ノーマル床
-      {x:4500, y:80, w:144, h:48, type:1},//ノーマル床
-
-//障害物 下段から
-      {x:100, y:432, w:48, h:48, type:3},//木箱
-
-      {x:300, y:32, w:48, h:48, type:3},//木箱
-      {x:300, y:-16, w:48, h:48, type:3},//木箱
-      {x:300, y:-64, w:48, h:48, type:3},//木箱
-      {x:300, y:-112, w:48, h:48, type:3},//木箱
-      {x:300, y:-160, w:48, h:48, type:3},//木箱
-      {x:300, y:-208, w:48, h:48, type:3},//木箱
-      {x:300, y:-256, w:48, h:48, type:3},//木箱
-      {x:350, y:-256, w:48, h:48, type:3},//木箱
-      {x:300, y:-256, w:48, h:48, type:3},//木箱
-      {x:250, y:-256, w:48, h:48, type:3},//木箱
-      {x:200, y:-256, w:48, h:48, type:3},//木箱
-      {x:3150, y:-256, w:48, h:48, type:3},//木箱
-      {x:3200, y:-256, w:48, h:48, type:3},//木箱
-
-      {x:400, y:432, w:48, h:48, type:3},//木箱
-      {x:1000, y:432, w:48, h:48, type:3},//木箱
-      {x:2000, y:432, w:48, h:48, type:3},//木箱
-
-      {x:480, y:332, w:48, h:48, type:3},//木箱
-      {x:1250, y:332, w:48, h:48, type:3},//木箱
-      {x:2550, y:332, w:48, h:48, type:3},//木箱
-      {x:3250, y:332, w:48, h:48, type:3},//木箱
-      {x:4050, y:332, w:48, h:48, type:3},//木箱
-      {x:5050, y:332, w:48, h:48, type:3},//木箱
-
-      {x:192, y:240, w:96, h:48, type:7, startY:130, dir:1, speed:1, range:270},//上下移動の金属床
-      {x:900, y:240, w:96, h:48, type:7, startY:50, dir:1, speed:1, range:270},//上下移動の金属床
-      {x:1510, y:250, w:96, h:48, type:7, startY:170, dir:1, speed:1, range:240},//上下移動の金属床
-      {x:1900, y:240, w:48, h:48, type:7, startY:220, dir:1, speed:1, range:200},//上下移動の金属床
-      {x:2480, y:240, w:48, h:48, type:7, startY:220, dir:1, speed:1, range:200},//上下移動の金属床
-      {x:2900, y:185, w:48, h:48, type:4, startX:3070, dir:1, speed:2, range:170},//左右に動く床
-      {x:2700, y:377, w:48, h:48, type:4, startX:2800, dir:1, speed:2, range:350},//左右に動く床
-      {x:3630, y:377, w:48, h:48, type:4, startX:3700, dir:1, speed:2, range:150},//左右に動く床
-      {x:4250, y:377, w:48, h:48, type:4, startX:4150, dir:1, speed:2, range:300},//左右に動く床
-      {x:4400, y:277, w:48, h:48, type:4, startX:4400, dir:1, speed:2, range:300},//左右に動く床
-
-      {x:400, y:227, w:48, h:48, type:3},//木箱
-      {x:1000, y:227, w:48, h:48, type:3},//木箱
-
-      {x:1100, y:32, w:48, h:48, type:3},//木箱
-      {x:1100, y:-16, w:48, h:48, type:3},//木箱
-      {x:1100, y:-64, w:48, h:48, type:3},//木箱
-      {x:1100, y:-112, w:48, h:48, type:3},//木箱
-      {x:1100, y:-160, w:48, h:48, type:3},//木箱
-      {x:1100, y:-208, w:48, h:48, type:3},//木箱
-      {x:1100, y:-256, w:48, h:48, type:3},//木箱
-      {x:1050, y:-256, w:48, h:48, type:3},//木箱
-      {x:1000, y:-256, w:48, h:48, type:3},//木箱
-      {x:1150, y:-256, w:48, h:48, type:3},//木箱
-      {x:1200, y:-256, w:48, h:48, type:3},//木箱
-
-      {x:1650, y:232, w:48, h:48, type:3},//木箱
-      {x:2250, y:232, w:48, h:48, type:3},//木箱
-      {x:3000, y:232, w:48, h:48, type:3},//木箱
-      {x:4050, y:232, w:48, h:48, type:3},//木箱
-
-
-      {x:700, y:132, w:48, h:48, type:3},//木箱
-      {x:1400, y:132, w:48, h:48, type:3},//木箱
-      {x:2100, y:132, w:48, h:48, type:3},//木箱
-      {x:2500, y:132, w:48, h:48, type:3},//木箱
-      {x:2700, y:132, w:48, h:48, type:3},//木箱
-      {x:3000, y:132, w:48, h:48, type:3},//木箱
-      {x:4000, y:132, w:48, h:48, type:3},//木箱
-      {x:4700, y:132, w:48, h:48, type:3},//木箱
-
-
-
-      {x:2200, y:32, w:48, h:48, type:3},//木箱
-      {x:2200, y:-16, w:48, h:48, type:3},//木箱
-      {x:2200, y:-64, w:48, h:48, type:3},//木箱
-      {x:2200, y:-112, w:48, h:48, type:3},//木箱
-      {x:2200, y:-160, w:48, h:48, type:3},//木箱
-      {x:2200, y:-208, w:48, h:48, type:3},//木箱
-      {x:2200, y:-256, w:48, h:48, type:3},//木箱
-      {x:2150, y:-256, w:48, h:48, type:3},//木箱
-      {x:2100, y:-256, w:48, h:48, type:3},//木箱
-      {x:2250, y:-256, w:48, h:48, type:3},//木箱
-      {x:2300, y:-256, w:48, h:48, type:3},//木箱
-
-      {x:3000, y:32, w:48, h:48, type:3},//木箱
-
-      {x:2800, y:32, w:48, h:48, type:3},//木箱
-      {x:2800, y:-16, w:48, h:48, type:3},//木箱
-      {x:2800, y:-64, w:48, h:48, type:3},//木箱
-      {x:2800, y:-112, w:48, h:48, type:3},//木箱
-      {x:2800, y:-160, w:48, h:48, type:3},//木箱
-      {x:2800, y:-208, w:48, h:48, type:3},//木箱
-      {x:2800, y:-256, w:48, h:48, type:3},//木箱
-      {x:2750, y:-256, w:48, h:48, type:3},//木箱
-    ],
-enemies: [
-// ▼ 回復アイテム
-//{ x: 550, y: 260, w:36, h: 48, type: "heal" },
-      {x:350, y:232, w:36, h: 48, type: "heal" },
-// ▼ 敵
-{x:480, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
-//{x:550, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:850, y:232, w:36, h:48, type:"jumper"},
-{x:550, y:432, w:36, h:48, type:"jumper"},
-{x:520, y:300, w:36, h:48, speed:1, type:"seeker"},
-//{x:550, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:450, y:232, w:36, h:48, type:"heal"},
-{x:450, y:432, w:36, h:48, type:"heal"},
-{x:4000, y:32, w:36, h:48, type:"heal"},
-
-//{x:600, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
-//{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:770, y:50, w:36, h:48, type:"heal"},
-{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:800, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
-{x:950, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:900, y:170, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
-//{x:900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:900, y:180, w:36, h:48, type:"chaser", speed:1.3},
-
-{x:950, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:1050, y:432, w:36, h:48, type:"heal"},
-{x:1000, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
-{x:1000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:1200, y:-30, w:36, h:48, type:"heal"},
-
-{x:1100, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-//{x:1200, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:1200, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:1700, y:332, w:36, h:48, type:"heal"},
-{x:1450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-//{x:1500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
-{x:1950, y:300, w:36, h:48, type:"phasePlatform"},
-{x:2000, y:200, w:36, h:48, type:"phasePlatform"},
-
-//{x:2050, y:80, w:36, h:48, type:"ball"},
-// ===== 第2ブロック =====
-
-{x:2280, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
-{x:2300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:2300, y:332, w:36, h:48, type:"jumper"},
-{x:2300, y:432, w:36, h:48, type:"jumper"},
-{x:2320, y:300, w:36, h:48, speed:1, type:"seeker"},
-//{x:2350, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
-{x:2400, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
-//{x:2450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:2500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
-{x:2650, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
-//{x:2650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
-{x:2650, y:420, w:36, h:48, type:"heal"},
-{x:2700, y:120, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
-{x:2650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:2700, y:180, w:36, h:48, type:"chaser", speed:1.3},
-
-{x:2750, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-{x:2800, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
-{x:2800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:2850, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:2900, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:2950, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:3000, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-
-//{x:2850, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:2800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:2950, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-//{x:3000, y:-50, w:36, h:48, type:"ball"},
-//{x:3000, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:3000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:3200, y:80, w:36, h:48, type:"heal"},
-{x:3300, y:332, w:36, h:48, type:"jump"},
-{x:3350, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
-{x:3350, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-//{x:3400, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:3450, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-//{x:3500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-//{x:3500, y:50, w:36, h:48, type:"hover8"},
-{x:3550, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:3600, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:3650, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-{x:3650, y:300, w:36, h:48, type:"phasePlatform"},
-{x:3700, y:250, w:36, h:48, type:"phasePlatform"},
-{x:3650, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
-{x:3700, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
-{x:3700, y:200, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
-//{x:3750, y:130, w:36, h:48, type:"ball"},
-//{x:3850, y:80, w:36, h:48, type:"ball"},
-// ===== 第3ブロック =====
-//{x:4000, y:50, w:36, h:48, type:"hover8"},
-{x:4080, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
-{x:4100, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:4100, y:332, w:36, h:48, type:"jumper"},
-
-{x:4120, y:300, w:36, h:48, speed:1, type:"seeker"},
-//{x:4150, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
-{x:4200, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
-//{x:4200, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:4330, y:574, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-{x:4400, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
-//{x:4300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
-{x:4500, y:50, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
-//{x:4500, y:50, w:36, h:48, type:"hover8"},
-//{x:4500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:4500, y:180, w:36, h:48, type:"chaser", speed:1.3},
-
-{x:4550, y:574, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-{x:4600, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
-{x:4600, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-//{x:4650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-//{x:4700, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:4700, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-{x:4800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:4800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-//{x:5000, y:50, w:36, h:48, type:"hover8"},
-{x:5200, y:48, w:36, h:48, type:"live"},
-//{x:4950, y:130, w:36, h:48, type:"ball"},
-//{x:5050, y:30, w:36, h:48, type:"ball"},
-//{x:4900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"}
-],
-
-    boss: null
-  },
             // --- Stage 4---
   {
     blocks: [
       {x:0, y:480, w:480, h:48, type:1},//ノーマル床
       {x:480, y:480, w:240, h:48, type:33},//海
-      {x:720, y:480, w:240, h:48, type:1},//ノーマル床
+      {x:720, y:480, w:240, h:48, type:33},//海
       {x:960, y:480, w:240, h:48, type:33},//海
-      {x:1200, y:480, w:240, h:48, type:33},//ノーマル床
+      {x:1200, y:480, w:240, h:48, type:33},//海
       {x:1440, y:480, w:240, h:48, type:33},//海
-      {x:1680, y:480, w:240, h:48, type:1},//ノーマル床
+      {x:1680, y:480, w:240, h:48, type:33},//海
       {x:1920, y:480, w:240, h:48, type:33},//海
-      {x:2160, y:480, w:240, h:48, type:1},//ノーマル床
+      {x:2160, y:480, w:240, h:48, type:33},//海
       {x:2400, y:480, w:240, h:48, type:33},//海
-      {x:2640, y:480, w:240, h:48, type:1},//ノーマル床
+      {x:2640, y:480, w:240, h:48, type:33},//海
       {x:2880, y:480, w:240, h:48, type:33},//海
-      {x:3120, y:480, w:240, h:48, type:8},//氷床
+      {x:3120, y:480, w:240, h:48, type:33},//海
       {x:3360, y:480, w:240, h:48, type:33},//海
-      {x:3600, y:480, w:240, h:48, type:8},//氷床
+      {x:3600, y:480, w:240, h:48, type:33},//海
       {x:3840, y:480, w:240, h:48, type:33},//海
-      {x:4080, y:480, w:240, h:48, type:8},//氷床
+      {x:4080, y:480, w:240, h:48, type:33},//海
       {x:4320, y:480, w:240, h:48, type:33},//海
-      {x:4560, y:480, w:240, h:48, type:1},//ノーマル床
+      {x:4560, y:480, w:240, h:48, type:33},//海
       {x:4800, y:480, w:240, h:48, type:33},//海
-      {x:5040, y:480, w:240, h:48, type:8},//氷床
+      {x:5040, y:480, w:240, h:48, type:33},//海
       {x:5280, y:480, w:240, h:48, type:33},//海
       {x:5520, y:480, w:240, h:48, type:33},//海
       {x:5760, y:480, w:800, h:48, type:33},//海
+
+
+      //{x:0, y:380, w:480, h:48, type:10},//落ちる雲
+
+      {x:720, y:400, w:144, h:48, type:10},//落ちる雲
+
+      {x:1200, y:380, w:192, h:48, type:10},//落ちる雲
+
+      {x:1680, y:420, w:240, h:48, type:10},//落ちる雲
+  
+      {x:2160, y:380, w:192, h:48, type:10},//落ちる雲
+  
+      {x:2640, y:400, w:192, h:48, type:10},//落ちる雲
+
+      {x:3120, y:400, w:144, h:48, type:10},//落ちる雲
+
+      {x:3600, y:440, w:240, h:48, type:10},//落ちる雲
+
+      {x:4080, y:400, w:96, h:48, type:10},//落ちる雲
+
+      {x:4560, y:440, w:96, h:48, type:10},//落ちる雲
+
+      {x:5040, y:420, w:48, h:48, type:10},//落ちる雲
 
       
 
@@ -611,7 +342,305 @@ enemies: [
 
     boss: null
   },
+                 // --- Stage 6---
+  {
+    blocks: [
+      {x:0, y:480, w:192, h:48, type:1},//ノーマル床
+      {x:192, y:480, w:96, h:48, type:33},//海
+      {x:288, y:480, w:1152, h:48, type:1},//ノーマル床
+      {x:1440, y:480, w:192, h:48, type:33},//海
+      {x:1632, y:480, w:240, h:48, type:33},//ノーマル床
+      {x:1872, y:480, w:96, h:48, type:33},//海
+      {x:1968, y:480, w:480, h:48, type:1},//ノーマル床
+      {x:2448, y:480, w:144, h:48, type:33},//海
+      {x:2592, y:480, w:2700, h:48, type:33},//海
 
+
+      {x:288, y:380, w:240, h:48, type:1},//ノーマル床
+      {x:772, y:380, w:240, h:48, type:1},//ノーマル床
+      {x:1108, y:380, w:384, h:48, type:1},//ノーマル床
+      {x:1652, y:380, w:240, h:48, type:1},//ノーマル床
+      {x:2080, y:380, w:240, h:48, type:1},//ノーマル床
+      {x:2550, y:380, w:240, h:48, type:1},//ノーマル床
+      {x:3200, y:380, w:480, h:48, type:1},//ノーマル床
+      {x:3900, y:380, w:240, h:48, type:1},//ノーマル床
+      {x:4700, y:380, w:192, h:48, type:1},//ノーマル床
+
+
+      {x:0, y:280, w:192, h:48, type:1},//ノーマル床
+      {x:400, y:280, w:480, h:48, type:1},//ノーマル床
+      {x:1000, y:280, w:480, h:48, type:1},//ノーマル床
+      {x:1632, y:280, w:240, h:48, type:1},//ノーマル床
+      {x:1968, y:280, w:480, h:48, type:1},//ノーマル床
+      {x:2592, y:280, w:480, h:48, type:1},//ノーマル床
+      {x:3200, y:280, w:480, h:48, type:1},//ノーマル床
+      {x:3800, y:280, w:480, h:48, type:1},//ノーマル床
+
+      {x:0, y:180, w:98, h:48, type:1},//ノーマル床
+      {x:300, y:180, w:480, h:48, type:1},//ノーマル床
+      {x:1000, y:180, w:480, h:48, type:1},//ノーマル床
+      {x:1750, y:180, w:480, h:48, type:1},//ノーマル床
+      {x:2300, y:180, w:480, h:48, type:1},//ノーマル床
+      {x:2900, y:180, w:144, h:48, type:1},//ノーマル床
+      {x:3300, y:180, w:240, h:48, type:1},//ノーマル床
+      {x:3600, y:180, w:240, h:48, type:1},//ノーマル床
+      {x:4000, y:180, w:480, h:48, type:1},//ノーマル床
+      {x:4600, y:180, w:240, h:48, type:1},//ノーマル床
+
+      {x:0, y:80, w:192, h:48, type:1},//ノーマル床
+      {x:250, y:80, w:192, h:48, type:1},//ノーマル床
+      {x:500, y:80, w:240, h:48, type:1},//ノーマル床
+      {x:1100, y:80, w:240, h:48, type:1},//ノーマル床
+      {x:1400, y:80, w:144, h:48, type:1},//ノーマル床
+      {x:1700, y:80, w:144, h:48, type:1},//ノーマル床
+      {x:2100, y:80, w:144, h:48, type:1},//ノーマル床
+      {x:2500, y:80, w:48, h:48, type:1},//ノーマル床
+      {x:2700, y:80, w:144, h:48, type:1},//ノーマル床
+      {x:3000, y:80, w:144, h:48, type:1},//ノーマル床
+      {x:3500, y:80, w:144, h:48, type:1},//ノーマル床
+      {x:4000, y:80, w:144, h:48, type:1},//ノーマル床
+      {x:4500, y:80, w:144, h:48, type:1},//ノーマル床
+
+//障害物 下段から
+      {x:100, y:432, w:48, h:48, type:3},//木箱
+
+      {x:300, y:32, w:48, h:48, type:3},//木箱
+      {x:300, y:-16, w:48, h:48, type:3},//木箱
+      {x:300, y:-64, w:48, h:48, type:3},//木箱
+      {x:300, y:-112, w:48, h:48, type:3},//木箱
+      {x:300, y:-160, w:48, h:48, type:3},//木箱
+      {x:300, y:-208, w:48, h:48, type:3},//木箱
+      {x:300, y:-256, w:48, h:48, type:3},//木箱
+      {x:350, y:-256, w:48, h:48, type:3},//木箱
+      {x:300, y:-256, w:48, h:48, type:3},//木箱
+      {x:250, y:-256, w:48, h:48, type:3},//木箱
+      {x:200, y:-256, w:48, h:48, type:3},//木箱
+      {x:3150, y:-256, w:48, h:48, type:3},//木箱
+      {x:3200, y:-256, w:48, h:48, type:3},//木箱
+
+      {x:400, y:432, w:48, h:48, type:3},//木箱
+      {x:1000, y:432, w:48, h:48, type:3},//木箱
+      {x:2000, y:432, w:48, h:48, type:3},//木箱
+
+      {x:480, y:332, w:48, h:48, type:3},//木箱
+      {x:1250, y:332, w:48, h:48, type:3},//木箱
+      {x:2550, y:332, w:48, h:48, type:3},//木箱
+      {x:3250, y:332, w:48, h:48, type:3},//木箱
+      {x:4050, y:332, w:48, h:48, type:3},//木箱
+      {x:4848, y:332, w:48, h:48, type:6},//上に飛ぶバネ
+
+      {x:192, y:240, w:96, h:48, type:7, startY:130, dir:1, speed:1, range:270},//上下移動の金属床
+      {x:900, y:240, w:96, h:48, type:7, startY:50, dir:1, speed:1, range:270},//上下移動の金属床
+      {x:1510, y:290, w:96, h:48, type:7, startY:260, dir:1, speed:1, range:150},//上下移動の金属床
+      {x:1900, y:240, w:48, h:48, type:7, startY:220, dir:1, speed:1, range:200},//上下移動の金属床
+      {x:2480, y:240, w:48, h:48, type:7, startY:220, dir:1, speed:1, range:200},//上下移動の金属床
+
+      {x:1420, y:170, w:96, h:48, type:4, startX:1490, dir:1, speed:2, range:150},//左右に動く床
+      {x:2900, y:185, w:48, h:48, type:4, startX:3070, dir:1, speed:2, range:170},//左右に動く床
+      {x:2700, y:377, w:48, h:48, type:4, startX:2800, dir:1, speed:2, range:350},//左右に動く床
+      {x:3630, y:377, w:48, h:48, type:4, startX:3700, dir:1, speed:2, range:150},//左右に動く床
+      {x:4250, y:377, w:48, h:48, type:4, startX:4150, dir:1, speed:2, range:300},//左右に動く床
+      {x:4400, y:277, w:48, h:48, type:4, startX:4400, dir:1, speed:2, range:300},//左右に動く床
+
+      {x:400, y:227, w:48, h:48, type:3},//木箱
+      {x:1000, y:227, w:48, h:48, type:3},//木箱
+
+      {x:1100, y:32, w:48, h:48, type:3},//木箱
+      {x:1100, y:-16, w:48, h:48, type:3},//木箱
+      {x:1100, y:-64, w:48, h:48, type:3},//木箱
+      {x:1100, y:-112, w:48, h:48, type:3},//木箱
+      {x:1100, y:-160, w:48, h:48, type:3},//木箱
+      {x:1100, y:-208, w:48, h:48, type:3},//木箱
+      {x:1100, y:-256, w:48, h:48, type:3},//木箱
+      {x:1050, y:-256, w:48, h:48, type:3},//木箱
+      {x:1000, y:-256, w:48, h:48, type:3},//木箱
+      {x:1150, y:-256, w:48, h:48, type:3},//木箱
+      {x:1200, y:-256, w:48, h:48, type:3},//木箱
+
+      {x:1630, y:232, w:48, h:48, type:3},//木箱
+      {x:2250, y:232, w:48, h:48, type:3},//木箱
+      {x:3000, y:232, w:48, h:48, type:3},//木箱
+      {x:4050, y:232, w:48, h:48, type:3},//木箱
+
+
+      {x:700, y:132, w:48, h:48, type:3},//木箱
+      {x:1400, y:132, w:48, h:48, type:3},//木箱
+      {x:2100, y:132, w:48, h:48, type:3},//木箱
+      {x:2500, y:132, w:48, h:48, type:3},//木箱
+      {x:2700, y:132, w:48, h:48, type:3},//木箱
+      {x:3000, y:132, w:48, h:48, type:3},//木箱
+      {x:4000, y:132, w:48, h:48, type:3},//木箱
+      {x:4700, y:132, w:48, h:48, type:3},//木箱
+
+
+
+      {x:2200, y:32, w:48, h:48, type:3},//木箱
+      {x:2200, y:-16, w:48, h:48, type:3},//木箱
+      {x:2200, y:-64, w:48, h:48, type:3},//木箱
+      {x:2200, y:-112, w:48, h:48, type:3},//木箱
+      {x:2200, y:-160, w:48, h:48, type:3},//木箱
+      {x:2200, y:-208, w:48, h:48, type:3},//木箱
+      {x:2200, y:-256, w:48, h:48, type:3},//木箱
+      {x:2150, y:-256, w:48, h:48, type:3},//木箱
+      {x:2100, y:-256, w:48, h:48, type:3},//木箱
+      {x:2250, y:-256, w:48, h:48, type:3},//木箱
+      {x:2300, y:-256, w:48, h:48, type:3},//木箱
+
+      {x:3000, y:32, w:48, h:48, type:3},//木箱
+
+      {x:2800, y:32, w:48, h:48, type:3},//木箱
+      {x:2800, y:-16, w:48, h:48, type:3},//木箱
+      {x:2800, y:-64, w:48, h:48, type:3},//木箱
+      {x:2800, y:-112, w:48, h:48, type:3},//木箱
+      {x:2800, y:-160, w:48, h:48, type:3},//木箱
+      {x:2800, y:-208, w:48, h:48, type:3},//木箱
+      {x:2800, y:-256, w:48, h:48, type:3},//木箱
+      {x:2750, y:-256, w:48, h:48, type:3},//木箱
+    ],
+enemies: [
+// ▼ 回復アイテム
+//{ x: 550, y: 260, w:36, h: 48, type: "heal" },
+      {x:350, y:232, w:36, h: 48, type: "heal" },
+            {x:3500, y:332, w:36, h: 48, type: "heal" },
+            {x:4150, y:332, w:36, h: 48, type: "heal" },
+// ▼ 敵
+{x:480, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
+//{x:550, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:850, y:232, w:36, h:48, type:"jumper"},
+{x:550, y:432, w:36, h:48, type:"jumper"},
+{x:520, y:300, w:36, h:48, speed:1, type:"seeker"},
+//{x:550, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:450, y:232, w:36, h:48, type:"heal"},
+{x:450, y:432, w:36, h:48, type:"heal"},
+{x:450, y:232, w:36, h:48, type:"heal"},
+{x:4000, y:32, w:36, h:48, type:"heal"},
+
+//{x:600, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
+//{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:770, y:50, w:36, h:48, type:"heal"},
+{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:800, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
+{x:950, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:900, y:170, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
+//{x:900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:900, y:180, w:36, h:48, type:"chaser", speed:1.3},
+
+{x:950, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:1050, y:432, w:36, h:48, type:"heal"},
+{x:1050, y:232, w:36, h:48, type:"heal"},
+{x:1000, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
+{x:1000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:1200, y:-30, w:36, h:48, type:"heal"},
+
+{x:1100, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
+//{x:1200, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:1200, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:1700, y:332, w:36, h:48, type:"heal"},
+{x:1450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:1500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+
+{x:1950, y:300, w:36, h:48, type:"phasePlatform"},
+{x:2000, y:200, w:36, h:48, type:"phasePlatform"},
+
+//{x:2050, y:80, w:36, h:48, type:"ball"},
+// ===== 第2ブロック =====
+
+{x:2280, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
+{x:2300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:2400, y:432, w:36, h:48, type:"jumper"},
+//{x:2300, y:432, w:36, h:48, type:"jumper"},
+{x:2320, y:300, w:36, h:48, speed:1, type:"seeker"},
+//{x:2350, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+
+{x:2400, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
+//{x:2450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:2500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+
+{x:2650, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
+//{x:2650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+
+{x:2650, y:420, w:36, h:48, type:"heal"},
+{x:2700, y:120, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
+{x:2650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:2700, y:180, w:36, h:48, type:"chaser", speed:1.3},
+
+{x:2750, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
+{x:2800, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
+{x:2800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:2850, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:2900, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:2950, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+{x:3000, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
+
+//{x:2850, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:2800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:2950, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+//{x:3000, y:-50, w:36, h:48, type:"ball"},
+//{x:3000, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:3000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:3200, y:80, w:36, h:48, type:"heal"},
+{x:3300, y:332, w:36, h:48, type:"jump"},
+{x:3350, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
+{x:3350, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+//{x:3400, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:3450, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+//{x:3500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:3500, y:50, w:36, h:48, type:"hover8"},
+{x:3550, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:3600, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:3650, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
+{x:3650, y:300, w:36, h:48, type:"phasePlatform"},
+{x:3700, y:250, w:36, h:48, type:"phasePlatform"},
+{x:3650, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
+{x:3700, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
+{x:3700, y:200, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
+//{x:3750, y:130, w:36, h:48, type:"ball"},
+//{x:3850, y:80, w:36, h:48, type:"ball"},
+// ===== 第3ブロック =====
+//{x:4000, y:50, w:36, h:48, type:"hover8"},
+{x:4080, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
+{x:4100, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:4100, y:332, w:36, h:48, type:"jumper"},
+
+{x:4120, y:300, w:36, h:48, speed:1, type:"seeker"},
+//{x:4150, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+
+{x:4200, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
+//{x:4200, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:4330, y:574, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
+{x:4400, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
+//{x:4300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+
+{x:4500, y:50, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
+//{x:4500, y:50, w:36, h:48, type:"hover8"},
+//{x:4500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:4500, y:180, w:36, h:48, type:"chaser", speed:1.3},
+
+{x:4550, y:574, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
+{x:4600, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
+{x:4600, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
+//{x:4650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:4700, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:4700, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
+{x:4800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:4800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+//{x:5000, y:50, w:36, h:48, type:"hover8"},
+{x:5200, y:48, w:36, h:48, type:"live"},
+//{x:4950, y:130, w:36, h:48, type:"ball"},
+//{x:5050, y:30, w:36, h:48, type:"ball"},
+//{x:4900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"}
+],
+
+    boss: null
+  },
          // --- Stage 5---
   {
     blocks: [
