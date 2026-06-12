@@ -10,25 +10,25 @@ export const LEVELS = [
     blocks: [
 //地面
       {x:0, y:480, w:192, h:48, type:54},//ノーマル床
-      {x:0, y:528, w:192, h:48, type:54},//ノーマル床
+      //{x:0, y:528, w:192, h:48, type:54},//ノーマル床
       {x:192, y:480, w:96, h:48, type:33},//海
       {x:288, y:480, w:1152, h:48, type:54},//ノーマル床
-      {x:288, y:528, w:1152, h:48, type:54},//ノーマル床
+      //{x:288, y:528, w:1152, h:48, type:54},//ノーマル床
       {x:1440, y:480, w:48, h:48, type:33},//海
       {x:1488, y:480, w:374, h:48, type:54},//ノーマル床
-      {x:1488, y:528, w:374, h:48, type:54},//ノーマル床
+      //{x:1488, y:528, w:374, h:48, type:54},//ノーマル床
       {x:1872, y:480, w:96, h:48, type:33},//海
       {x:1968, y:480, w:432, h:48, type:54},//ノーマル床
-      {x:1968, y:528, w:432, h:48, type:54},//ノーマル床
+      //{x:1968, y:528, w:432, h:48, type:54},//ノーマル床
       {x:2400, y:480, w:96, h:48, type:33},//海
       {x:2496, y:480, w:528, h:48, type:54},//ノーマル床
-      {x:2496, y:528, w:528, h:48, type:54},//ノーマル床
+      //{x:2496, y:528, w:528, h:48, type:54},//ノーマル床
       {x:3024, y:480, w:288, h:48, type:33},//海
       {x:3312, y:480, w:720, h:48, type:54},//ノーマル床
-      {x:3312, y:528, w:720, h:48, type:54},//ノーマル床
+      //{x:3312, y:528, w:720, h:48, type:54},//ノーマル床
       {x:4032, y:480, w:96, h:48, type:33},//海
       {x:4128, y:480, w:2000, h:48, type:54},//ノーマル床
-      {x:4128, y:528, w:2000, h:48, type:54},//ノーマル床
+      //{x:4128, y:528, w:2000, h:48, type:54},//ノーマル床
 
 
       //天井
@@ -401,67 +401,68 @@ enemies: [
 //{x:600, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
 //{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:770, y:50, w:36, h:48, type:"heal"},
-{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:800, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
 {x:800, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
-{x:950, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:950, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:900, y:170, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
 //{x:900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:900, y:180, w:36, h:48, type:"chaser", speed:1.3},
 
 {x:950, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+
 {x:1050, y:432, w:36, h:48, type:"heal"},
 {x:1000, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
 {x:1000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:1200, y:-30, w:36, h:48, type:"heal"},
-
+{x:1200, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
 {x:1100, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 
 //{x:1200, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:1200, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:1500, y:332, w:36, h:48, type:"heal"},
-{x:1450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:1450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 //{x:1500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
+{x:1600, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
 {x:1950, y:300, w:36, h:48, type:"phasePlatform"},
 {x:2000, y:200, w:36, h:48, type:"phasePlatform"},
 
-{x:2050, y:80, w:36, h:48, type:"ball"},
+
 // ===== 第2ブロック =====
 
 {x:2280, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
-{x:2300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:2300, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:2300, y:332, w:36, h:48, type:"jumper"},
 {x:2300, y:432, w:36, h:48, type:"jumper"},
 {x:2320, y:300, w:36, h:48, speed:1, type:"seeker"},
 //{x:2350, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
+{x:2400, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
 {x:2400, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
 //{x:2450, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:2500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:2500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 
 {x:2650, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
 //{x:2650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 
 {x:2650, y:420, w:36, h:48, type:"heal"},
 {x:2700, y:120, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
-{x:2650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:2650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:2700, y:180, w:36, h:48, type:"chaser", speed:1.3},
 
 {x:2750, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 
 {x:2800, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
 {x:2800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:2850, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:2900, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:2950, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-{x:3000, y:528, w:36, h:48, dir:1, speed:1, type:"needle"},
-
-//{x:2850, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:2800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:2850, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:2900, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:2950, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:3000, y:-50, w:36, h:48, type:"ball"},
+{x:3000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:3000, y:48, w:36, h:48, dir:-1, speed:1, type:"needleDown"},
+//{x:2850, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:2800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+
+
 //{x:3000, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:3000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:3200, y:80, w:36, h:48, type:"heal"},
@@ -472,6 +473,7 @@ enemies: [
 {x:3450, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 //{x:3500, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:3550, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:3600, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
 {x:3600, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:3650, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 
@@ -480,17 +482,16 @@ enemies: [
 {x:3650, y:250, w:36, h:48, dir:-1, speed:1, type:"fly", vy:1},
 {x:3700, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
 {x:3700, y:200, w:36, h:48, type:"phaser", timer:0, interval:120, visible:true, active:true},
-{x:3750, y:130, w:36, h:48, type:"ball"},
-{x:3850, y:80, w:36, h:48, type:"ball"},
+
 // ===== 第3ブロック =====
 
 {x:4080, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
-{x:4100, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+//{x:4100, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:4100, y:332, w:36, h:48, type:"jumper"},
 
 {x:4120, y:300, w:36, h:48, speed:1, type:"seeker"},
 //{x:4150, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-
+{x:4200, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
 {x:4200, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
 //{x:4200, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:4330, y:574, w:36, h:48, dir:-1, speed:1, type:"needle"},
@@ -510,11 +511,10 @@ enemies: [
 //{x:4650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 //{x:4700, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:4700, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
-{x:4800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
+{x:800, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
+//{x:4800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 {x:4800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-{x:4950, y:130, w:36, h:48, type:"ball"},
-{x:5050, y:30, w:36, h:48, type:"ball"},
+
 //{x:4900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"}
 ],
 
