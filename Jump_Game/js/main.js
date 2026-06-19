@@ -162,13 +162,13 @@ function startStage(s){
       b.range = b.range ?? 200;
     }
 
-    // ===== 上下に動く床 =====
-    if (b.type === 7) {
-      b.startY = b.startY ?? b.y;
-      b.dir = b.dir ?? 1;
-      b.speed = b.speed ?? 2;
-      b.range = b.range ?? 150;
-    }
+// ===== 上下に動く床 =====
+if (b.type === 7 || b.type === 61) {
+  b.startY = b.startY ?? b.y;
+  b.dir = b.dir ?? 1;
+  b.speed = b.speed ?? 2;
+  b.range = b.range ?? 150;
+}
 
     // ===== 滑る床 =====
     if (b.type === 8) {
@@ -470,7 +470,9 @@ if (b.type === 59) {
       if (b.type === 4) e.x += b.dir * b.speed;
 
       // 上下に動く床
-      if (b.type === 7) e.y += b.dir * b.speed;
+if (b.type === 7 || b.type === 61) {
+  e.y += b.dir * b.speed;
+}
 
       // 落ちる床
       if (b.type === 5 && !b.fall) {
@@ -568,11 +570,18 @@ function loop(){
       if(b.x < (b.startX ?? b.x)) b.dir = 1;
     }
 
-    // ===== 上下に動く床 =====
-    if(b.type === 7){
-      b.y += (b.dir ?? 1) * (b.speed ?? 2);
-      if(b.y > (b.startY ?? b.y) + (b.range ?? 150)) b.dir = -1;
-      if(b.y < (b.startY ?? b.y)) b.dir = 1;
+// ===== 上下に動く床 =====
+if (b.type === 7 || b.type === 61) {
+
+  b.y += (b.dir ?? 1) * (b.speed ?? 2);
+
+  if (b.y > (b.startY ?? b.y) + (b.range ?? 150)) {
+    b.dir = -1;
+  }
+
+  if (b.y < (b.startY ?? b.y)) {
+    b.dir = 1;
+  }
 
       const onPlayer =
         player.x + player.w > b.x &&
