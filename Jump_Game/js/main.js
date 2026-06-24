@@ -171,7 +171,7 @@ if (b.type === 7 || b.type === 61) {
 }
 
     // ===== 滑る床 =====
-    if (b.type === 8) {
+    if (b.type === 8 || b.type ===52 ) {
       b.slippery = true;
     }
 
@@ -500,7 +500,7 @@ if (b.type === 56 && e === player) {
 }
 
       // 滑る床
-      if (b.type === 8 && e === player) {
+      if (b.type === 8 || b.type ===52 && e === player) {
         e.friction = 0.00;
         player.onSlippery = true;
       } else {
@@ -751,7 +751,7 @@ if (b.type === 12){
   // 摩擦（滑る床）
   let friction = 0.1;
   for(const b of blocks){
-    if(b.type === 8 &&
+    if(b.type === 8 || b.type ===52 &&
        player.x + player.w > b.x &&
        player.x < b.x + b.w &&
        player.y + player.h >= b.y - 4 &&
