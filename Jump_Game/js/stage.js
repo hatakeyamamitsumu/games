@@ -377,7 +377,7 @@ export const LEVELS = [
       {x:4800, y:389, w:48, h:48, type:52},////障害物ブロックコケ1
       {x:4800, y:437, w:48, h:48, type:54},//障害物ブロック
 
-
+      {x:4900, y:300, w:48, h:144, type:61, startY:300, dir:1, speed:1, range:80},//上下移動の金属床
       //{x:4200, y:149, w:36, h:48, type:51},//モアイブロック2
       //{x:4200, y:197, w:36, h:48, type:54},//障害物ブロック
       //{x:4200, y:245, w:36, h:48, type:54},//障害物ブロック
@@ -515,15 +515,18 @@ enemies: [
 {x:4550, y:574, w:36, h:48, dir:-1, speed:1, type:"needle"},
 
 {x:4600, y:432, w:36, h:48, dir:1, speed:6, type:"rush"},
-{x:4600, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:4400, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 
 //{x:4650, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
 //{x:4700, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:4700, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:4500, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 {x:800, y:48, w:36, h:48, dir:1, speed:1, type:"needleDown"},
 //{x:4800, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"},
-{x:4800, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
-
+{x:4890, y:332, w:72, h:96, dir:1, speed:1, type:"wander"},
+{x:4890, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:5000, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:5200, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
+{x:5300, y:528, w:36, h:48, dir:-1, speed:1, type:"needle"},
 //{x:4900, y:132, w:36, h:48, dir:-1, speed:5, type:"thunder"}
 ],
 
