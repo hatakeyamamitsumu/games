@@ -155,7 +155,7 @@ function startStage(s){
     }
 
     // ===== 横に動く床 =====
-    if (b.type === 4) {
+    if (b.type === 4 || b.type === 62) {
       b.startX = b.startX ?? b.x;
       b.dir = b.dir ?? 1;
       b.speed = b.speed ?? 2;
@@ -467,7 +467,7 @@ if (b.type === 59) {
       e.onGround = true;
 
       // 横に動く床
-      if (b.type === 4) e.x += b.dir * b.speed;
+      if (b.type === 4 || b.type === 62) e.x += b.dir * b.speed;
 
       // 上下に動く床
 if (b.type === 7 || b.type === 61) {
@@ -519,7 +519,7 @@ if (b.type === 56 && e === player) {
     if (ex2 - bx1 < bx2 - ex1) e.x = bx1 - e.w;
     else e.x = bx2;
 
-    if (b.type === 4) e.x += b.dir * b.speed;
+    if (b.type === 4 || b.type === 62) e.x += b.dir * b.speed;
     e.vx = 0;
   }
 }
@@ -564,7 +564,7 @@ function loop(){
   for(const b of blocks){
 
     // ===== 横に動く床 =====
-    if(b.type === 4){
+    if(b.type === 4 || b.type === 62){
       b.x += (b.dir ?? 1) * (b.speed ?? 2);
       if(b.x > (b.startX ?? b.x) + (b.range ?? 200)) b.dir = -1;
       if(b.x < (b.startX ?? b.x)) b.dir = 1;
