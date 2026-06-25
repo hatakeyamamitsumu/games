@@ -144,7 +144,7 @@ function startStage(s){
   for (const b of blocks) {
 
     // ===== 落ちる床 =====
-    if (b.type === 5) {
+    if (b.type === 5 || b.type === 63) {
       b.initX = b.initX ?? b.x;
       b.initY = b.initY ?? b.y;
       b.fall = false;
@@ -475,7 +475,7 @@ if (b.type === 7 || b.type === 61) {
 }
 
       // 落ちる床
-      if (b.type === 5 && !b.fall) {
+      if (b.type === 5 || b.type === 63 && !b.fall) {
         b.fall = true;
         b.vy = 0;
         b.timer = 0;
@@ -601,7 +601,7 @@ if (b.type === 7 || b.type === 61) {
     }
 
     // ===== 落ちる床 =====
-    if(b.type === 5){
+    if(b.type === 5 || b.type === 63){
       if(!b.fall){
         const onPlayer =
           player.x + player.w > b.x &&
