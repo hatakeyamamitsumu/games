@@ -77,8 +77,8 @@ const fgImages = [
 import { 
   enemySprite, 
   bossSprite, 
-  needleSprite, 
-  needleDownSprite,
+  needleEnemySprite, 
+  needleDownEnemySprite,
   jumpEnemySprite, 
   flyEnemySprite,
   rushEnemySprite,
@@ -92,7 +92,8 @@ import {
   hover8EnemySprite,
   phasePlatformEnemySprite,
   smokeBallEnemySprite,
-  smokeFloatEnemySprite
+  smokeFloatEnemySprite,
+  fishEnemySprite
 } from "./enemy.js";
 
 // ▼ ブロック画像（1〜59）
@@ -211,8 +212,8 @@ drawParallax(bgNearNear, 1.0);
   // =====================
   let sprite;
   switch (e.type) {
-    case "needle":  sprite = needleSprite; break;
-    case "needleDown":  sprite = needleDownSprite; break;
+    case "needle":  sprite = needleEnemySprite; break;
+    case "needleDown":  sprite = needleDownEnemySprite; break;
     case "jump":    sprite = jumpEnemySprite; break;
     case "fly":     sprite = flyEnemySprite; break;
     case "rush":    sprite = rushEnemySprite; break;
@@ -227,7 +228,7 @@ drawParallax(bgNearNear, 1.0);
     case "phasePlatform":  sprite = phasePlatformEnemySprite; break;
     case "smokeBall":  sprite = smokeBallEnemySprite; break;
     case "smokeFloat":  sprite = smokeFloatEnemySprite; break;
-
+    case "fish":  sprite = fishEnemySprite; break;
     default:        sprite = enemySprite;
   }
 

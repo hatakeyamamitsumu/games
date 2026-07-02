@@ -50,11 +50,15 @@ ballEnemySprite.src = "./images/characters/enemy14.png";
 export const phasePlatformEnemySprite = new Image();
 phasePlatformEnemySprite.src = "./images/characters/enemy15.png";
 
-export const needleSprite = new Image();
-needleSprite.src = "./images/characters/enemy16.png";
+export const needleEnemySprite = new Image();
+needleEnemySprite.src = "./images/characters/enemy16.png";
 
-export const needleDownSprite = new Image();
-needleDownSprite.src = "./images/characters/enemy17.png";
+export const needleDownEnemySprite = new Image();
+needleDownEnemySprite.src = "./images/characters/enemy17.png";
+
+export const fishEnemySprite = new Image();
+fishEnemySprite.src = "./images/characters/enemy18.png";
+
 
 
 export const bossSprite = new Image();
@@ -151,6 +155,54 @@ if (e.type === "jump") {
   continue;
 }
 
+// --------------------------------
+// fish：左右に放物線ジャンプ
+// --------------------------------
+if (e.type === "fish") {
+
+  const GRAVITY   = 0.1;
+  const MAX_FALL  = 8;
+  const JUMP_POWER = -8;
+
+  // ===== 初期化 =====
+  if (!e.initialized) {
+    e.initialized = true;
+
+    e.baseX = e.x;          // 中心位置
+    e.baseY = e.y + 100;    // 海面
+    e.dir = -1;             // 最初は左へ
+    e.speed = 2;
+    e.vy = JUMP_POWER;
+  }
+
+  // ===== 横移動 =====
+e.x += e.dir * e.speed * 0.3;
+
+  // ===== 重力 =====
+  e.vy += GRAVITY;
+  if (e.vy > MAX_FALL) e.vy = MAX_FALL;
+
+  // ===== 縦移動 =====
+  e.y += e.vy;
+
+  // ===== 海面に戻ったら再ジャンプ =====
+  if (e.y >= e.baseY) {
+
+    // 海面に戻す
+    e.y = e.baseY;
+
+    // ジャンプ
+    e.vy = JUMP_POWER;
+
+    // 左右反転
+    e.dir *= -1;
+  }
+
+  // ===== アニメーション =====
+  animate(e);
+
+  continue;
+}
 // --------------------------------
 // needle：固定
 // --------------------------------
