@@ -140,7 +140,7 @@ export const LEVELS = [
       {x:200, y:250, w:192, h:48, type:4, startX:200, dir:1, speed:2, range:200},//左右に動く床
       {x:800, y:150, w:192, h:48, type:4, startX:800, dir:1, speed:2, range:200},//左右に動く床
       {x:1000, y:350, w:192, h:48, type:4, startX:1000, dir:1, speed:2, range:200},//左右に動く床
-      {x:1300, y:150, w:192, h:48, type:4, startX:1300, dir:1, speed:2, range:200},//左右に動く床
+      {x:1500, y:150, w:192, h:48, type:4, startX:1500, dir:1, speed:2, range:200},//左右に動く床
       {x:1500, y:350, w:192, h:48, type:4, startX:1500, dir:1, speed:2, range:200},//左右に動く床
       {x:1700, y:250, w:192, h:48, type:4, startX:1700, dir:1, speed:2, range:200},//左右に動く床
       {x:1800, y:350, w:192, h:48, type:4, startX:1800, dir:1, speed:2, range:200},//左右に動く床
@@ -204,6 +204,7 @@ export const LEVELS = [
       {x:4000, y:100, w:48, h:48, type:57},//左から右にすり抜ける床
       {x:4000, y:150, w:48, h:48, type:54},//障害物ブロック
       {x:4200, y:100, w:48, h:48, type:54},//障害物ブロック
+      {x:4600, y:50, w:48, h:48, type:54},//障害物ブロック
       {x:4600, y:100, w:48, h:48, type:57},//左から右にすり抜ける床
       {x:4600, y:150, w:48, h:48, type:54},//障害物ブロック
       //{x:4800, y:100, w:48, h:48, type:54},//障害物ブロック
@@ -221,12 +222,14 @@ export const LEVELS = [
       {x:750, y:200, w:48, h:48, type:6},//上に飛ぶバネ
         {x:800, y:200, w:48, h:48, type:54},//障害物ブロック
       {x:1050, y:200, w:48, h:48, type:6},//上に飛ぶバネ
+      {x:1200, y:150, w:48, h:48, type:54},//障害物ブロック
         {x:1200, y:200, w:48, h:48, type:58},//右から左にすり抜ける床
         {x:1200, y:250, w:48, h:48, type:54},//障害物ブロック
         {x:1150, y:250, w:48, h:48, type:54},//障害物ブロック
       {x:1150, y:200, w:48, h:48, type:6},//上に飛ぶバネ
       {x:1250, y:200, w:48, h:48, type:54},//障害物ブロック
       {x:1350, y:200, w:48, h:48, type:59},//下からすり抜ける床
+      {x:1450, y:150, w:48, h:48, type:54},//障害物ブロック
       {x:1450, y:200, w:48, h:48, type:57},//左から右にすり抜ける床
       {x:1450, y:250, w:48, h:48, type:54},//障害物ブロック
       {x:1650, y:200, w:48, h:48, type:6},//上に飛ぶバネ
@@ -254,6 +257,8 @@ export const LEVELS = [
 
         {x:3750, y:250, w:48, h:48, type:54},//障害物ブロック
       {x:3850, y:200, w:48, h:48, type:54},//障害物ブロック
+      {x:3950, y:100, w:48, h:48, type:54},//障害物ブロック
+      {x:3950, y:150, w:48, h:48, type:57},//左から右にすり抜ける床
           {x:3950, y:200, w:48, h:48, type:57},//左から右にすり抜ける床
           {x:3950, y:250, w:48, h:48, type:54},//障害物ブロック
       {x:4050, y:200, w:48, h:48, type:54},//障害物ブロック
@@ -292,6 +297,7 @@ export const LEVELS = [
       {x:2000, y:300, w:48, h:48, type:6},//上に飛ぶバネ
       {x:2100, y:300, w:48, h:48, type:59},//下からすり抜ける床
       {x:2200, y:350, w:48, h:48, type:54},//障害物ブロック
+      {x:2300, y:250, w:48, h:48, type:54},//障害物ブロック
       {x:2300, y:300, w:48, h:48, type:58},//右から左にすり抜ける床
       {x:2300, y:350, w:48, h:48, type:54},//障害物ブロック
       {x:2400, y:300, w:48, h:48, type:6},//上に飛ぶバネ
@@ -309,6 +315,7 @@ export const LEVELS = [
       {x:3400, y:300, w:48, h:48, type:6},//上に飛ぶバネ
       {x:3500, y:300, w:48, h:48, type:6},//上に飛ぶバネ
       {x:3600, y:300, w:48, h:48, type:6},//上に飛ぶバネ
+      {x:3700, y:250, w:48, h:48, type:54},//障害物ブロック
       {x:3700, y:300, w:48, h:48, type:58},//右から左にすり抜ける床
       {x:3700, y:350, w:48, h:48, type:54},//障害物ブロック
 
@@ -396,6 +403,7 @@ export const LEVELS = [
 {x:100, y:450, w:36, h:48, type:"jumper"},
 {x:700, y:48, w:36, h:48, type:"live"},
 {x:800, y:48, w:36, h:48, type:"heal"},
+{x:800, y:300, w:36, h:48, type:"phasePlatform"},
 {x:800, y:200, w:36, h:48, dir:-1, speed:1, type:"jump"},
 {x:900, y:180, w:36, h:48, type:"chaser", speed:1.3},
 {x:950, y:270, w:36, h:48, type:"jumper"},
@@ -403,14 +411,14 @@ export const LEVELS = [
 
 {x:1200, y:0, w:36, h:48, type:"heal"},
 {x:1200, y:200, w:36, h:48, dir:-1, speed:1, type:"jump"},
-
+{x:1200, y:300, w:36, h:48, type:"phasePlatform"},
 {x:1400, y:270, w:36, h:48, type:"jumper"},
 
 
 {x:1540, y:200, w:36, h:48, type:"jumper"},
 {x:1480, y:422, w:36, h:48, type:"heal"},
 {x:1600, y:332, w:36, h:48, type:"jumper"},
-
+{x:1600, y:200, w:36, h:48, type:"phasePlatform"},
 
 
 {x:1888, y:332, w:36, h:48, dir:1, speed:1, type:"wander"},
@@ -425,7 +433,7 @@ export const LEVELS = [
 
 
 
-
+{x:2200, y:400, w:36, h:48, type:"phasePlatform"},
 {x:2300, y:400, w:36, h:48, type:"seeker"},
 {x:2350, y:0, w:36, h:48, type:"heal"},
 
@@ -435,7 +443,7 @@ export const LEVELS = [
 {x:2650, y:430, w:36, h:48, type:"heal"},
 
 //{x:2590, y:50, w:36, h:48, type:"heal"},
-
+{x:2700, y:200, w:36, h:48, type:"phasePlatform"},
 
 {x:2700, y:180, w:36, h:48, type:"chaser", speed:1.3},
 //{x:2700, y:120, w:36, h:48, type:"phaser",timer:0,interval:120,visible:true,active:true},
@@ -450,7 +458,7 @@ export const LEVELS = [
 {x:3000, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
 {x:3100, y:345, w:36, h:48, type:"heal"},
 {x:3150, y:432, w:36, h:48, type:"jumper"},
-
+{x:3200, y:400, w:36, h:48, type:"phasePlatform"},
 {x:3300, y:200, w:36, h:48, type:"ball"},
 //{x:3300, y:432, w:36, h:48, type:"jumper"},
 
@@ -471,7 +479,7 @@ export const LEVELS = [
 
 {x:3688, y:332, w:36, h:48, type:"wander"},
 
-{x:3700, y:200, w:36, h:48, type:"phasePlatform"},
+{x:3750, y:200, w:36, h:48, type:"phasePlatform"},
 
 {x:3800, y:382, w:36, h:48, type:"jumper"},
 
@@ -479,7 +487,7 @@ export const LEVELS = [
 {x:3910, y:430, w:36, h:48, type:"heal"},
 //{x:3980, y:528, w:48, h:48, type:"needle"},
 
-
+{x:4000, y:150, w:36, h:48, type:"phasePlatform"},
 {x:4050, y:100, w:36, h:48, type:"heal"},
 {x:4100, y:400, w:36, h:48, type:"seeker"},
 
@@ -489,7 +497,7 @@ export const LEVELS = [
 {x:4600, y:432, w:36, h:48, dir:-1, speed:1, type:"jump"},
 {x:4650, y:528, w:48, h:48, type:"needle"},
 {x:4650, y:70, w:48, h:48, type:"ball"},
-
+{x:4700, y:300, w:36, h:48, type:"phasePlatform"},
 {x:4800, y:300, w:36, h:48, dir:1, speed:1, type:"fly", vy:1},
 
 {x:5000, y:432, w:36, h:48, type:"jumper"},
